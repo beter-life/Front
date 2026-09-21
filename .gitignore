@@ -1,0 +1,11 @@
+# Local Codex harness output
+.harness/logs/
+.harness/tmp/
+
+# Local secrets and runtime files
+.env
+.env.*
+!.env.example
+node_modules/
+coverage/
+dist/

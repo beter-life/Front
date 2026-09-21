@@ -1,0 +1,28 @@
+# Conservative, project-scoped Codex settings. Supported by Codex CLI 0.155.0.
+tool_output_token_limit = 5000
+project_doc_max_bytes = 12000
+web_search = "cached"
+
+[skills]
+max_context_tokens = 2000
+
+[[hooks.SessionStart]]
+matcher = "startup|resume"
+
+[[hooks.SessionStart.hooks]]
+type = "command"
+command = 'node "$(git rev-parse --show-toplevel)/.codex/scripts/session-start.mjs"'
+command_windows = "powershell -NoProfile -Command \"& node (Join-Path (git rev-parse --show-toplevel) '.codex\\scripts\\session-start.mjs')\""
+timeout = 5
+status_message = "Loading compact project state"
+additional_context_limit = 400
+
+[[hooks.PreToolUse]]
+matcher = "^Bash$"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = 'node "$(git rev-parse --show-toplevel)/.codex/scripts/compact-hook.mjs"'
+command_windows = "powershell -NoProfile -Command \"& node (Join-Path (git rev-parse --show-toplevel) '.codex\\scripts\\compact-hook.mjs')\""
+timeout = 5
+status_message = "Checking compact command policy"
