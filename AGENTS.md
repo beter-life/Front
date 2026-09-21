@@ -9,6 +9,7 @@
 
 ## Architecture
 
+- Scope: frontend; prioritize design, accessibility, and client-side security.
 - This repository is being bootstrapped. Record confirmed architecture in the
   `architecture` skill, not here.
 - Keep product code, tests, documentation, and generated artifacts separated.
