@@ -2,13 +2,12 @@
 
 | Field | Value |
 | --- | --- |
-| MODULE | MDL 1 — Platform Foundation & Identity |
-| STATUS | NOT_STARTED |
+| MODULE | MDL 1F — Frontend Foundation & Identity |
+| STATUS | BLOCKED_EXTERNAL_EMAIL_CALLBACK |
 | SCOPE | Frontend |
-| BRANCH | main |
-| LAST_STABLE_COMMIT | 083a2cc59fa4d1ac29cbbe0f8c7742bbd5c3ed05 (approved MDL 0) |
-| CURRENT_TASK | Await frontend MDL 1 implementation instructions |
-| DONE | MDL 0 COMPLETE and approved; independent Git repository with origin https://github.com/beter-life/Front.git |
-| BLOCKERS | None |
-| TESTS | Harness and SessionStart passed; Codex config loaded; required files, secrets and Git ignores checked |
-| NEXT | Initialize frontend platform foundation |
+| BRANCH | codex/mdl1f-frontend-foundation |
+| LAST_TESTED_COMMIT | 606f1b5 — implementation, local and real API gates passed |
+| DONE | React/Vite platform, accessible identity flows, protected profile, CI and harness |
+| TESTS | Lint, types, unit, integration, build, browser desktop/mobile, secret scan, dependency audit, harness: PASS; real Supabase login, health, profile persistence and ownership: PASS |
+| BLOCKERS | Real signup confirmation and recovery callback require a controlled mailbox link opened in the initiating browser |
+| NEXT | Validate real signup confirmation and recovery callback in the same browser; then close MDL 1F gate |
