@@ -1,12 +1,15 @@
 import type { AuthChangeEvent } from '@supabase/supabase-js';
 import type { AuthCallback } from './callback';
+import type { PkcePhase } from './pkce-storage';
 
 interface CallbackDiagnostic {
   callbackStarted?: boolean;
-  callbackCompleted?: boolean;
+  callbackFinished?: boolean;
   authEvent?: AuthChangeEvent;
   sessionPresent: boolean;
-  result?: 'ready' | 'sdk_error' | 'unprocessed_code' | 'session_error';
+  codeVerifierPresent?: boolean;
+  errorCode?: string;
+  errorMessage?: string;
 }
 
 // Temporary diagnostics for the human MDL 1F gate; compiled out of production.
@@ -16,7 +19,18 @@ export function traceCallback(callback: AuthCallback | null, diagnostic: Callbac
   // eslint-disable-next-line no-console -- Requested localhost-only, credential-free callback diagnostics.
   console.info('[auth-callback]', {
     pathname: callback.kind === 'recovery' ? '/auth/recovery' : '/auth/confirm',
-    hasCode: callback.hasCode,
+    origin: window.location.origin,
+    codePresent: callback.hasCode,
     ...diagnostic,
   });
+}
+export function traceRecoveryRequest(storageKey: string, codeVerifierPresentBefore: boolean, codeVerifierPresentAfter: boolean) {
+  if (!import.meta.env.DEV || import.meta.env.MODE !== 'development' || window.location.hostname !== 'localhost') return;
+  // eslint-disable-next-line no-console -- Temporary local diagnostics; no credential values.
+  console.info('[auth-pkce-request]', { origin: window.location.origin, storageKey, codeVerifierPresentBefore, codeVerifierPresentAfter });
+}
+export function traceVerifierRemoval(storageKey: string, phase: PkcePhase) {
+  if (!import.meta.env.DEV || import.meta.env.MODE !== 'development' || window.location.hostname !== 'localhost') return;
+  // eslint-disable-next-line no-console -- Identify SDK cleanup phase without logging the key suffix or value.
+  console.info('[auth-pkce-removal]', { origin: window.location.origin, storageKey, source: 'sdk', phase, codeVerifierRemoved: true });
 }

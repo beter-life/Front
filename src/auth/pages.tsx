@@ -6,12 +6,13 @@ import { ArrowRight, MailCheck, KeyRound } from 'lucide-react';
 import { loginSchema, signupSchema, emailSchema, passwordSchema } from './schema';
 import type { LoginInput, SignupInput, EmailInput, PasswordInput } from './schema';
 import { AuthFailure } from './gateway';
+import { PkceFailure } from './pkce-storage';
 import { useAuth, useServices } from '../hooks/use-services';
 import { FormInput } from '../components/form-input';
 import { Button } from '../components/ui/button';
 import { Feedback, Loading } from '../components/feedback';
 
-const message = (error: unknown) => error instanceof AuthFailure ? error.message : 'Não foi possível concluir. Tente novamente em instantes.';
+const message = (error: unknown) => error instanceof AuthFailure || error instanceof PkceFailure ? error.message : 'Não foi possível concluir. Tente novamente em instantes.';
 function Intro({ title, text, tag }: { title: string; text: string; tag: string }) { return <div className="form-intro"><p className="eyebrow">{tag}</p><h1 tabIndex={-1}>{title}</h1><p>{text}</p></div>; }
 function SessionGate() { const auth = useAuth(); if (auth.status === 'loading') return <Loading />; if (auth.recovery) return <Navigate to="/auth/recovery" replace />; if (auth.status === 'authenticated') return <Navigate to="/app" replace />; return null; }
 export function LoginPage() {

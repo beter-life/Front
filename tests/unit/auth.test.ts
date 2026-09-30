@@ -96,7 +96,7 @@ describe('session lifecycle', () => {
     const location = { href };
     const replace = vi.spyOn(window.history, 'replaceState');
     const result = captureCallback(location);
-    expect(result).toEqual({ kind: 'recovery', hasCode: true, invalid: false });
+    expect(result).toEqual({ kind: 'recovery', hasCode: true, code: 'opaque-test-code', flowId: 'test-flow', invalid: false });
     expect(location.href).toBe(href); expect(replace).not.toHaveBeenCalled(); replace.mockRestore();
     expect(captureCallback({ href: 'https://front.example.test/auth/confirm?error=expired' })?.invalid).toBe(true);
     const fragmentFailure = captureCallback({ href: 'https://front.example.test/auth/recovery#error=access_denied&error_description=private-detail' });

@@ -89,7 +89,7 @@ export class AuthController {
       if (this.callback) {
         this.publish({ callback: 'pending' });
         try {
-          // Wait for automatic URL processing AND the initial auth notification.
+          // Wait for the single manual exchange AND the initial auth notification.
           // Missing code/session/marker cannot invalidate an in-flight callback.
           const result = await this.gateway.callbackSession();
           const session = revision === this.revision ? result.session : this.state.session;
