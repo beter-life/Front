@@ -9,14 +9,14 @@ async function mockExternal(page: Page) {
   const now = Math.floor(Date.now() / 1000);
   const token = [encode({ alg: 'ES256', kid: 'test-key' }), encode({ sub: owner, aud: 'authenticated', role: 'authenticated', exp: now + 3600, iat: now }), Buffer.from('mock-signature').toString('base64url')].join('.');
   const session = { access_token: token, refresh_token: 'mock-refresh', token_type: 'bearer', expires_in: 3600, expires_at: now + 3600, user };
-  const state = { signupRedirect: '', recoveryRedirect: '', passwordUpdated: false, loggedOut: false };
+  const state = { signupRedirect: '', recoveryRedirect: '', passwordUpdated: false, loggedOut: false, tokenRequests: 0 };
   let profile: Record<string, unknown> | null = null;
   const headers = { 'access-control-allow-origin': 'http://localhost:3100', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'GET,POST,PUT,OPTIONS' };
   await page.route('https://identity.example.test/auth/v1/**', async (route) => {
     const request = route.request(); const url = new URL(request.url());
     if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
     let body: unknown = {};
-    if (url.pathname.endsWith('/token')) body = session;
+    if (url.pathname.endsWith('/token')) { state.tokenRequests++; body = session; }
     if (url.pathname.endsWith('/signup')) { state.signupRedirect = url.searchParams.get('redirect_to') ?? ''; body = { ...user, email_confirmed_at: null, confirmation_sent_at: '2026-01-01T00:00:00Z' }; }
     if (url.pathname.endsWith('/recover')) state.recoveryRedirect = url.searchParams.get('redirect_to') ?? '';
     if (url.pathname.endsWith('/user')) { state.passwordUpdated = request.method() === 'PUT'; body = user; }
@@ -75,6 +75,10 @@ test('real browser SDK separates mocked recovery PKCE from login', async ({ page
   await expect(page.getByRole('heading', { name: 'O próximo passo está no seu e-mail.' })).toBeVisible();
   const callback = new URL(state.recoveryRedirect); callback.searchParams.set('code', 'mock-recovery-code'); await page.goto(callback.toString());
   await expect(page.getByRole('heading', { name: 'Uma nova senha.' })).toBeVisible();
+  expect(state.tokenRequests).toBe(1);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Uma nova senha.' })).toBeVisible();
+  expect(state.tokenRequests).toBe(1);
   await page.getByLabel('Nova senha', { exact: true }).fill('new-test-password'); await page.getByLabel('Confirmar nova senha').fill('new-test-password'); await page.getByRole('button', { name: 'Salvar nova senha' }).click();
   await expect(page.getByRole('heading', { name: 'Bom ter você aqui.' })).toBeVisible(); expect(state.passwordUpdated).toBe(true); expect(state.loggedOut).toBe(true);
 });

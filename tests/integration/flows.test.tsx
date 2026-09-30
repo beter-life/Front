@@ -81,12 +81,32 @@ describe('identity UI with mocked external boundaries', () => {
   it('requests recovery with neutral response', async () => {
     const fake = fakeGateway(); const { user } = setup('/forgot-password', fake.gateway);
     await user.type(screen.getByLabelText('E-mail'), 'test@example.test'); await user.click(screen.getByRole('button', { name: 'Enviar link de recuperação' }));
-    expect(await screen.findByRole('heading', { name: 'O próximo passo está no seu e-mail.' })).toBeVisible(); expect(fake.gateway.recover).toHaveBeenCalledWith('test@example.test');
+    expect(await screen.findByRole('heading', { name: 'O próximo passo está no seu e-mail.' })).toBeVisible();
+    expect(screen.getByText('Se houver uma conta para esse e-mail, enviaremos um link para criar uma nova senha.')).toBeVisible();
+    expect(fake.gateway.recover).toHaveBeenCalledWith('test@example.test');
   });
   it('requires recovery session to update password and returns to login after success', async () => {
     const fake = fakeGateway(); fake.gateway.exchange = vi.fn(async () => ({ session, recovery: true }));
     const { user } = setup('/auth/recovery', fake.gateway, { kind: 'recovery', code: 'test-code', invalid: false });
     await user.type(await screen.findByLabelText('Nova senha'), 'new-test-password'); await user.type(screen.getByLabelText('Confirmar nova senha'), 'new-test-password'); await user.click(screen.getByRole('button', { name: 'Salvar nova senha' }));
     expect(await screen.findByRole('heading', { name: 'Bom ter você aqui.' })).toBeVisible(); expect(fake.gateway.updatePassword).toHaveBeenCalledWith('new-test-password'); expect(fake.gateway.logout).toHaveBeenCalled();
+  });
+  it('keeps the new-password form usable when updateUser fails', async () => {
+    const fake = fakeGateway(); fake.gateway.exchange = vi.fn(async () => ({ session, recovery: true }));
+    fake.gateway.updatePassword = vi.fn().mockRejectedValue(new Error('private-provider-detail'));
+    const { user } = setup('/auth/recovery', fake.gateway, { kind: 'recovery', code: 'test-code', invalid: false });
+    await user.type(await screen.findByLabelText('Nova senha'), 'new-test-password'); await user.type(screen.getByLabelText('Confirmar nova senha'), 'new-test-password');
+    await user.click(screen.getByRole('button', { name: 'Salvar nova senha' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Não foi possível concluir');
+    expect(screen.getByLabelText('Nova senha')).toBeVisible(); expect(screen.queryByText('private-provider-detail')).not.toBeInTheDocument();
+    expect(fake.gateway.logout).not.toHaveBeenCalled();
+  });
+  it('shows the recovery form when PASSWORD_RECOVERY established the session before callback fallback', async () => {
+    const fake = fakeGateway(session); fake.gateway.exchange = vi.fn().mockRejectedValue(new Error('one-time token already consumed'));
+    const { services } = setup('/auth/recovery', fake.gateway, { kind: 'recovery', code: 'consumed-code', invalid: false });
+    fake.emit('PASSWORD_RECOVERY', session);
+    expect(await screen.findByLabelText('Nova senha')).toBeVisible();
+    expect(services.auth.getSnapshot()).toMatchObject({ recovery: true, callback: 'success' });
+    expect(fake.gateway.exchange).toHaveBeenCalledTimes(1);
   });
 });
