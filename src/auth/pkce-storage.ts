@@ -14,7 +14,7 @@ const messages = {
   PKCE_REQUEST_IN_PROGRESS: 'A solicitação de recuperação ainda está em andamento.',
 } as const;
 export class PkceFailure extends Error {
-  constructor(readonly code: keyof typeof messages) { super(messages[code]); }
+  constructor(readonly code: keyof typeof messages) { super(messages[code]); this.name = 'PkceFailure'; }
 }
 export function sanitizePkceFailure(error: unknown): PkceFailure {
   if (error instanceof PkceFailure) return error;

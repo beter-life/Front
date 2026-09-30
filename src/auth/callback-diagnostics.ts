@@ -3,8 +3,17 @@ import type { AuthCallback } from './callback';
 import type { PkcePhase } from './pkce-storage';
 
 interface CallbackDiagnostic {
+  autoInitializeSkipped?: boolean;
   callbackStarted?: boolean;
   callbackFinished?: boolean;
+  exchangeStarted?: boolean;
+  exchangeSucceeded?: boolean;
+  exchangeErrorName?: string;
+  exchangeErrorCode?: string;
+  exchangeErrorMessage?: string;
+  verifierPresentBeforeExchange?: boolean;
+  verifierPresentAfterExchange?: boolean;
+  sessionPresentAfterExchange?: boolean;
   authEvent?: AuthChangeEvent;
   sessionPresent: boolean;
   codeVerifierPresent?: boolean;

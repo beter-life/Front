@@ -164,25 +164,53 @@ test('code without originating verifier produces no token request and no recover
   await expect.poll(() => diagnostics.includes('PKCE_VERIFIER_MISSING')).toBe(true);
 });
 
-test('SDK invalid-session cleanup is identified before exchange without suppressing security cleanup', async ({ page }) => {
-  const diagnostics: string[] = [];
+test('manual exchange beats invalid-session cleanup in real SDK', async ({ page }) => {
+  let releaseToken!: () => void;
+  const tokenResponse = new Promise<void>((resolve) => { releaseToken = resolve; });
+  const diagnostics: Array<{ skipped?: boolean; before?: boolean; started?: boolean; succeeded?: boolean; session?: boolean }> = [];
   page.on('console', async (message) => {
     if (!message.text().startsWith('[auth-callback]')) return;
-    const code = await message.args()[1]?.evaluate((value: { errorCode?: string }) => value.errorCode);
-    if (code) diagnostics.push(code);
+    const diagnostic = await message.args()[1]?.evaluate((value: {
+      autoInitializeSkipped?: boolean; verifierPresentBeforeExchange?: boolean;
+      exchangeStarted?: boolean; exchangeSucceeded?: boolean; sessionPresentAfterExchange?: boolean;
+    }) => ({ skipped: value.autoInitializeSkipped, before: value.verifierPresentBeforeExchange,
+      started: value.exchangeStarted, succeeded: value.exchangeSucceeded, session: value.sessionPresentAfterExchange }));
+    if (diagnostic) diagnostics.push(diagnostic);
   });
-  const state = await mockExternal(page);
+  const state = await mockExternal(page, { tokenResponse });
   await page.goto('/forgot-password'); await page.getByLabel('E-mail').fill('test@example.test');
   await page.getByRole('button', { name: 'Enviar link de recuperação' }).click();
   await expect(page.getByRole('heading', { name: 'O próximo passo está no seu e-mail.' })).toBeVisible();
   expect(await verifierPresence(page, state.storageKey)).toEqual({ local: true, session: false });
-  // Synthetic corrupt session, not a real user's state. The SDK, not the app,
-  // removes its pending verifier when invalidating this session on next load.
+  // Synthetic corrupt session, not a real user's state.
   await page.evaluate((key) => localStorage.setItem(key, JSON.stringify({ invalidTestSession: true })), state.storageKey);
   const callback = new URL(state.recoveryRedirect); callback.searchParams.set('code', 'mock-bootstrap-code');
   await page.goto(callback.toString());
-  await expect(page.getByRole('heading', { name: 'Este link não está disponível.' })).toBeVisible();
-  await expect.poll(() => diagnostics.includes('PKCE_VERIFIER_REMOVED_DURING_BOOTSTRAP')).toBe(true);
-  expect(state.tokenRequests).toBe(0);
+  await expect.poll(() => state.tokenRequests).toBe(1);
+  await expect(page.getByRole('status')).toContainText('Validando seu link');
+  expect(new URL(page.url()).searchParams.has('code')).toBe(true);
+  expect(await verifierPresence(page, state.storageKey)).toEqual({ local: true, session: false });
+  expect(await page.evaluate((key) => {
+    const stored = localStorage.getItem(key);
+    return stored !== null && JSON.parse(stored).invalidTestSession === true;
+  }, state.storageKey)).toBe(true);
+  await expect.poll(() => diagnostics.some((item) => item.skipped && item.before && item.started)).toBe(true);
+  releaseToken();
+  await expect(page.getByRole('heading', { name: 'Uma nova senha.' })).toBeVisible();
+  await expect.poll(() => diagnostics.some((item) => item.succeeded && item.session)).toBe(true);
+  expect(state.tokenRequests).toBe(1);
+  expect(state.pkceMatched).toBe(true);
+  expect(new URL(page.url()).searchParams.has('code')).toBe(false);
   expect(await verifierPresence(page, state.storageKey)).toEqual({ local: false, session: false });
+});
+
+test('inverse order reproduces old SDK verifier loss before network request', async ({ page }) => {
+  await page.goto('/forgot-password');
+  const facts = await page.evaluate(async () => {
+    const probePath = '/tests/e2e/legacy-pkce-probe.ts';
+    const { reproduceLegacyBootstrap } = await import(probePath);
+    return reproduceLegacyBootstrap();
+  });
+  expect(facts).toEqual({ verifierBefore: true, verifierAfterInitialize: false,
+    errorCode: 'pkce_code_verifier_not_found', tokenRequests: 0 });
 });
