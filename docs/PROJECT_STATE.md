@@ -6,8 +6,8 @@
 | STATUS | BLOCKED_EXTERNAL_EMAIL_CALLBACK |
 | SCOPE | Frontend |
 | BRANCH | codex/mdl1f-frontend-foundation |
-| LAST_TESTED_COMMIT | 22fa244 — recovery callback fix and local gates passed |
-| DONE | React/Vite platform, accessible identity flows, protected profile, CI and harness; recovery sessions survive consumed/missing callback material without re-exchanging the code |
-| TESTS | Lint, types, unit, integration, build, recovery browser desktop/mobile, secret scan, dependency audit, harness: PASS; real Supabase login, health, profile persistence and ownership: PASS |
-| BLOCKERS | Real signup confirmation and recovery callback require a controlled mailbox link opened in the initiating browser |
-| NEXT | Human: request one fresh recovery link at localhost:3101, open it once in the same browser, set the new password, then verify normal login; then close MDL 1F gate |
+| LAST_TESTED_COMMIT | 819cb5f — same-origin local callbacks and gates passed |
+| DONE | React/Vite platform, accessible identity flows, protected profile, CI and harness; confirmation/recovery redirects derive from browser origin; recovery sessions survive consumed/missing callback material without re-exchanging the code |
+| TESTS | Lint, types, unit, integration, build, browser desktop/mobile, secret scan, harness: PASS; real Supabase login, health, profile persistence and ownership: PASS |
+| BLOCKERS | Supabase Auth allowlist and email template are not exposed by the available MCP; Auth Logs show callback fallback to localhost:3000 |
+| NEXT | In Supabase Dashboard, verify/add both localhost:3101 callbacks and ensure the recovery template uses ConfirmationURL/RedirectTo; then run one same-browser human recovery test |
