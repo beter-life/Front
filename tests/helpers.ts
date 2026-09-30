@@ -13,7 +13,7 @@ export function fakeGateway(initial: Session | null = null) {
     session: vi.fn(async () => initial),
     listen: vi.fn((callback) => { listeners.add(callback); return () => { listeners.delete(callback); }; }),
     login: vi.fn(async () => { emit('SIGNED_IN', session); return session; }),
-    signup: vi.fn(async () => null), exchange: vi.fn(async () => ({ session, recovery: false })),
+    signup: vi.fn(async () => null), callbackSession: vi.fn(async () => ({ session, recovery: false })),
     recover: vi.fn(async () => {}), updatePassword: vi.fn(async () => {}),
     logout: vi.fn(async () => { emit('SIGNED_OUT', null); }),
   };

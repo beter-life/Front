@@ -40,7 +40,7 @@ export function ForgotPasswordPage() {
 function InvalidLink({ recovery = false }: { recovery?: boolean }) { return <div className="space-y-6"><Intro tag="VAMOS TENTAR DE NOVO" title="Este link não está disponível." text="Ele pode ter expirado, já ter sido usado ou ter sido aberto em outro navegador." /><Feedback>{recovery ? 'Solicite um novo link de recuperação e abra-o neste navegador.' : 'Abra o link de confirmação no navegador usado para criar a conta. Se você já confirmou, entre normalmente.'}</Feedback><Button asChild><Link to={recovery ? '/forgot-password' : '/login'}>{recovery ? 'Solicitar outro link' : 'Voltar para entrar'}</Link></Button></div>; }
 export function ConfirmationPage() {
   const state = useAuth();
-  if (state.status === 'loading') return <Loading>Confirmando seu e-mail…</Loading>;
+  if (state.status === 'loading' || state.callback === 'pending') return <Loading>Confirmando seu e-mail…</Loading>;
   if (state.recovery) return <Navigate to="/auth/recovery" replace />;
   if (state.callback !== 'success') return <InvalidLink />;
   return <div className="space-y-6"><MailCheck className="size-10 text-primary" aria-hidden="true" /><Intro tag="TUDO CERTO" title="E-mail confirmado." text="Sua conta está pronta. Vamos cuidar do seu perfil?" /><Button asChild><Link to={state.session ? '/app' : '/login'}>Continuar<ArrowRight aria-hidden="true" /></Link></Button></div>;
@@ -48,7 +48,7 @@ export function ConfirmationPage() {
 export function RecoveryPage() {
   const state = useAuth(); const { auth } = useServices(); const navigate = useNavigate(); const [error, setError] = useState('');
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<PasswordInput>({ resolver: zodResolver(passwordSchema) });
-  if (state.status === 'loading') return <Loading>Validando seu link…</Loading>;
+  if (state.status === 'loading' || state.callback === 'pending') return <Loading>Validando seu link…</Loading>;
   if (!state.recovery || !state.session) return <InvalidLink recovery />;
   return <><KeyRound className="mb-6 size-9 text-primary" aria-hidden="true" /><Intro tag="RECUPERAR ACESSO" title="Uma nova senha." text="Escolha uma senha forte que você ainda não usou aqui." /><form noValidate className="form-stack" onSubmit={handleSubmit(async ({ password }) => { setError(''); try { await auth.completeRecovery(password); navigate('/login', { replace: true, state: { passwordUpdated: true } }); } catch (failure) { setError(message(failure)); } })}><FormInput id="password" label="Nova senha" type="password" autoComplete="new-password" error={errors.password?.message} {...register('password')} /><FormInput id="confirmPassword" label="Confirmar nova senha" type="password" autoComplete="new-password" error={errors.confirmPassword?.message} {...register('confirmPassword')} />{error && <Feedback>{error}</Feedback>}<Button type="submit" disabled={isSubmitting} className="w-full">{isSubmitting ? 'Atualizando…' : 'Salvar nova senha'}</Button></form></>;
 }

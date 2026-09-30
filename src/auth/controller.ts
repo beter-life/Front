@@ -75,7 +75,7 @@ export class AuthController {
       this.revision++;
       if (event === 'PASSWORD_RECOVERY' && session) rememberRecoverySession(session);
       if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') clearRecoverySession();
-      const sameRecoveryUser = !!session && this.state.recovery && this.state.session?.user.id === session.user.id;
+      const sameRecoveryUser = event !== 'SIGNED_IN' && !!session && this.state.recovery && this.state.session?.user.id === session.user.id;
       this.accept(session, event === 'PASSWORD_RECOVERY' || sameRecoveryUser || isRecoverySession(session));
       if (event === 'PASSWORD_RECOVERY' && this.callback?.kind === 'recovery') this.publish({ callback: 'success' });
     });
@@ -88,22 +88,23 @@ export class AuthController {
     try {
       if (this.callback) {
         this.publish({ callback: 'pending' });
-        if (this.callback.invalid || !this.callback.code) {
-          if (this.callback.kind !== 'recovery' || !await this.restoreRecoverySession()) throw new Error('Invalid callback');
-        } else {
-          try {
-            // The URL is captured once and this is the only code exchange in the app.
-            const result = await this.gateway.exchange(this.callback.code, this.callback.flowId);
-            const eventRecovery = this.state.recovery && this.state.session?.user.id === result.session.user.id;
-            const recovery = result.recovery || eventRecovery || isRecoverySession(result.session);
-            if (this.callback.kind === 'recovery' && !recovery) throw new Error('Wrong callback purpose');
-            this.accept(result.session, recovery);
-            this.publish({ callback: 'success' });
-          } catch (error) {
-            // Auth may already have consumed the one-time link. Keep a valid recovery
-            // session established by PASSWORD_RECOVERY instead of discarding it.
-            if (this.callback.kind !== 'recovery' || !await this.restoreRecoverySession()) throw error;
+        try {
+          // Wait for automatic URL processing AND the initial auth notification.
+          // Missing code/session/marker cannot invalidate an in-flight callback.
+          const result = await this.gateway.callbackSession();
+          const session = revision === this.revision ? result.session : this.state.session;
+          const eventRecovery = !!session && this.state.recovery && this.state.session?.user.id === session.user.id;
+          const recovery = !!session && ((result.recovery && result.session?.user.id === session.user.id) || eventRecovery || isRecoverySession(session));
+          if (this.callback.kind === 'recovery') {
+            if (!session || !recovery) throw new Error('Recovery session required');
+          } else if (this.callback.invalid || !this.callback.hasCode || !session) {
+            throw new Error('Invalid confirmation');
           }
+          this.accept(session, recovery);
+          this.publish({ callback: 'success' });
+        } catch (error) {
+          // A consumed link must not discard recovery already established by Auth.
+          if (this.callback.kind !== 'recovery' || !await this.restoreRecoverySession()) throw error;
         }
       } else {
         const session = await this.gateway.session();

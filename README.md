@@ -15,7 +15,9 @@ For real e-mail flows, the Supabase Auth redirect allowlist must permit:
 
 The browser sends these callback URLs explicitly from `window.location.origin`; the Supabase Auth redirect allowlist must include both exact URLs. Keep the recovery and confirmation email templates based on `{{ .ConfirmationURL }}` (or use `{{ .RedirectTo }}` when constructing a custom callback), never a hard-coded localhost URL or `{{ .SiteURL }}` callback.
 
-Production URLs must use HTTPS. Do not disable e-mail confirmation. Start signup or recovery and open the resulting e-mail link in the **same browser**: PKCE binds it to that browser's verifier. Callback parameters are consumed once and immediately removed from the visible URL. A used, expired, wrong-purpose, unsupported implicit, or missing-verifier link produces a recoverable error. Reloading the password form requires a new recovery link; a normal login session alone never opens that form.
+Production URLs must use HTTPS. Do not disable e-mail confirmation. Start signup or recovery and open the resulting e-mail link in the **same browser**: PKCE binds it to that browser's verifier. Supabase JS owns automatic PKCE processing (`detectSessionInUrl: true`); the app never exchanges the same code manually or removes it before success. The callback stays loading until SDK initialization, the initial auth notification and session lookup finish. A used, expired, wrong-purpose, unsupported implicit, or missing-verifier link without a valid recovery session produces a recoverable error. An established recovery session survives a same-tab reload; a normal login session alone never opens that form.
+
+During the MDL 1F human recovery gate, localhost development emits temporary `[auth-callback]` diagnostics containing only the fixed route, code-presence boolean, processing state, auth event and session-presence boolean. Provider messages and credentials are never included. This instrumentation is disabled in unit/integration test mode and compiled out of production; remove it after the real callback gate is approved.
 
 ## Routes and contracts
 

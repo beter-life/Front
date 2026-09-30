@@ -11,7 +11,7 @@ import './styles.css';
 
 const root = createRoot(document.getElementById('root')!);
 try {
-  const callback = captureCallback(window.location, window.history);
+  const callback = captureCallback(window.location);
   const config = publicConfig(import.meta.env);
   const services = createServices(config, window.location.origin, callback);
   root.render(<StrictMode><ErrorBoundary><AppProviders services={services}><BrowserRouter><AppRoutes /></BrowserRouter></AppProviders></ErrorBoundary></StrictMode>);

@@ -7,7 +7,7 @@ import { createApiClient } from '../api/client';
 import type { PublicConfig } from '../config/env';
 export function createServices(config: PublicConfig, origin: string, callback: AuthCallback | null = null, gateway?: AuthGateway, fetcher?: typeof fetch) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 30000, refetchOnWindowFocus: false }, mutations: { retry: false } } });
-  const auth = new AuthController(gateway ?? createAuthGateway(config, origin), () => queryClient.clear(), callback);
+  const auth = new AuthController(gateway ?? createAuthGateway(config, origin, callback), () => queryClient.clear(), callback);
   const api = createApiClient(config.apiBaseUrl, () => auth.getSnapshot().session?.access_token, (token) => auth.expire(token), fetcher);
   return { queryClient, auth, api };
 }
