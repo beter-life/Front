@@ -17,7 +17,7 @@ function setup(path: string, gateway: AuthGateway = fakeGateway().gateway, callb
     if (init?.method === 'PUT') { stored = { ...profile, ...JSON.parse(init.body as string) }; return new Response(JSON.stringify(stored)); }
     return new Response(JSON.stringify({ identity: { authUserId: owner }, profile: stored }));
   });
-  const services = createServices(publicConfig(publicEnv), 'http://localhost:3000', callback, gateway, external);
+  const services = createServices(publicConfig(publicEnv), 'http://localhost:3101', callback, gateway, external);
   render(<AppProviders services={services}><MemoryRouter initialEntries={[path]}><AppRoutes /></MemoryRouter></AppProviders>);
   return { services, user: userEvent.setup(), external };
 }

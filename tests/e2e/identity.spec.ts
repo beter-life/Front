@@ -11,8 +11,8 @@ async function mockExternal(page: Page) {
   const session = { access_token: token, refresh_token: 'mock-refresh', token_type: 'bearer', expires_in: 3600, expires_at: now + 3600, user };
   const state = { signupRedirect: '', recoveryRedirect: '', passwordUpdated: false, loggedOut: false, tokenRequests: 0 };
   let profile: Record<string, unknown> | null = null;
-  const headers = { 'access-control-allow-origin': 'http://localhost:3100', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'GET,POST,PUT,OPTIONS' };
-  await page.route('https://identity.example.test/auth/v1/**', async (route) => {
+  const headers = { 'access-control-allow-origin': 'http://localhost:3101', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'GET,POST,PUT,OPTIONS' };
+  await page.route('**/auth/v1/**', async (route) => {
     const request = route.request(); const url = new URL(request.url());
     if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
     let body: unknown = {};
@@ -23,7 +23,7 @@ async function mockExternal(page: Page) {
     if (url.pathname.endsWith('/logout')) state.loggedOut = true;
     await route.fulfill({ status: 200, json: body, headers });
   });
-  await page.route('http://localhost:3001/api/v1/**', async (route) => {
+  await page.route('**/api/v1/**', async (route) => {
     const request = route.request();
     if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
     expect(Boolean(request.headers().authorization?.startsWith('Bearer '))).toBe(true);
@@ -65,7 +65,9 @@ test('real browser SDK completes mocked signup PKCE confirmation', async ({ page
   await page.getByLabel('E-mail').fill('test@example.test'); await page.getByLabel('Senha', { exact: true }).fill('test-password'); await page.getByLabel('Confirmar senha').fill('test-password');
   await page.getByRole('button', { name: 'Criar minha conta' }).click();
   await expect(page.getByRole('heading', { name: 'Falta só confirmar.' })).toBeVisible();
+  expect(state.signupRedirect).toBe('http://localhost:3101/auth/confirm');
   const callback = new URL(state.signupRedirect); callback.searchParams.set('code', 'mock-confirmation-code');
+  expect(callback.origin).toBe('http://localhost:3101');
   await page.goto(callback.toString());
   await expect(page.getByRole('heading', { name: 'E-mail confirmado.' })).toBeVisible(); expect(new URL(page.url()).search).toBe('');
 });
@@ -73,7 +75,10 @@ test('real browser SDK separates mocked recovery PKCE from login', async ({ page
   const state = await mockExternal(page); await page.goto('/forgot-password');
   await page.getByLabel('E-mail').fill('test@example.test'); await page.getByRole('button', { name: 'Enviar link de recuperação' }).click();
   await expect(page.getByRole('heading', { name: 'O próximo passo está no seu e-mail.' })).toBeVisible();
+  expect(state.recoveryRedirect).toBe('http://localhost:3101/auth/recovery');
+  expect(state.recoveryRedirect).not.toContain('localhost:3000');
   const callback = new URL(state.recoveryRedirect); callback.searchParams.set('code', 'mock-recovery-code'); await page.goto(callback.toString());
+  expect(new URL(page.url()).origin).toBe('http://localhost:3101');
   await expect(page.getByRole('heading', { name: 'Uma nova senha.' })).toBeVisible();
   expect(state.tokenRequests).toBe(1);
   await page.reload();

@@ -6,12 +6,14 @@ MDL 1F: frontend foundation and identity. React, Vite, strict TypeScript, Tailwi
 
 Use Node 24 and pnpm 11.19.0. Run `pnpm install --frozen-lockfile`, create an ignored `.env.local` from `.env.example`, and set only the three public browser values. Use the Supabase **publishable** key (`sb_publishable_…`); this project intentionally rejects secret/service-role keys. Never copy the backend `.env` into Front.
 
-Start the existing backend independently, then run `pnpm dev`. Front uses `http://localhost:3000`; the API example uses `http://localhost:3001`. The backend's CORS allowlist must include the exact frontend origin. Backend database/TLS settings remain backend-only.
+Start the existing backend independently, then run `pnpm dev`. Front uses `http://localhost:3101`; the API example uses `http://localhost:3001`. The backend's CORS allowlist must include the exact frontend origin. Backend database/TLS settings remain backend-only.
 
 For real e-mail flows, the Supabase Auth redirect allowlist must permit:
 
-- `http://localhost:3000/auth/confirm`
-- `http://localhost:3000/auth/recovery`
+- `http://localhost:3101/auth/confirm`
+- `http://localhost:3101/auth/recovery`
+
+The browser sends these callback URLs explicitly from `window.location.origin`; the Supabase Auth redirect allowlist must include both exact URLs. Keep the recovery and confirmation email templates based on `{{ .ConfirmationURL }}` (or use `{{ .RedirectTo }}` when constructing a custom callback), never a hard-coded localhost URL or `{{ .SiteURL }}` callback.
 
 Production URLs must use HTTPS. Do not disable e-mail confirmation. Start signup or recovery and open the resulting e-mail link in the **same browser**: PKCE binds it to that browser's verifier. Callback parameters are consumed once and immediately removed from the visible URL. A used, expired, wrong-purpose, unsupported implicit, or missing-verifier link produces a recoverable error. Reloading the password form requires a new recovery link; a normal login session alone never opens that form.
 
