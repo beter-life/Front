@@ -10,7 +10,7 @@ async function mockExternal(page: Page, options: { tokenResponse?: Promise<void>
   const now = Math.floor(Date.now() / 1000);
   const token = [encode({ alg: 'ES256', kid: 'test-key' }), encode({ sub: owner, aud: 'authenticated', role: 'authenticated', exp: now + 3600, iat: now }), Buffer.from('mock-signature').toString('base64url')].join('.');
   const session = { access_token: token, refresh_token: 'mock-refresh', token_type: 'bearer', expires_in: 3600, expires_at: now + 3600, user };
-  const state = { storageKey: '', signupRedirect: '', recoveryRedirect: '', passwordUpdated: false, loggedOut: false, tokenRequests: 0, pkceMatched: false };
+  const state = { storageKey: '', signupRedirect: '', recoveryRedirect: '', recoveryRequests: 0, recoveryEmailIsCurrent: false, passwordUpdated: false, loggedOut: false, tokenRequests: 0, pkceMatched: false };
   let challenge: string | undefined;
   let profile: Record<string, unknown> | null = null;
   const headers = { 'access-control-allow-origin': 'http://localhost:3101', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'GET,POST,PUT,OPTIONS' };
@@ -30,7 +30,13 @@ async function mockExternal(page: Page, options: { tokenResponse?: Promise<void>
       body = session;
     }
     if (url.pathname.endsWith('/signup')) { challenge = request.postDataJSON().code_challenge; state.signupRedirect = url.searchParams.get('redirect_to') ?? ''; body = { ...user, email_confirmed_at: null, confirmation_sent_at: '2026-01-01T00:00:00Z' }; }
-    if (url.pathname.endsWith('/recover')) { challenge = request.postDataJSON().code_challenge; state.recoveryRedirect = url.searchParams.get('redirect_to') ?? ''; }
+    if (url.pathname.endsWith('/recover')) {
+      const input = request.postDataJSON() as { code_challenge?: string; email?: string };
+      challenge = input.code_challenge;
+      state.recoveryRequests++;
+      state.recoveryEmailIsCurrent = input.email === 'test@example.test';
+      state.recoveryRedirect = url.searchParams.get('redirect_to') ?? '';
+    }
     if (url.pathname.endsWith('/user')) { state.passwordUpdated = request.method() === 'PUT'; body = user; }
     if (url.pathname.endsWith('/logout')) state.loggedOut = true;
     await route.fulfill({ status: 200, json: body, headers });
@@ -102,7 +108,7 @@ test('real SDK persists verifier across request/callback and manual exchange run
   const tokenResponse = new Promise<void>((resolve) => { releaseToken = resolve; });
   const state = await mockExternal(page, { tokenResponse }); await page.goto('/forgot-password');
   await page.getByLabel('E-mail').fill('test@example.test'); await page.getByRole('button', { name: 'Enviar link de recuperação' }).click();
-  await expect(page.getByRole('heading', { name: 'O próximo passo está no seu e-mail.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Solicitação recebida.' })).toBeVisible();
   expect(state.recoveryRedirect).toBe('http://localhost:3101/auth/recovery');
   expect(state.recoveryRedirect).not.toContain('localhost:3000');
   const requestStorageKey = state.storageKey;
@@ -133,13 +139,29 @@ test('expired callback never opens password form', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Este link não está disponível.' })).toBeVisible(); await expect(page.getByLabel('Nova senha', { exact: true })).toHaveCount(0);
   expect(new URL(page.url()).searchParams.has('error')).toBe(true);
 });
+test('retry link only navigates; the latest autofilled or edited address is normalized for one recover request', async ({ page }) => {
+  const state = await mockExternal(page);
+  await page.goto('/auth/recovery?error=access_denied');
+  await expect(page.getByRole('heading', { name: 'Este link não está disponível.' })).toBeVisible();
+  await page.getByRole('link', { name: 'Solicitar outro link' }).click();
+  await expect(page).toHaveURL('http://localhost:3101/forgot-password');
+  expect(state.recoveryRequests).toBe(0);
+  const email = page.getByLabel('E-mail');
+  await expect(email).toHaveValue('');
+  await email.fill('outdated@example.test');
+  await email.fill('  TeSt@Example.Test  ');
+  await page.getByRole('button', { name: 'Enviar link de recuperação' }).click();
+  await expect(page.getByRole('heading', { name: 'Solicitação recebida.' })).toBeVisible();
+  expect(state.recoveryRequests).toBe(1);
+  expect(state.recoveryEmailIsCurrent).toBe(true);
+});
 test('failed manual exchange waits before invalid and is never retried', async ({ page }) => {
   let releaseToken!: () => void;
   const tokenResponse = new Promise<void>((resolve) => { releaseToken = resolve; });
   const state = await mockExternal(page, { tokenResponse, rejectCode: true });
   await page.goto('/forgot-password'); await page.getByLabel('E-mail').fill('test@example.test');
   await page.getByRole('button', { name: 'Enviar link de recuperação' }).click();
-  await expect(page.getByRole('heading', { name: 'O próximo passo está no seu e-mail.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Solicitação recebida.' })).toBeVisible();
   const callback = new URL(state.recoveryRedirect); callback.searchParams.set('code', 'mock-rejected-code');
   await page.goto(callback.toString());
   await expect.poll(() => state.tokenRequests).toBe(1);
@@ -180,7 +202,7 @@ test('manual exchange beats invalid-session cleanup in real SDK', async ({ page 
   const state = await mockExternal(page, { tokenResponse });
   await page.goto('/forgot-password'); await page.getByLabel('E-mail').fill('test@example.test');
   await page.getByRole('button', { name: 'Enviar link de recuperação' }).click();
-  await expect(page.getByRole('heading', { name: 'O próximo passo está no seu e-mail.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Solicitação recebida.' })).toBeVisible();
   expect(await verifierPresence(page, state.storageKey)).toEqual({ local: true, session: false });
   // Synthetic corrupt session, not a real user's state.
   await page.evaluate((key) => localStorage.setItem(key, JSON.stringify({ invalidTestSession: true })), state.storageKey);

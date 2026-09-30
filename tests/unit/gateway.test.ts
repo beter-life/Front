@@ -165,6 +165,22 @@ describe('persistent request state', () => {
     const gateway = createAuthGateway(config, window.location.origin);
     await expect(gateway.recover('test@example.test')).rejects.toMatchObject({ code: 'PKCE_VERIFIER_NOT_PERSISTED' });
   });
+  it('normalizes the current recovery address at the network boundary and logs metadata only', async () => {
+    const log = vi.spyOn(console, 'info').mockImplementation(() => {});
+    vi.stubEnv('DEV', true); vi.stubEnv('MODE', 'development');
+    const gateway = createAuthGateway(config, window.location.origin);
+    await gateway.recover('  TeSt@Example.Test  ');
+    expect(sdk.resetPasswordForEmail).toHaveBeenCalledExactlyOnceWith('test@example.test', { redirectTo: window.location.origin + '/auth/recovery' });
+    expect(log).toHaveBeenCalledWith('[auth-recovery-request]', {
+      emailPresent: true, emailLength: 17, emailNormalized: true, requestStarted: true,
+      redirectTo: window.location.origin + '/auth/recovery',
+    });
+    expect(log).toHaveBeenCalledWith('[auth-recovery-request]', {
+      emailPresent: true, emailLength: 17, emailNormalized: true, requestStarted: true, requestReturnedError: false,
+      redirectTo: window.location.origin + '/auth/recovery',
+    });
+    expect(JSON.stringify(log.mock.calls)).not.toContain('test@example.test');
+  });
   it('keeps the existing namespace and one client across consumers', () => {
     const first = getAuthGateway(config, window.location.origin);
     expect(getAuthGateway(config, window.location.origin)).toBe(first);

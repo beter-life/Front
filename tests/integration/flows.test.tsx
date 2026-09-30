@@ -84,9 +84,18 @@ describe('identity UI with mocked external boundaries', () => {
   it('requests recovery with neutral response', async () => {
     const fake = fakeGateway(); const { user } = setup('/forgot-password', fake.gateway);
     await user.type(screen.getByLabelText('E-mail'), 'test@example.test'); await user.click(screen.getByRole('button', { name: 'Enviar link de recuperação' }));
-    expect(await screen.findByRole('heading', { name: 'O próximo passo está no seu e-mail.' })).toBeVisible();
-    expect(screen.getByText('Se houver uma conta para esse e-mail, enviaremos um link para criar uma nova senha.')).toBeVisible();
+    expect(await screen.findByRole('heading', { name: 'Solicitação recebida.' })).toBeVisible();
+    expect(screen.getByText('Se houver uma conta para esse e-mail e o envio for permitido, você poderá receber um link para criar uma nova senha.')).toBeVisible();
     expect(fake.gateway.recover).toHaveBeenCalledWith('test@example.test');
+  });
+  it('submits the latest edited recovery email after trimming and case normalization', async () => {
+    const fake = fakeGateway(); const { user } = setup('/forgot-password', fake.gateway);
+    const field = await screen.findByLabelText('E-mail');
+    await user.type(field, 'outdated@example.test');
+    await user.clear(field);
+    await user.type(field, '  TeSt@Example.Test  ');
+    await user.click(screen.getByRole('button', { name: 'Enviar link de recuperação' }));
+    expect(fake.gateway.recover).toHaveBeenCalledExactlyOnceWith('test@example.test');
   });
   it('requires recovery session to update password and returns to login after success', async () => {
     const fake = fakeGateway(); fake.gateway.callbackSession = vi.fn(async () => ({ session, recovery: true }));

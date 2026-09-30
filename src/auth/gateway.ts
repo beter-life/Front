@@ -2,7 +2,8 @@ import { AuthClient } from '@supabase/supabase-js';
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import type { PublicConfig } from '../config/env';
 import type { AuthCallback } from './callback';
-import { traceCallback, traceRecoveryRequest } from './callback-diagnostics';
+import { traceCallback, traceRecoveryRequest, traceRecoverySubmission } from './callback-diagnostics';
+import { recoveryEmailSchema } from './schema';
 import { authStorageKey, persistentPkceStorage, PkceFailure, sanitizePkceFailure } from './pkce-storage';
 import type { PkcePhase } from './pkce-storage';
 
@@ -139,13 +140,21 @@ export function createAuthGateway(config: PublicConfig, origin: string, callback
     callbackSession() { return completion ??= finishCallback(); },
     async recover(email) {
       if (requestInProgress || exchangeInProgress) throw new PkceFailure('PKCE_REQUEST_IN_PROGRESS');
+      const normalizedEmail = recoveryEmailSchema.parse({ email }).email;
+      const redirectTo = origin + '/auth/recovery';
+      const diagnostic = { emailPresent: normalizedEmail.length > 0, emailLength: normalizedEmail.length, emailNormalized: true, requestStarted: true, redirectTo };
       requestInProgress = true;
       try {
         // Finish possible old-session cleanup before creating a new verifier.
         await initializeAfterExchangeOrNormalRoute();
         const before = verifier().present;
         phase = 'request';
-        const { error } = await client.resetPasswordForEmail(email, { redirectTo: origin + '/auth/recovery' });
+        traceRecoverySubmission(diagnostic);
+        const { error } = await client.resetPasswordForEmail(normalizedEmail, { redirectTo }).catch((failure: unknown) => {
+          traceRecoverySubmission({ ...diagnostic, requestReturnedError: true });
+          throw failure;
+        });
+        traceRecoverySubmission({ ...diagnostic, requestReturnedError: !!error });
         const after = verifier().present;
         traceRecoveryRequest(storageKey, before, after);
         if (error) failure(error);

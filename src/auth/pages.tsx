@@ -3,8 +3,8 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowRight, MailCheck, KeyRound } from 'lucide-react';
-import { loginSchema, signupSchema, emailSchema, passwordSchema } from './schema';
-import type { LoginInput, SignupInput, EmailInput, PasswordInput } from './schema';
+import { loginSchema, signupSchema, recoveryEmailSchema, passwordSchema } from './schema';
+import type { LoginInput, SignupInput, RecoveryEmailInput, PasswordInput } from './schema';
 import { AuthFailure } from './gateway';
 import { PkceFailure } from './pkce-storage';
 import { useAuth, useServices } from '../hooks/use-services';
@@ -31,10 +31,10 @@ export function SignupPage() {
   if (sent) return <EmailSent signup />;
   return <><Intro tag="SEU PRIMEIRO PASSO" title="Vamos começar?" text="Crie sua conta. O resto, um passo de cada vez." /><form noValidate className="form-stack" onSubmit={handleSubmit(async ({ email, password }) => { setError(''); try { if (await auth.signup(email, password)) navigate('/app', { replace: true }); else setSent(true); } catch (failure) { setError(message(failure)); } })}><FormInput id="email" label="E-mail" type="email" autoComplete="email" error={errors.email?.message} {...register('email')} /><FormInput id="password" label="Senha" type="password" autoComplete="new-password" hint="Use pelo menos 8 caracteres. Combine letras, números e símbolos." error={errors.password?.message} {...register('password')} /><FormInput id="confirmPassword" label="Confirmar senha" type="password" autoComplete="new-password" error={errors.confirmPassword?.message} {...register('confirmPassword')} />{error && <Feedback>{error}</Feedback>}<Button type="submit" disabled={isSubmitting} className="w-full">{isSubmitting ? 'Criando conta…' : 'Criar minha conta'}<ArrowRight aria-hidden="true" /></Button></form><p className="form-footnote">Já tem uma conta? <Link className="text-link" to="/login">Entrar</Link></p></>;
 }
-function EmailSent({ signup = false }: { signup?: boolean }) { return <div className="space-y-6"><MailCheck className="size-10 text-primary" aria-hidden="true" /><Intro tag="CONFIRA SUA CAIXA DE ENTRADA" title={signup ? 'Falta só confirmar.' : 'O próximo passo está no seu e-mail.'} text={signup ? 'Se o cadastro puder ser concluído, você receberá um link para confirmar seu e-mail.' : 'Se houver uma conta para esse e-mail, enviaremos um link para criar uma nova senha.'} /><p className="text-sm leading-relaxed text-muted-foreground">Confira também o spam. Abra o link neste mesmo navegador, onde você iniciou a solicitação.</p><Button asChild variant="outline"><Link to="/login">Voltar para entrar</Link></Button></div>; }
+function EmailSent({ signup = false }: { signup?: boolean }) { return <div className="space-y-6"><MailCheck className="size-10 text-primary" aria-hidden="true" /><Intro tag="CONFIRA SUA CAIXA DE ENTRADA" title={signup ? 'Falta só confirmar.' : 'Solicitação recebida.'} text={signup ? 'Se o cadastro puder ser concluído, você receberá um link para confirmar seu e-mail.' : 'Se houver uma conta para esse e-mail e o envio for permitido, você poderá receber um link para criar uma nova senha.'} /><p className="text-sm leading-relaxed text-muted-foreground">Confira também o spam. Abra o link neste mesmo navegador, onde você iniciou a solicitação.</p><Button asChild variant="outline"><Link to="/login">Voltar para entrar</Link></Button></div>; }
 export function ForgotPasswordPage() {
   const { auth } = useServices(); const [error, setError] = useState(''); const [sent, setSent] = useState(false);
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<EmailInput>({ resolver: zodResolver(emailSchema) });
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RecoveryEmailInput>({ resolver: zodResolver(recoveryEmailSchema) });
   if (sent) return <EmailSent />;
   return <><Intro tag="RECUPERAR ACESSO" title="Acontece. Vamos resolver." text="Informe seu e-mail para receber um link de recuperação." /><form noValidate className="form-stack" onSubmit={handleSubmit(async ({ email }) => { setError(''); try { await auth.gateway.recover(email); setSent(true); } catch (failure) { setError(message(failure)); } })}><FormInput id="email" label="E-mail" type="email" autoComplete="email" error={errors.email?.message} {...register('email')} />{error && <Feedback>{error}</Feedback>}<Button type="submit" disabled={isSubmitting} className="w-full">{isSubmitting ? 'Enviando…' : 'Enviar link de recuperação'}</Button></form><p className="form-footnote"><Link className="text-link" to="/login">Voltar para entrar</Link></p></>;
 }

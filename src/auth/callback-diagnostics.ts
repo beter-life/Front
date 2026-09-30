@@ -38,6 +38,11 @@ export function traceRecoveryRequest(storageKey: string, codeVerifierPresentBefo
   // eslint-disable-next-line no-console -- Temporary local diagnostics; no credential values.
   console.info('[auth-pkce-request]', { origin: window.location.origin, storageKey, codeVerifierPresentBefore, codeVerifierPresentAfter });
 }
+export function traceRecoverySubmission(details: { emailPresent: boolean; emailLength: number; emailNormalized: boolean; requestStarted: boolean; requestReturnedError?: boolean; redirectTo: string }) {
+  if (!import.meta.env.DEV || import.meta.env.MODE !== 'development' || window.location.hostname !== 'localhost') return;
+  // eslint-disable-next-line no-console -- Only metadata from the current form submission; never the address or provider response.
+  console.info('[auth-recovery-request]', details);
+}
 export function traceVerifierRemoval(storageKey: string, phase: PkcePhase) {
   if (!import.meta.env.DEV || import.meta.env.MODE !== 'development' || window.location.hostname !== 'localhost') return;
   // eslint-disable-next-line no-console -- Identify SDK cleanup phase without logging the key suffix or value.
