@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
-async function mockServices(page: Page, options: { loginFailure?: boolean; usedToken?: boolean; updateFailure?: boolean; existingProfile?: boolean; wrongProfileOwner?: boolean } = {}) {
+async function mockServices(page: Page, options: { loginFailure?: boolean; usedToken?: boolean; updateFailure?: boolean; existingProfile?: boolean; wrongProfileOwner?: boolean; enforcePassword?: boolean } = {}) {
   const owner = '11111111-1111-4111-8111-111111111111';
   const user = {
     id: owner, aud: 'authenticated', role: 'authenticated', email: 'test@example.test',
@@ -12,17 +12,23 @@ async function mockServices(page: Page, options: { loginFailure?: boolean; usedT
   const now = Math.floor(Date.now() / 1000);
   const token = [encode({ alg: 'ES256', kid: 'synthetic' }), encode({ sub: owner, aud: 'authenticated', role: 'authenticated', exp: now + 3600, iat: now }), Buffer.from('synthetic-signature').toString('base64url')].join('.');
   const session = { access_token: token, refresh_token: 'synthetic-refresh', token_type: 'bearer', expires_in: 3600, expires_at: now + 3600, user };
-  const state = { logins: 0, loginEmailCurrent: false, signups: 0, signupRedirect: '', recoveries: 0, recoveryRedirect: '', verifications: 0, verificationType: '', updates: 0, logouts: 0, meReads: 0 };
+  let currentPassword = 'synthetic-password';
+  let savedProfile = options.existingProfile ? {
+    id: '33333333-3333-4333-8333-333333333333', displayName: 'Conta de Teste',
+    locale: 'pt-BR', timezone: 'America/Sao_Paulo',
+    createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z',
+  } : null;
+  const state = { logins: 0, loginEmailCurrent: false, signups: 0, signupRedirect: '', recoveries: 0, recoveryRedirect: '', verifications: 0, verificationType: '', updates: 0, logouts: 0, meReads: 0, profileWrites: 0 };
   const headers = { 'access-control-allow-origin': 'http://localhost:3103', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'GET,POST,PUT,OPTIONS' };
   await page.route('**/auth/v1/**', async (route) => {
     const request = route.request();
     const url = new URL(request.url());
     if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
     if (url.pathname.endsWith('/token')) {
-      const body = request.postDataJSON() as { email?: string };
+      const body = request.postDataJSON() as { email?: string; password?: string };
       state.logins++;
       state.loginEmailCurrent = body.email === 'test@example.test';
-      if (options.loginFailure) return route.fulfill({ status: 400, json: { code: 'invalid_credentials', message: 'Invalid login credentials' }, headers });
+      if (options.loginFailure || (options.enforcePassword && body.password !== currentPassword)) return route.fulfill({ status: 400, json: { code: 'invalid_credentials', message: 'Invalid login credentials' }, headers });
       return route.fulfill({ status: 200, json: session, headers });
     }
     if (url.pathname.endsWith('/signup')) {
@@ -45,24 +51,30 @@ async function mockServices(page: Page, options: { loginFailure?: boolean; usedT
     if (url.pathname.endsWith('/user') && request.method() === 'PUT') {
       state.updates++;
       if (options.updateFailure) return route.fulfill({ status: 422, json: { code: 'same_password', message: 'Password cannot be reused' }, headers });
+      currentPassword = (request.postDataJSON() as { password: string }).password;
       return route.fulfill({ status: 200, json: user, headers });
     }
+    if (url.pathname.endsWith('/user') && request.method() === 'GET') return route.fulfill({ status: 200, json: user, headers });
     if (url.pathname.endsWith('/logout')) { state.logouts++; return route.fulfill({ status: 200, json: {}, headers }); }
     return route.fulfill({ status: 200, json: {}, headers });
   });
   await page.route('**/api/v1/**', async (route) => {
     const request = route.request();
     if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
+    expect(request.headers().authorization).toBe(`Bearer ${token}`);
+    if(request.method()==='PUT') {
+      expect(new URL(request.url()).pathname).toBe('/api/v1/me/profile');
+      const body=request.postDataJSON() as { displayName: string; locale: string; timezone: string };
+      expect(Object.keys(body).sort()).toEqual(['displayName','locale','timezone']);
+      savedProfile = { ...body, id: '33333333-3333-4333-8333-333333333333', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' };
+      state.profileWrites++;
+      return route.fulfill({status:200,json:savedProfile,headers});
+    }
     state.meReads++;
     expect(new URL(request.url()).pathname).toBe('/api/v1/me');
-    expect(request.headers().authorization).toBe(`Bearer ${token}`);
     await route.fulfill({ status: 200, json: {
       identity: { authUserId: options.wrongProfileOwner ? '22222222-2222-4222-8222-222222222222' : owner },
-      profile: options.existingProfile ? {
-        id: '33333333-3333-4333-8333-333333333333', displayName: 'Conta de Teste',
-        locale: 'pt-BR', timezone: 'America/Sao_Paulo',
-        createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z',
-      } : null,
+      profile: savedProfile,
     }, headers });
   });
   return state;
@@ -150,8 +162,10 @@ test('a used signup TokenHash cannot open the confirmed state', async ({ page })
   expect(state.verifications).toBe(1);
 });
 
-test('recovery request is single and neutral; TokenHash creates a password form', async ({ page }) => {
-  const state = await mockServices(page);
+test('recovery is single and neutral; the recovered password permits a new login', async ({ page }) => {
+  const messages: string[] = [];
+  page.on('console',message=>messages.push(message.text()));
+  const state = await mockServices(page, { enforcePassword: true });
   await page.goto('/forgot-password');
   await page.getByLabel('E-mail').fill('  TeSt@Example.Test  ');
   await page.getByLabel('E-mail').press('Enter');
@@ -168,6 +182,12 @@ test('recovery request is single and neutral; TokenHash creates a password form'
   await page.getByRole('button', { name: 'Salvar nova senha' }).click();
   await expect(page.getByText('Senha atualizada. Entre com sua nova senha.')).toBeVisible();
   expect(state.updates).toBe(1);
+  await page.getByLabel('E-mail').fill('test@example.test');
+  await page.getByLabel('Senha', { exact: true }).fill('new-synthetic-password');
+  await page.getByRole('button', { name: 'Entrar na minha conta' }).click();
+  await expect(page.getByRole('heading', { name: 'Seu espaço começa com você.' })).toBeVisible();
+  expect(state.logins).toBe(1);
+  expect(messages.join('\n')).not.toMatch(/synthetic-hash|new-synthetic-password|synthetic-refresh|eyJ[\w-]+\.[\w-]+\.[\w-]+/);
 });
 
 test('invalid recovery token and failed update do not claim success', async ({ page }) => {
@@ -182,4 +202,47 @@ test('invalid recovery token and failed update do not claim success', async ({ p
   await page.getByRole('button', { name: 'Salvar nova senha' }).click();
   await expect(page.getByText('Não foi possível atualizar a senha. Tente novamente.')).toBeVisible();
   expect(state.updates).toBe(1);
+});
+
+test('profile persists through reload and logout removes protected access', async ({ page }) => {
+  const state=await mockServices(page);
+  await page.goto('/login');
+  await page.getByLabel('E-mail').fill('test@example.test');
+  await page.getByLabel('Senha', {exact:true}).fill('synthetic-password');
+  await page.getByRole('button',{name:'Entrar na minha conta'}).click();
+  await page.getByRole('link',{name:'Meu perfil',exact:true}).click();
+  await page.getByLabel('Como prefere ser chamado?').fill('Perfil persistido');
+  await page.getByRole('button',{name:'Salvar perfil'}).click();
+  await expect(page.getByText('Perfil salvo. Tudo do seu jeito.')).toBeVisible();
+  expect(state.profileWrites).toBe(1);
+  await page.reload();
+  await expect(page.getByLabel('Como prefere ser chamado?')).toHaveValue('Perfil persistido');
+  expect(state.logins).toBe(1);
+  await page.getByRole('button',{name:'Sair da conta'}).click();
+  await expect(page).toHaveURL('http://localhost:3103/login');
+  await page.goto('/profile');
+  await expect(page).toHaveURL('http://localhost:3103/login');
+  await page.goto('/account/password');
+  await expect(page).toHaveURL('http://localhost:3103/login');
+});
+
+test('authenticated password change preserves the session and allows login with the new password', async ({ page }) => {
+  const state=await mockServices(page,{enforcePassword:true});
+  await page.goto('/login');
+  await page.getByLabel('E-mail').fill('test@example.test');
+  await page.getByLabel('Senha',{exact:true}).fill('synthetic-password');
+  await page.getByRole('button',{name:'Entrar na minha conta'}).click();
+  await page.getByRole('link',{name:'Alterar senha',exact:true}).click();
+  await page.getByLabel('Nova senha',{exact:true}).fill('authenticated-new-password');
+  await page.getByLabel('Confirmar nova senha').fill('authenticated-new-password');
+  await page.getByRole('button',{name:'Salvar nova senha'}).click();
+  await expect(page.getByText('Senha atualizada.',{exact:true})).toBeVisible();
+  expect(state.updates).toBe(1);
+  expect(state.logouts).toBe(0);
+  await page.getByRole('button',{name:'Sair da conta'}).click();
+  await page.getByLabel('E-mail').fill('test@example.test');
+  await page.getByLabel('Senha',{exact:true}).fill('authenticated-new-password');
+  await page.getByRole('button',{name:'Entrar na minha conta'}).click();
+  await expect(page.getByRole('heading',{name:'Seu espaço começa com você.'})).toBeVisible();
+  expect(state.logins).toBe(2);
 });

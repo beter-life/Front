@@ -12,6 +12,6 @@ description: Use for system boundaries, data flow, module ownership, and technic
 
 ## Confirmed frontend baseline
 
-- MDL 1F uses React/Vite/strict TypeScript and Supabase browser Auth with PKCE.
+- MDL 1F uses React/Vite/strict TypeScript and the default Supabase browser client; Auth V2 confirms signup and recovery with TokenHash.
 - Fastify remains the application-data boundary; profile ownership comes from its verified JWT.
 - See `docs/ARCHITECTURE.md` for module boundaries, callback behavior and validation limits.

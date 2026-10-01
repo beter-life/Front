@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { loginSchema, signupSchema, passwordSchema } from '../../src/auth/schema';
+import { loginSchema, signupSchema, newPasswordSchema } from '../../src/auth-v2/validation';
 import { profileInputSchema } from '../../src/profile/schema';
 import { publicConfig } from '../../src/config/env';
 import { publicEnv, input } from '../helpers';
@@ -10,7 +10,7 @@ describe('public boundaries', () => {
   });
   it('requires long matching passwords for signup and reset', () => {
     expect(signupSchema.safeParse({ email: 'a@example.test', password: 'short', confirmPassword: 'short' }).success).toBe(false);
-    expect(passwordSchema.safeParse({ password: 'long-password', confirmPassword: 'different' }).success).toBe(false);
+    expect(newPasswordSchema.safeParse({ password: 'long-password', confirmPassword: 'different' }).success).toBe(false);
     expect(signupSchema.safeParse({ email: 'a@example.test', password: 'long-password', confirmPassword: 'long-password' }).success).toBe(true);
   });
   it('validates profile and rejects client ownership', () => {

@@ -8,7 +8,10 @@ import { AuthV2Routes } from '../../src/auth-v2/app';
 import type { AuthClientV2 } from '../../src/auth-v2/client';
 import { AuthProviderV2 } from '../../src/auth-v2/provider';
 import { SessionStore } from '../../src/auth-v2/session';
-import { session } from '../helpers';
+import { AppProviders } from '../../src/app/providers';
+import { createServices } from '../../src/app/services';
+import { publicConfig } from '../../src/config/env';
+import { profile, publicEnv, session } from '../helpers';
 
 function setup(path: string, initiallySignedIn = false, configure?: (auth: ReturnType<typeof authMethods>, emit: (event: string, value: Session | null) => void) => void) {
   let emit!: (event: string, value: Session | null) => void;
@@ -19,7 +22,8 @@ function setup(path: string, initiallySignedIn = false, configure?: (auth: Retur
   emit('INITIAL_SESSION', initiallySignedIn ? session : null);
   configure?.(auth, emit);
   window.history.replaceState(null, '', path);
-  render(<StrictMode><AuthProviderV2 client={client} store={store}><MemoryRouter initialEntries={[path]}><AuthV2Routes apiBaseUrl="http://localhost:3001" /></MemoryRouter></AuthProviderV2></StrictMode>);
+  const services = createServices(publicConfig(publicEnv), store);
+  render(<StrictMode><AuthProviderV2 client={client} store={store}><AppProviders services={services}><MemoryRouter initialEntries={[path]}><AuthV2Routes /></MemoryRouter></AppProviders></AuthProviderV2></StrictMode>);
   return { auth, store, emit, user: userEvent.setup() };
 }
 
@@ -97,5 +101,50 @@ describe('clean-room routes with independently mocked boundaries', () => {
     await app.user.click(screen.getByRole('button', { name: 'Salvar nova senha' }));
     expect(app.auth.updateUser).toHaveBeenCalledExactlyOnceWith({ password: 'new-password' });
     expect(await screen.findByText('Senha atualizada. Entre com sua nova senha.')).toBeVisible();
+  });
+
+  it('edits the authenticated profile using PUT /me/profile without an ownership field', async () => {
+    let saved = profile;
+    const backend = vi.fn(async (url: RequestInfo | URL, options?: RequestInit) => {
+      if (options?.method === 'PUT') {
+        expect(url).toBe('http://localhost:3001/api/v1/me/profile');
+        const payload = JSON.parse(options.body as string);
+        expect(Object.keys(payload).sort()).toEqual(['displayName', 'locale', 'timezone']);
+        saved = { ...profile, ...payload };
+        return new Response(JSON.stringify(saved));
+      }
+      return new Response(JSON.stringify({ identity: { authUserId: session.user.id }, profile: saved }));
+    });
+    vi.stubGlobal('fetch', backend);
+    const app = setup('/profile', true);
+    const name = await screen.findByLabelText('Como prefere ser chamado?');
+    await app.user.clear(name); await app.user.type(name, 'Perfil atualizado');
+    await app.user.click(screen.getByRole('button', { name: 'Salvar perfil' }));
+    expect(await screen.findByText('Perfil salvo. Tudo do seu jeito.')).toBeVisible();
+    expect(saved.displayName).toBe('Perfil atualizado');
+  });
+
+  it('changes a password in a protected session and preserves access', async () => {
+    const app = setup('/account/password', true);
+    app.auth.updateUser.mockResolvedValue({ data: { user: session.user }, error: null });
+    await app.user.type(screen.getByLabelText('Nova senha', { exact: true }), 'new-password');
+    await app.user.type(screen.getByLabelText('Confirmar nova senha'), 'new-password');
+    await app.user.click(screen.getByRole('button', { name: 'Salvar nova senha' }));
+    expect(await screen.findByText('Senha atualizada.')).toBeVisible();
+    expect(app.auth.updateUser).toHaveBeenCalledExactlyOnceWith({ password: 'new-password' });
+    expect(app.store.getSnapshot().status).toBe('authenticated');
+    expect(app.auth.signOut).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('Nova senha', { exact: true })).toHaveValue('');
+  });
+
+  it('sanitizes a failed authenticated password update and keeps the form available', async () => {
+    const app = setup('/account/password', true);
+    app.auth.updateUser.mockResolvedValue({ data: { user: null }, error: { message: 'provider private error' } });
+    await app.user.type(screen.getByLabelText('Nova senha', { exact: true }), 'new-password');
+    await app.user.type(screen.getByLabelText('Confirmar nova senha'), 'new-password');
+    await app.user.click(screen.getByRole('button', { name: 'Salvar nova senha' }));
+    expect(await screen.findByText('Não foi possível atualizar a senha. Tente novamente.')).toBeVisible();
+    expect(screen.queryByText('provider private error')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Salvar nova senha' })).toBeEnabled();
   });
 });
