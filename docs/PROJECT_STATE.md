@@ -2,29 +2,17 @@
 
 | Field | Value |
 | --- | --- |
-| MODULE | MDL 1F — Frontend Foundation & Identity |
-| STATUS | COMPLETE |
-| SCOPE | Frontend Auth V2 final cutover; MDL 2 not started |
-| BRANCH | codex/mdl1f-auth-cleanroom |
-| LAST_TESTED_COMMIT | 62e140e719f5225f2db3c450737c6f443b0ff48d |
-| GATE_1_LOGIN | PASS |
-| GATE_2_SIGNUP_CONFIRMATION | PASS |
-| GATE_3_PASSWORD_RECOVERY | PASS |
-| LOGIN | PASS |
-| SIGNUP | PASS |
-| EMAIL_CONFIRMATION | PASS |
-| SESSION | PASS |
-| PROFILE | PASS |
-| LOGOUT | PASS |
-| AUTHENTICATED_PASSWORD_CHANGE | PASS |
-| PASSWORD_RECOVERY | PASS |
-| RECOVERY_PASSWORD_UPDATE | PASS |
-| EVIDENCE | Real Auth flows manually approved by the user on 2026-10-01. Final regression uses the installed SDK with intercepted Auth/API transport; no new real email sent |
-| DONE | Auth V2 is the default entry point; legacy Auth, preview switch and temporary diagnostics removed. Full profile editor and protected password change connected to V2; private cache cleared on logout/identity changes |
-| TESTS | Unit/integration 25; browser desktop/mobile 22; lint, typecheck, build, secret scan and harness PASS. Includes protected routes, session reload, logout, owner mismatch, profile persistence, password change and login after recovery |
-| API | Read profile via `GET /api/v1/me`; write via `PUT /api/v1/me/profile`. Separate `GET /api/v1/me/profile` does not exist; using `/me` was explicitly approved |
-| LOCAL | Front `http://localhost:3101`; Back live/ready 200 with hosted DB and TLS `verify-full`. No Back files, database, RLS, SMTP or Supabase configuration changed |
-| CHECKPOINT | Pre-cutover tag `checkpoint/auth-v2-pre-cutover-2026-10-01`; final tag `checkpoint/mdl1f-auth-v2-complete-2026-10-01`. Prior stash `019edaf1` preserved |
-| BLOCKERS | None. Git HTTPS helper read-only check passed |
-| READY_FOR_MDL2 | true |
-| NEXT | Deliver the final checkpoint report and wait for explicit MDL 2 instructions |
+| MODULE | MDL 2 — Financial Core |
+| STATUS | AWAITING_REAL_GATE |
+| SCOPE | Frontend Finance; Auth V2 preserved |
+| BRANCH | codex/mdl2-financial-core |
+| LAST_TESTED_COMMIT | f2f2148be587e8cf1fa4ad2cfddaabf11755a01b |
+| BASELINE | MDL 1F COMPLETE, real Auth gates manually approved; checkpoint/mdl1f-auth-v2-complete-2026-10-01 and prior stash 019edaf1 preserved |
+| DONE | Protected finance dashboard, accounts/create/edit/deactivate, categories, income/expense, transfers, filters/pagination/cancellation. Generated TypeBox→Zod client; exact BigInt money and profile timezone; private cache cleared on identity change/logout |
+| TESTS | Unit/integration 34; browser desktop/mobile 30 including all 22 Auth regressions and Finance end-to-end; lint/typecheck/build/secret scan/harness PASS. Visual desktop/mobile reviewed. Only external transport intercepted; no real emails requested |
+| BACKEND | Back tested 0d2ad207; existing contracts unchanged; hosted 0003_finance_core applied, four RLS tables, TLS verify-full; live/ready 200 and unauthenticated Finance 401 |
+| LOCAL | Front http://localhost:3101/finance; Back localhost:3001 with matching CORS |
+| REAL_GATE | PENDING_MANUAL; no Finance records inserted through SQL or fake remote data |
+| BLOCKERS | Real authenticated financial flow needs the user's manual approval; no technical local blocker |
+| READY_FOR_MDL3 | false |
+| NEXT | In /finance create Principal BRL opening 1000, Reserva BRL opening 0, categories, income 200, expense 50 and transfer 100; expect balances 1050/100 and total 1150, then reload and confirm own persisted data |
