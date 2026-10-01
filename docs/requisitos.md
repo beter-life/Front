@@ -11,8 +11,9 @@ Moedas, BIGINT, timezone e ownership seguem contratos reais do Back.
 
 Os testes de browser usam SDK Supabase e aplicação reais, interceptando apenas
 Auth/API externos. Testes PostgreSQL/constraints/RLS pertencem ao Back. Gate
-real manual obrigatório: duas contas, categoria, receita/despesa, saldo,
-transferência e reload com sessão real em `http://localhost:3101/finance`.
+real manual aprovado pelo usuário: contas, categorias, receita, despesa,
+transferência, saldos e reload com persistência no Supabase passaram usando
+sessão real em `/finance`.
 
 Não implementado: orçamento/metas/recorrência, cartão ou investimentos avançados,
 importação, integração bancária, OpenFinance, IA, previsão, MDL 3.
