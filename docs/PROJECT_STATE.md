@@ -3,12 +3,28 @@
 | Field | Value |
 | --- | --- |
 | MODULE | MDL 1F — Frontend Foundation & Identity |
-| STATUS | READY_FOR_GATE_1_LOGIN |
-| SCOPE | Frontend clean-room Auth preview; no cutover or MDL 2 |
+| STATUS | COMPLETE |
+| SCOPE | Frontend Auth V2 final cutover; MDL 2 not started |
 | BRANCH | codex/mdl1f-auth-cleanroom |
-| LAST_TESTED_COMMIT | 1da42e2ad4ca9b1dddbdd31567cc068fc4627fc6 |
-| DONE | Independent `src/auth-v2/` login, signup, TokenHash confirmation/recovery, logout, protected routes and `GET /api/v1/me` preview. Old Auth remains intact in the default mode; preview runs with `--mode auth-v2`. Pre-change work saved in stash `019edaf1`. No real email sent |
-| TESTS | Unit/integration 66; new browser desktop/mobile 18; legacy browser desktop/mobile 18; lint, typecheck, both builds, secret scan, harness PASS. Browser Auth/API responses mocked; real login not yet tested |
-| LOCAL | Front `http://localhost:3101/login`; Back `http://localhost:3001` live/ready 200 with hosted DB and TLS `verify-full`. Back CORS for `localhost:3101` is process-only; no Back files changed |
-| BLOCKERS | None for Gate 1. Remote email templates and real delivery remain unverified for Gates 2–3. Push deferred by scope and broken Git HTTPS helper |
-| NEXT | Human: sign in once with the existing confirmed account at `http://localhost:3101/login`; confirm protected `/app`, owner/profile from `GET /api/v1/me`, then logout. Report results and stop. Do not request signup or recovery email before Gate 1 passes |
+| LAST_TESTED_COMMIT | 62e140e719f5225f2db3c450737c6f443b0ff48d |
+| GATE_1_LOGIN | PASS |
+| GATE_2_SIGNUP_CONFIRMATION | PASS |
+| GATE_3_PASSWORD_RECOVERY | PASS |
+| LOGIN | PASS |
+| SIGNUP | PASS |
+| EMAIL_CONFIRMATION | PASS |
+| SESSION | PASS |
+| PROFILE | PASS |
+| LOGOUT | PASS |
+| AUTHENTICATED_PASSWORD_CHANGE | PASS |
+| PASSWORD_RECOVERY | PASS |
+| RECOVERY_PASSWORD_UPDATE | PASS |
+| EVIDENCE | Real Auth flows manually approved by the user on 2026-10-01. Final regression uses the installed SDK with intercepted Auth/API transport; no new real email sent |
+| DONE | Auth V2 is the default entry point; legacy Auth, preview switch and temporary diagnostics removed. Full profile editor and protected password change connected to V2; private cache cleared on logout/identity changes |
+| TESTS | Unit/integration 25; browser desktop/mobile 22; lint, typecheck, build, secret scan and harness PASS. Includes protected routes, session reload, logout, owner mismatch, profile persistence, password change and login after recovery |
+| API | Read profile via `GET /api/v1/me`; write via `PUT /api/v1/me/profile`. Separate `GET /api/v1/me/profile` does not exist; using `/me` was explicitly approved |
+| LOCAL | Front `http://localhost:3101`; Back live/ready 200 with hosted DB and TLS `verify-full`. No Back files, database, RLS, SMTP or Supabase configuration changed |
+| CHECKPOINT | Pre-cutover tag `checkpoint/auth-v2-pre-cutover-2026-10-01`; final tag `checkpoint/mdl1f-auth-v2-complete-2026-10-01`. Prior stash `019edaf1` preserved |
+| BLOCKERS | None. Git HTTPS helper read-only check passed |
+| READY_FOR_MDL2 | true |
+| NEXT | Deliver the final checkpoint report and wait for explicit MDL 2 instructions |
