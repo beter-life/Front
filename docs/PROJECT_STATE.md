@@ -2,16 +2,18 @@
 
 | Field | Value |
 | --- | --- |
-| MODULE | MDL 2 — Financial Core |
-| STATUS | COMPLETE |
-| SCOPE | Frontend Finance; Auth V2 preserved |
-| BRANCH | codex/mdl2-financial-core |
-| LAST_TESTED_COMMIT | b298a92b1887ec93fe5cfc58b3c9a17515d44806 |
-| DONE | Protected finance dashboard; accounts, categories, income/expense, transfers, filters, pagination and cancellation; generated client, exact BigInt money, profile timezone, owner-scoped cache |
-| GATES | ACCOUNTS=PASS; CATEGORIES=PASS; INCOME=PASS; EXPENSE=PASS; TRANSFER=PASS; BALANCE_MODEL=PASS; PERSISTENCE=PASS; RLS=PASS; OWNERSHIP=PASS; OPENAPI=PASS; POSTGRES_INTEGRATION=PASS |
-| REAL_GATE | PASS — user approved real authenticated flow and Supabase persistence (2 accounts, 2 categories, 2 transactions, 1 transfer) |
-| BACKEND | Migration 0003 applied; four Finance tables with RLS; hosted TLS verify-full; Back health live/ready 200 |
-| TESTS | Unit/integration 34; browser desktop/mobile 30; lint, typecheck, build, secret scan and harness PASS; Auth regressions preserved |
-| CI | PASS on b298a92b1887ec93fe5cfc58b3c9a17515d44806 |
-| READY_FOR_MDL3 | true |
-| NEXT | Wait for an explicit request before starting MDL 3 |
+| MODULE | MDL 3 — Monthly Budgeting |
+| STATUS | AWAITING_REAL_GATE |
+| SCOPE | Frontend Finance; Auth V2 and MDL 2 preserved |
+| BRANCH | codex/mdl3-monthly-budgeting |
+| LAST_TESTED_COMMIT | 9008b5067436bfa6bc3669edf391d393cdb82c69 |
+| DONE | Protected monthly budget page; month/currency navigation, exact totals/progress, inline limits, positive rollover, copy previous, unbudgeted spending, accessible linear pace, generated client and owner-scoped cache |
+| GATES | BUDGET_MODEL/ALLOCATIONS/ROLLOVER/COPY_PREVIOUS/UNBUDGETED_SPENDING/SPENDING_PACE/MONTH_SUMMARY=PASS (automated) |
+| BACKEND | Migration 0004 applied with RLS; MDL 2 data preserved; TLS verify-full; health live/ready 200; code 0f359a70baeb0e4dc95ae7ad5d663774fb2a077e |
+| TESTS | Unit 26 + integration 22; browser desktop/mobile 40 including tablet/keyboard; lint, typecheck, build, secret scan and harness PASS; Auth/Finance regressions preserved |
+| CI | PASS on 9008b5067436bfa6bc3669edf391d393cdb82c69; GitHub Actions run 36900584595 |
+| LOCAL | Front http://localhost:3101/finance/budgets; Back localhost:3001 |
+| REAL_GATE | PENDING — no remote budget data created for simulated approval |
+| BLOCKER | User manual authenticated budget gate |
+| READY_FOR_MDL4 | false |
+| NEXT | Create monthly expense limit 500 and expense 100; verify remaining 400/20%, reload, edit, copy following month and ownership. Await approval; no MDL 4 |

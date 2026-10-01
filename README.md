@@ -1,6 +1,6 @@
 # Beter Life · Front
 
-MDL 1F Auth V2 is preserved. MDL 2 adds Financial Core: accounts, categories, income/expense, atomic transfers, exact balances and basic queries. The user-approved real financial gate confirmed persistence in Supabase. React, Vite, strict TypeScript, Tailwind v4, shadcn/ui primitives, React Router, TanStack Query, React Hook Form and Zod.
+MDL 1F Auth V2 is preserved. MDL 2 adds Financial Core: accounts, categories, income/expense, atomic transfers, exact balances and basic queries. The user-approved real financial gate confirmed persistence in Supabase. MDL 3 adds monthly expense budgets, category limits, positive rollover, copy-previous, unbudgeted spending and pace; its real gate awaits manual validation. React, Vite, strict TypeScript, Tailwind v4, shadcn/ui primitives, React Router, TanStack Query, React Hook Form and Zod.
 
 ## Local development
 
@@ -23,7 +23,7 @@ Confirmation and recovery each call `verifyOtp({ token_hash, type })` once, then
 
 `/login`, `/signup`, `/auth/confirm`, `/forgot-password`, `/auth/recovery`, protected `/app`, `/profile` and `/account/password`. `/app` is an identity landing page, not a financial dashboard.
 
-Finance uses protected `/finance`, `/finance/accounts`, `/finance/categories` and `/finance/transactions`. See [Finance architecture](docs/arquitetura.md), [requirements](docs/requisitos.md), [money/date rules](docs/regras-negocio.md) and [data boundary](docs/banco-de-dados.md). Its generated contracts are pinned in `src/features/finance/contracts.generated.ts`; build/runtime do not require the Back checkout. Never pass ownership IDs from the client.
+Finance uses protected `/finance`, `/finance/accounts`, `/finance/categories`, `/finance/transactions` and `/finance/budgets`. Budgets accept explicit `month=YYYY-MM&currency=BRL` navigation and use the profile timezone for the current month. See [Finance architecture](docs/arquitetura.md), [requirements](docs/requisitos.md), [money/date rules](docs/regras-negocio.md) and [data boundary](docs/banco-de-dados.md). Its generated contracts are pinned in `src/features/finance/contracts.generated.ts`; build/runtime do not require the Back checkout. Never pass ownership IDs from the client.
 
 The Supabase browser SDK owns session persistence and refresh. Application profile data goes through Fastify: `GET /api/v1/me` and `PUT /api/v1/me/profile`. The exact profile payload is `{ displayName, locale, timezone }`; no ownership identifier is sent. There is no `GET /api/v1/me/profile`: the profile is included in `/me`. Authenticated password changes use Supabase `updateUser`, preserve the current session and expose only safe feedback. See [architecture](docs/ARCHITECTURE.md).
 

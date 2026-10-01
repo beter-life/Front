@@ -1,4 +1,4 @@
-# Finance frontend — MDL 2
+# Finance frontend — MDL 2/3
 
 `src/features/finance/` é isolado do Auth V2: API, contratos gerados, money,
 datas, hooks, formulários e páginas. Auth/provider/guards existentes continuam
@@ -20,3 +20,18 @@ financeiro duplicado manualmente. O arquivo é versionado, autocontido e traz
 SHA-256 da fonte; clonar Front não exige checkout Back em runtime/build.
 Regenerar a partir do artefato publicado do Back, mantendo o cabeçalho.
 Mais detalhes de Auth em [ARCHITECTURE](ARCHITECTURE.md).
+
+## Monthly Budgeting
+
+`/finance/budgets` permanece no mesmo bounded context e guard Auth V2.
+`budget-pages.tsx` oferece navegação mensal/moeda, resumo, ritmo, progresso,
+limites inline, desativação confirmada, cópia anterior e gastos sem orçamento.
+Estados de loading, erro/retry e vazio são explícitos. Layout responsivo e
+progressbar com texto/ícones não dependem apenas de cor.
+
+`budget-hooks.ts` usa chaves owner+month+currency e o transporte autenticado
+existente. Alterações invalidam as queries Finance do owner atual; sessão
+tardia não repopula cache de outro usuário. Sem retry automático de writes.
+`budget-view.ts` só apresenta valores/calendário: regras, gastos, rollover e
+ritmo vêm do Back. Não conectar ao banco ou duplicar cálculo financeiro no UI.
+Nenhuma alteração no singleton, callback, provider ou fluxo Auth aprovado.
