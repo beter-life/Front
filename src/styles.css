@@ -100,3 +100,45 @@
 .finance-list { list-style:none; padding:0; }.finance-list li { display:flex; flex-wrap:wrap; gap:14px; align-items:center; padding:20px 0; border-bottom:1px solid var(--border); }.finance-list li:last-child { border-bottom:0; }.finance-list p { color:var(--muted-foreground); font-size:12px; margin-top:5px; }.finance-list li > div:first-child:not(.movement-icon) { flex:1; }
 .movement-detail { flex:1; min-width:140px; overflow-wrap:anywhere; }.movement-icon { border-radius:12px; width:40px; height:40px; display:grid; place-items:center; background:var(--muted); flex-shrink:0; }.movement-icon svg { width:19px; height:19px; }.movement-icon.expense { color:#974434; background:#f7eee5; }.movement-icon.income { color:var(--primary); }.movement-value { font-variant-numeric:tabular-nums; white-space:nowrap; }
 @media (max-width:800px) { .sidebar nav { flex-wrap:wrap; gap:4px; }.sidebar nav a { flex-basis:calc(50% - 4px); font-size:12px; padding:10px; }.finance-columns { grid-template-columns:1fr; }.finance-nav { gap:3px; }.finance-nav a { padding:9px; font-size:12px; }.finance-list li { gap:10px; }.finance-movements { padding:20px; }.movement-value { margin-left:50px; }.finance-period { width:100%; }.finance-period > div { flex:1; } }
+/* Monthly budget: category planning, exact money and accessible pace indicators. */
+.budget-toolbar, .budget-month-navigation, .budget-month-title, .budget-section-head, .budget-category-head, .budget-empty-actions, .budget-row-actions { display: flex; align-items: center; gap: 1rem; }
+.budget-toolbar, .budget-month-title, .budget-section-head, .budget-category-head { justify-content: space-between; }
+.budget-toolbar { flex-wrap: wrap; margin-bottom: 2rem; }
+.budget-month-navigation { gap: .25rem; }
+.budget-currency { display: grid; gap: .4rem; font-size: .85rem; }
+.budget-currency select { min-width: 7rem; }
+.budget-month-title { margin: 1.5rem 0; align-items: baseline; flex-wrap: wrap; }
+.budget-month-title h2 { text-transform: capitalize; }
+.budget-summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.budget-summary-grid .finance-total { overflow-wrap: anywhere; }
+.budget-empty, .budget-rhythm { margin-top: 1.5rem; }
+.budget-empty h2 { margin-bottom: .75rem; }
+.budget-empty-actions { flex-wrap: wrap; margin-top: 1.25rem; }
+.budget-rhythm { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
+.budget-rhythm p { margin-top: .75rem; }
+.budget-action { display: grid; gap: .75rem; }
+.budget-planning, .budget-unplanned { margin-top: 2.5rem; }
+.budget-section-head { margin-bottom: 1.25rem; align-items: flex-start; flex-wrap: wrap; }
+.budget-section-head h2 { margin-bottom: .4rem; }
+.budget-categories { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.budget-category-head { align-items: flex-start; flex-wrap: wrap; }
+.budget-category h3 { margin-bottom: .35rem; }
+.budget-category-values { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .7rem; margin: 1.5rem 0; }
+.budget-category-values dt { font-size: .8rem; color: var(--muted-foreground); }
+.budget-category-values dd { font-weight: 600; margin-top: .4rem; overflow-wrap: anywhere; }
+.budget-progress { height: .5rem; border-radius: 1rem; background: #e5ece7; overflow: hidden; margin: 1rem 0 .5rem; }
+.budget-progress span { display: block; height: 100%; background: #305b46; border-radius: inherit; }
+.budget-pace { display: inline-flex; align-items: center; gap: .35rem; font-size: .8rem; font-weight: 600; padding: .4rem .6rem; border-radius: .6rem; }
+.budget-pace svg { width: 1rem; height: 1rem; flex-shrink: 0; }
+.budget-pace-on_track { color: #28513d; background: #edf4ed; }
+.budget-pace-attention { color: #7a501b; background: #faf0d9; }
+.budget-pace-over_budget { color: #8d3c35; background: #f9e9e5; }
+.budget-row-actions { margin-top: 1rem; flex-wrap: wrap; gap: .5rem; }
+.budget-remove { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #dce4dd; }
+.budget-remove p { margin-bottom: 1rem; }
+.budget-unplanned { padding: 1.5rem; border: 1px solid #dce4dd; border-radius: 1rem; background: #fafaf6; }
+.budget-unplanned ul { list-style: none; padding: 0; }
+.budget-unplanned li { display: flex; justify-content: space-between; gap: 1rem; border-top: 1px solid #e1e6df; padding: 1rem 0; }
+.budget-unplanned li:last-child { padding-bottom: 0; }
+@media (max-width: 900px) { .budget-summary-grid, .budget-categories { grid-template-columns: 1fr; } .budget-rhythm { align-items: flex-start; flex-direction: column; } }
+@media (max-width: 480px) { .budget-month-navigation { width: 100%; } .budget-month-navigation .finance-field { min-width: 0; flex: 1; } .budget-category-values { gap: .4rem; } .budget-empty-actions { align-items: stretch; flex-direction: column; } }

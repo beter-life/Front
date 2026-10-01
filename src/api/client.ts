@@ -5,7 +5,7 @@ export class ApiError extends Error {
   constructor(readonly status: number, message: string) { super(message); }
 }
 export function createApiClient(baseUrl: string, getToken: () => string | undefined, unauthorized: (token: string) => Promise<void>, fetcher: typeof fetch = fetch) {
-  async function request<T>(path: string, schema: z.ZodType<T>, method: 'GET' | 'PUT' | 'POST' | 'PATCH', body?: unknown, signal?: AbortSignal): Promise<T> {
+  async function request<T>(path: string, schema: z.ZodType<T>, method: 'GET' | 'PUT' | 'POST' | 'PATCH' | 'DELETE', body?: unknown, signal?: AbortSignal): Promise<T> {
     const token = getToken();
     if (!token) throw new ApiError(401, 'Entre novamente para continuar.');
     let response: Response;

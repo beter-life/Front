@@ -8,7 +8,15 @@ export function createFinanceApi(transport: ApiClient) {
     for (const [key, value] of Object.entries(values)) if (value) params.set(key, value);
     return '?' + params.toString();
   };
+  const budgetPath = (month: string) => base + '/budgets/' + C.BudgetMonthSchema.parse(month);
+  const budgetQuery = (currency: C.Currency) => query(C.BudgetCurrencyQuerySchema.parse({ currency }));
   return {
+    budget: (month: string, currency: C.Currency, signal?: AbortSignal) => transport.request(budgetPath(month) + budgetQuery(currency), C.BudgetViewSchema, 'GET', undefined, signal),
+    budgetSummary: (month: string, currency: C.Currency, signal?: AbortSignal) => transport.request(budgetPath(month) + '/summary' + budgetQuery(currency), C.BudgetSummarySchema, 'GET', undefined, signal),
+    ensureBudget: (month: string, input: C.BudgetPeriodInput) => transport.request(budgetPath(month), C.BudgetPeriodSchema, 'PUT', C.BudgetPeriodInputSchema.parse(input)),
+    putBudgetAllocation: (month: string, categoryId: string, input: C.BudgetAllocationInput) => transport.request(budgetPath(month) + '/categories/' + z.uuid().parse(categoryId), C.BudgetAllocationSchema, 'PATCH', C.BudgetAllocationInputSchema.parse(input)),
+    removeBudgetAllocation: (month: string, categoryId: string, currency: C.Currency) => transport.request(budgetPath(month) + '/categories/' + z.uuid().parse(categoryId) + budgetQuery(currency), C.BudgetAllocationSchema, 'DELETE'),
+    copyBudgetPrevious: (month: string, input: C.BudgetPeriodInput) => transport.request(budgetPath(month) + '/copy-previous', C.BudgetCopyResultSchema, 'POST', C.BudgetPeriodInputSchema.parse(input)),
     accounts: (signal?: AbortSignal) =>
       transport.request(base + '/accounts', z.array(C.AccountSchema), 'GET', undefined, signal),
     createAccount: (input: C.AccountInput) =>
