@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router';
-import { House, KeyRound, LogOut, Sprout, UserRound } from 'lucide-react';
+import { House, KeyRound, LogOut, Sprout, UserRound, Wallet } from 'lucide-react';
 import { PublicLayout } from '../layouts/public-layout';
 import { Button } from '../components/ui/button';
 import { Feedback } from '../components/feedback';
@@ -9,6 +9,7 @@ import { ProtectedRouteV2 } from './guards';
 import { HomePage, ProfilePage } from '../profile/pages';
 import { PasswordChangePageV2 } from './password-change';
 import { useAuthV2 } from './hooks';
+import { FinanceLayout, FinanceDashboard, AccountsPage, CategoriesPage, TransactionsPage } from '../features/finance/pages';
 
 function RouteFocus() {
   const { pathname } = useLocation();
@@ -32,7 +33,7 @@ function PrivateLayoutV2() {
     finally { setBusy(false); }
   }
   return <div className="private-shell"><aside className="sidebar"><Link className="brand" to="/app"><Sprout aria-hidden="true" />beter life.</Link>
-    <p className="eyebrow sidebar-caption">SEU ESPAÇO</p><nav aria-label="Navegação principal"><NavLink to="/app"><House aria-hidden="true" />Início</NavLink><NavLink to="/profile"><UserRound aria-hidden="true" />Meu perfil</NavLink><NavLink to="/account/password"><KeyRound aria-hidden="true" />Alterar senha</NavLink></nav>
+    <p className="eyebrow sidebar-caption">SEU ESPAÇO</p><nav aria-label="Navegação principal"><NavLink to="/app"><House aria-hidden="true" />Início</NavLink><NavLink to="/finance"><Wallet aria-hidden="true" />Finanças</NavLink><NavLink to="/profile"><UserRound aria-hidden="true" />Meu perfil</NavLink><NavLink to="/account/password"><KeyRound aria-hidden="true" />Alterar senha</NavLink></nav>
     <div className="sidebar-bottom"><p>Pequenos passos.<br />Novas possibilidades.</p><Button variant="ghost" onClick={logout} disabled={busy}><LogOut aria-hidden="true" />{busy ? 'Saindo…' : 'Sair da conta'}</Button></div></aside>
     <div className="private-content"><header className="private-header"><span>SEU PONTO DE PARTIDA</span><span className="status-dot">Conta conectada</span></header>{error && <div className="mx-6 mt-4"><Feedback>Não foi possível sair. Tente novamente.</Feedback></div>}
       <main id="main" className="private-main"><Outlet /></main><footer className="private-footer">Beter Life · Feito para uma vida com mais clareza.</footer></div></div>;
@@ -53,6 +54,12 @@ export function AuthV2Routes() {
       <Route path="/app" element={<HomePage />} />
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/account/password" element={<PasswordChangePageV2 />} />
+      <Route path="/finance" element={<FinanceLayout />}>
+        <Route index element={<FinanceDashboard />} />
+        <Route path="accounts" element={<AccountsPage />} />
+        <Route path="categories" element={<CategoriesPage />} />
+        <Route path="transactions" element={<TransactionsPage />} />
+      </Route>
     </Route></Route>
   </Routes></>;
 }

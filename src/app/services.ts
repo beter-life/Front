@@ -2,6 +2,7 @@ import { QueryClient } from '@tanstack/react-query';
 import type { SessionStore } from '../auth-v2/session';
 import { ApiError, createApiClient } from '../api/client';
 import type { PublicConfig } from '../config/env';
+import { createFinanceApi } from '../features/finance/api';
 export function createServices(config: PublicConfig, store: SessionStore, fetcher?: typeof fetch) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 30000, refetchOnWindowFocus: false }, mutations: { retry: false } } });
   let owner = store.getSnapshot().user?.id;
@@ -21,6 +22,6 @@ export function createServices(config: PublicConfig, store: SessionStore, fetche
     },
     updateProfile: transport.updateProfile,
   };
-  return { queryClient, api };
+  return { queryClient, api, finance: createFinanceApi(transport) };
 }
 export type Services = ReturnType<typeof createServices>;

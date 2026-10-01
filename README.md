@@ -1,6 +1,6 @@
 # Beter Life · Front
 
-MDL 1F: frontend foundation and identity. React, Vite, strict TypeScript, Tailwind v4, shadcn/ui primitives, React Router, TanStack Query, React Hook Form and Zod. No financial domain pages are implemented.
+MDL 1F Auth V2 is preserved. MDL 2 adds Financial Core: accounts, categories, income/expense, atomic transfers, exact balances and basic queries. React, Vite, strict TypeScript, Tailwind v4, shadcn/ui primitives, React Router, TanStack Query, React Hook Form and Zod.
 
 ## Local development
 
@@ -22,6 +22,8 @@ Confirmation and recovery each call `verifyOtp({ token_hash, type })` once, then
 ## Routes and contracts
 
 `/login`, `/signup`, `/auth/confirm`, `/forgot-password`, `/auth/recovery`, protected `/app`, `/profile` and `/account/password`. `/app` is an identity landing page, not a financial dashboard.
+
+Finance uses protected `/finance`, `/finance/accounts`, `/finance/categories` and `/finance/transactions`. See [Finance architecture](docs/arquitetura.md), [requirements](docs/requisitos.md), [money/date rules](docs/regras-negocio.md) and [data boundary](docs/banco-de-dados.md). Its generated contracts are pinned in `src/features/finance/contracts.generated.ts`; build/runtime do not require the Back checkout. Never pass ownership IDs from the client.
 
 The Supabase browser SDK owns session persistence and refresh. Application profile data goes through Fastify: `GET /api/v1/me` and `PUT /api/v1/me/profile`. The exact profile payload is `{ displayName, locale, timezone }`; no ownership identifier is sent. There is no `GET /api/v1/me/profile`: the profile is included in `/me`. Authenticated password changes use Supabase `updateUser`, preserve the current session and expose only safe feedback. See [architecture](docs/ARCHITECTURE.md).
 
