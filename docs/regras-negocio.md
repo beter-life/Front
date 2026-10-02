@@ -64,4 +64,28 @@
   pause/archive. Mesmo UUID e conteúdo diferente: 409. Retirada acima de current
   bloqueada localmente e no servidor. Repetir resposta incerta preserva chave/payload.
 - Não há juros, Yield Engine, automatização, Conflict Detector, Safe to Spend,
-  simulação, investimentos, IA, Open Finance, notificações ou MDL5+.
+  simulação, investimentos, IA, Open Finance, notificações ou MDL6+.
+
+## MDL 5 — Planning expectations
+
+The Front never computes an occurrence engine or turns recurrence into a real
+transaction. New/edit/status actions call only recurrence endpoints; account and
+category APIs are read for association choices. Type/currency are fixed after
+creation; subscriptions force expense, changing currency clears account choice,
+changing type clears category choice. Existing inactive links remain selectable
+only for their own unchanged edit. Archive is terminal and requires confirmation.
+
+Amount input/output reuses exact Money utilities and supported exponents; API
+sends integer minor-unit strings. Backend uses original weekly/monthly/yearly
+anchor with interval 1–52/1–24/1–10 and inclusive optional end. Monthly Jan31
+clamps Feb28 then restores Mar31; leap-year Feb29 returns after ordinary Feb28.
+All projected dates are YYYY-MM-DD, years 1000–9998, never parsed as UTC midnight;
+localized display inserts the calendar components into a constant locale template.
+Profile timezone defines server today and default calendar month (UTC fallback).
+
+Calendar [from,to) spans at most 366 days, monthly UI asks for first-of-month to
+first-of-next-month. Totals remain separate currencies; projected net is income
+minus expense, not available account balance. Radar sums actual occurrences in
+[today,today+30), including repeated weekly charges, not monthly equivalents.
+Only ACTIVE rules project; paused/archived next date is absent. No inference,
+reconciliation, automatic posting, financial ingestion or MDL6 behavior.

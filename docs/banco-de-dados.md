@@ -38,3 +38,21 @@ Histórico usa cursor occurredAt+id e limite de 50 por página no UI. Cache priv
 inclui owner/goal; logout elimina acesso. Reload busca novamente dados persistidos.
 Supabase DEV recebeu somente a migration revisada, após PostgreSQL/RLS PASS;
 nenhum evento/meta foi inserido por SQL para simular gate humano.
+
+## MDL 5 — Recurrence persistence through API
+
+The Back's incremental 0006 adds only app.financial_recurrences with owner RLS,
+positive BIGINT, explicit currency, bounded frequency/interval, civil DATEs and
+status checks. Compound account+owner+currency and category+owner+kind FKs enforce
+association integrity. app remains private and receives no Data API grants.
+Dates, next occurrence, radar/calendar totals are derived, not materialized rows.
+
+Front reads/writes through /api/v1/finance/recurrences and explicit status endpoints;
+/calendar and /subscriptions/radar are read-only. Owner is never supplied by
+client; foreign IDs return 404. Backend validates own active new associations,
+preserving later-inactive existing links. List supports 50 UI / max100 API records
+per page; projection rejects more than 500 eligible rules instead of silently
+truncating totals. Reload reads persisted rules; forecasts never write old tables.
+Migration applied to Supabase DEV after reviewed PostgreSQL17/RLS PASS with TLS
+verify-full; all nine previous tables' exact row hashes unchanged. No remote test
+records, resets or destructive migrations; local env/secrets remain preserved.
