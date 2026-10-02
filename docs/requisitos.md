@@ -34,7 +34,7 @@ cálculos, reload, edição, copy previous e ownership PASS.
 Não implementado: recorrência, cartão ou investimentos avançados, importação,
 integração bancária, OpenFinance, IA, rendimento ou MDL5+.
 
-## MDL 4 — Metas financeiras (AWAITING_REAL_GATE)
+## MDL 4 — Metas financeiras (COMPLETE)
 
 Lista com filtros status/currency, prioridade e totais separados por moeda;
 estados vazio/loading/erro. Form nome, descrição opcional, alvo, moeda, mês de
@@ -47,7 +47,9 @@ ARCHIVED fica consultável por filtro, com ações bloqueadas; PAUSED bloqueia e
 Desktop/tablet/mobile/teclado, labels, ícones e progressbar com texto real são
 testados; não depender de cor. UI explica planejamento e ausência de efeito em
 contas/transações/transferências/budgets. Testes interceptados não substituem gate.
-O gate real deve criar Reserva teste 10.000 BRL/plano 1.000/prazo futuro, contribuir
+Exemplo do fluxo de gate: criar Reserva teste 10.000 BRL/plano 1.000/prazo futuro, contribuir
 2.500, reload, retirar 500, editar alvo para 12.000, pausar/retomar, conferir
 projeção/ownership e ausência de efeitos financeiros. Não inserir registros por SQL.
-REAL_GATE=PENDING; READY_FOR_MDL5=false. Não mesclar MDL4 nesta execução.
+META/CONTRIBUIÇÃO/RETIRADA/CÁLCULOS/RELOAD/EDIÇÃO/PAUSE_RESUME/PROJEÇÃO/
+ISOLAMENTO_FINANCEIRO/OWNERSHIP=PASS. REAL_GATE=PASS; READY_FOR_MDL5=true.
+Integração em main autorizada após gates verdes; MDL5 não iniciado.

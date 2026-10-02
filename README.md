@@ -1,6 +1,6 @@
 # Beter Life · Front
 
-MDL 1F Auth V2 is preserved. MDL 2 adds Financial Core: accounts, categories, income/expense, atomic transfers, exact balances and basic queries. The user-approved real financial gate confirmed persistence in Supabase. MDL 3 adds monthly budgets; its real gate was approved on 2026-10-02 and MDL 0–3 are integrated into main. MDL 4 Financial Goals adds personal planning goals, declared contributions/withdrawals, progress, monthly requirements and a no-interest completion estimate on `codex/mdl4-financial-goals`. Its real gate is pending; MDL5+ is not implemented. React, Vite, strict TypeScript, Tailwind v4, shadcn/ui primitives, React Router, TanStack Query, React Hook Form and Zod.
+MDL 1F Auth V2 is preserved. MDL 2 adds Financial Core: accounts, categories, income/expense, atomic transfers, exact balances and basic queries. The user-approved real financial gate confirmed persistence in Supabase. MDL 3 adds monthly budgets; its real gate was approved on 2026-10-02 and MDL 0–3 are integrated into main. MDL 4 Financial Goals adds personal planning goals, declared contributions/withdrawals, progress, monthly requirements and a no-interest completion estimate on `codex/mdl4-financial-goals`. Its real gate was approved by the user on 2026-10-02; MDL 4 is complete; MDL5+ is not implemented. React, Vite, strict TypeScript, Tailwind v4, shadcn/ui primitives, React Router, TanStack Query, React Hook Form and Zod.
 
 ## Local development
 
@@ -43,5 +43,5 @@ or transfers, or alter budgets. Currency is fixed per goal; totals are grouped
 by currency. Paused/archived goals keep history and reject new events. A failed
 response can be retried with the same event idempotency key and normalized content.
 The Back supplies all projections; the client only formats exact money and renders
-accessible text/progress/status. The MDL4 branch remains AWAITING_REAL_GATE and
-READY_FOR_MDL5=false; no MDL4 merge before the user's manual approval.
+accessible text/progress/status. The MDL4 human gate is PASS and the module is COMPLETE.
+READY_FOR_MDL5=true records prerequisite approval; MDL5 has not been started.
