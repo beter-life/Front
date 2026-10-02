@@ -1,6 +1,6 @@
 # Beter Life · Front
 
-MDL 1F Auth V2 is preserved. MDL 2 adds Financial Core: accounts, categories, income/expense, atomic transfers, exact balances and basic queries. The user-approved real financial gate confirmed persistence in Supabase. MDL 3 adds monthly expense budgets, category limits, positive rollover, copy-previous, unbudgeted spending and pace; its real gate awaits manual validation. React, Vite, strict TypeScript, Tailwind v4, shadcn/ui primitives, React Router, TanStack Query, React Hook Form and Zod.
+MDL 1F Auth V2 is preserved. MDL 2 adds Financial Core: accounts, categories, income/expense, atomic transfers, exact balances and basic queries. The user-approved real financial gate confirmed persistence in Supabase. MDL 3 adds monthly expense budgets, category limits, positive rollover, copy-previous, unbudgeted spending and pace; its real gate was approved on 2026-10-02. MDL 3 is complete and ready for MDL 4; MDL 4 is not implemented. React, Vite, strict TypeScript, Tailwind v4, shadcn/ui primitives, React Router, TanStack Query, React Hook Form and Zod.
 
 ## Local development
 
