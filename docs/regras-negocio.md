@@ -40,3 +40,28 @@
 - Referência = floor(disponível × dias transcorridos / dias do mês), incluindo
   hoje. Futuro: zero dias; encerrado: mês inteiro. OVER_BUDGET se gasto > limite;
   senão ATTENTION se acima da referência; senão ON_TRACK. Não é previsão ou conselho.
+
+## MDL 4 — Metas como planejamento
+
+- Eventos não são movimentações de conta. Somar contributions e subtrair withdrawals
+  apenas na meta; nunca alterar saldo/account/transaction/transfer/budget.
+- Moeda fixa e explícita na criação; eventos herdam a moeda da meta. Valores JSON
+  em minor-unit strings, parse/format com BigInt, sem somar moedas distintas.
+- Current, remaining=max(target-current,0), percentual e projeções vêm do Back.
+  Percentual tem truncamento inteiro em duas casas: 2.000/12.000 → 16,66%.
+  Texto mostra >100%; barra limita a 100%. Editar alvo recalcula sem alterar eventos.
+- Prazo é YYYY-MM no timezone atual do perfil. Slots incluem mês atual. Required
+  monthly = ceil(remaining/slots); atingida 0; sem prazo/prazo vencido não atingido
+  null. Plano opcional/zero não gera previsão. Previsão sem rendimento assume primeira
+  contribuição no mês atual: atual+ceil(remaining/planned)-1. Atingida: mês atual.
+  Projeção além de 9998-12 é null. UI não duplica cálculos do servidor.
+- Persistido ACTIVE/PAUSED/ARCHIVED é separado de ACHIEVED/ON_TRACK/ATTENTION/
+  OVERDUE/NO_PLAN. Precedência: atingida; prazo passado; prazo+plano (zero é plano
+  insuficiente) comparado ao required; senão NO_PLAN. Prioridade não altera dinheiro.
+- PAUSED bloqueia eventos até retomar; ARCHIVED é terminal e preserva leitura/
+  histórico, sem novos eventos/edição. Corrigir movimento com evento compensatório.
+- Mesmo owner+idempotency UUID+conteúdo normalizado replay seguro, inclusive após
+  pause/archive. Mesmo UUID e conteúdo diferente: 409. Retirada acima de current
+  bloqueada localmente e no servidor. Repetir resposta incerta preserva chave/payload.
+- Não há juros, Yield Engine, automatização, Conflict Detector, Safe to Spend,
+  simulação, investimentos, IA, Open Finance, notificações ou MDL5+.

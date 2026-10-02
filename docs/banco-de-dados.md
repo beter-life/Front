@@ -24,3 +24,17 @@ perfil na criação; todos os cálculos são read models, não saldos persistido
 Front usa os seis endpoints `/api/v1/finance/budgets/:month` pelo client gerado;
 moeda explícita, owner fornecido somente pelo JWT no Back. Não passar ownership
 ou timezone arbitrário. Nenhuma migration ou credencial de banco vai para Front.
+
+MDL4 adiciona no Back as tabelas privadas app.financial_goals e
+app.financial_goal_events pela migration incremental 0005_financial_goals,
+com RLS e FK composta goal+owner. Idempotência única por owner+key. Eventos são
+append-only; saldo/remaining/progresso são agregados derivados. Os clientes não
+têm policy de escrita direta de eventos: somente o backend aplica as invariantes.
+Schema app não foi exposto na Data API e nenhum grant remoto novo foi concedido.
+
+O Front consome somente a API REST autenticada /api/v1/finance/goals e
+/:goalId/events. Não enviar owner, moeda de evento, current ou campos calculados.
+Histórico usa cursor occurredAt+id e limite de 50 por página no UI. Cache privado
+inclui owner/goal; logout elimina acesso. Reload busca novamente dados persistidos.
+Supabase DEV recebeu somente a migration revisada, após PostgreSQL/RLS PASS;
+nenhum evento/meta foi inserido por SQL para simular gate humano.
