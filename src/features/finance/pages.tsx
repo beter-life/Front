@@ -63,6 +63,7 @@ export function FinanceLayout() {
         <NavLink to="/finance/transactions">Movimentos</NavLink>
         <NavLink to="/finance/categories">Categorias</NavLink>
         <NavLink to="/finance/budgets">Orçamento</NavLink>
+        <NavLink to="/finance/goals">Metas</NavLink>
       </nav>
       <Outlet />
     </>

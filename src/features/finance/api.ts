@@ -11,6 +11,12 @@ export function createFinanceApi(transport: ApiClient) {
   const budgetPath = (month: string) => base + '/budgets/' + C.BudgetMonthSchema.parse(month);
   const budgetQuery = (currency: C.Currency) => query(C.BudgetCurrencyQuerySchema.parse({ currency }));
   return {
+    goals: (filters: C.GoalQuery, signal?: AbortSignal) => transport.request(base + '/goals' + query(C.GoalQuerySchema.parse(filters)), z.array(C.GoalSchema), 'GET', undefined, signal),
+    goal: (id: string, signal?: AbortSignal) => transport.request(base + '/goals/' + z.uuid().parse(id), C.GoalSchema, 'GET', undefined, signal),
+    createGoal: (input: C.GoalInput) => transport.request(base + '/goals', C.GoalSchema, 'POST', C.GoalInputSchema.parse(input)),
+    patchGoal: (id: string, input: C.GoalPatch) => transport.request(base + '/goals/' + z.uuid().parse(id), C.GoalSchema, 'PATCH', C.GoalPatchSchema.parse(input)),
+    goalEvents: (id: string, filters: C.GoalEventsQuery, signal?: AbortSignal) => transport.request(base + '/goals/' + z.uuid().parse(id) + '/events' + query(C.GoalEventsQuerySchema.parse(filters)), C.GoalEventsPageSchema, 'GET', undefined, signal),
+    addGoalEvent: (id: string, input: C.GoalEventInput) => transport.request(base + '/goals/' + z.uuid().parse(id) + '/events', C.GoalEventSchema, 'POST', C.GoalEventInputSchema.parse(input)),
     budget: (month: string, currency: C.Currency, signal?: AbortSignal) => transport.request(budgetPath(month) + budgetQuery(currency), C.BudgetViewSchema, 'GET', undefined, signal),
     budgetSummary: (month: string, currency: C.Currency, signal?: AbortSignal) => transport.request(budgetPath(month) + '/summary' + budgetQuery(currency), C.BudgetSummarySchema, 'GET', undefined, signal),
     ensureBudget: (month: string, input: C.BudgetPeriodInput) => transport.request(budgetPath(month), C.BudgetPeriodSchema, 'PUT', C.BudgetPeriodInputSchema.parse(input)),

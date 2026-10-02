@@ -11,6 +11,7 @@ import { PasswordChangePageV2 } from './password-change';
 import { useAuthV2 } from './hooks';
 import { FinanceLayout, FinanceDashboard, AccountsPage, CategoriesPage, TransactionsPage } from '../features/finance/pages';
 import { BudgetPage } from '../features/finance/budget-pages';
+import { GoalsPage, GoalDetailPage } from '../features/finance/goal-pages';
 
 function RouteFocus() {
   const { pathname } = useLocation();
@@ -61,6 +62,8 @@ export function AuthV2Routes() {
         <Route path="categories" element={<CategoriesPage />} />
         <Route path="transactions" element={<TransactionsPage />} />
         <Route path="budgets" element={<BudgetPage />} />
+        <Route path="goals" element={<GoalsPage />} />
+        <Route path="goals/:goalId" element={<GoalDetailPage />} />
       </Route>
     </Route></Route>
   </Routes></>;
