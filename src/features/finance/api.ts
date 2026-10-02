@@ -11,6 +11,13 @@ export function createFinanceApi(transport: ApiClient) {
   const budgetPath = (month: string) => base + '/budgets/' + C.BudgetMonthSchema.parse(month);
   const budgetQuery = (currency: C.Currency) => query(C.BudgetCurrencyQuerySchema.parse({ currency }));
   return {
+    recurrences: (filters:C.RecurrenceQuery,signal?:AbortSignal) => transport.request(base+'/recurrences'+query(C.RecurrenceQuerySchema.parse(filters)),C.RecurrencePageSchema,'GET',undefined,signal),
+    recurrence: (id:string,signal?:AbortSignal) => transport.request(base+'/recurrences/'+z.uuid().parse(id),C.RecurrenceSchema,'GET',undefined,signal),
+    createRecurrence: (input:C.RecurrenceInput) => transport.request(base+'/recurrences',C.RecurrenceSchema,'POST',C.RecurrenceInputSchema.parse(input)),
+    patchRecurrence: (id:string,input:C.RecurrencePatch) => transport.request(base+'/recurrences/'+z.uuid().parse(id),C.RecurrenceSchema,'PATCH',C.RecurrencePatchSchema.parse(input)),
+    recurrenceStatus: (id:string,action:'pause'|'resume'|'archive') => transport.request(base+'/recurrences/'+z.uuid().parse(id)+'/'+action,C.RecurrenceSchema,'POST',C.RecurrenceEmptyBodySchema.parse({})),
+    calendar: (filters:C.CalendarQuery,signal?:AbortSignal) => transport.request(base+'/calendar'+query(C.CalendarQuerySchema.parse(filters)),C.FinancialCalendarSchema,'GET',undefined,signal),
+    subscriptionRadar: (filters:C.RadarQuery,signal?:AbortSignal) => transport.request(base+'/subscriptions/radar'+query(C.RadarQuerySchema.parse(filters)),C.SubscriptionRadarSchema,'GET',undefined,signal),
     goals: (filters: C.GoalQuery, signal?: AbortSignal) => transport.request(base + '/goals' + query(C.GoalQuerySchema.parse(filters)), z.array(C.GoalSchema), 'GET', undefined, signal),
     goal: (id: string, signal?: AbortSignal) => transport.request(base + '/goals/' + z.uuid().parse(id), C.GoalSchema, 'GET', undefined, signal),
     createGoal: (input: C.GoalInput) => transport.request(base + '/goals', C.GoalSchema, 'POST', C.GoalInputSchema.parse(input)),
