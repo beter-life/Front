@@ -35,3 +35,20 @@ tardia não repopula cache de outro usuário. Sem retry automático de writes.
 `budget-view.ts` só apresenta valores/calendário: regras, gastos, rollover e
 ritmo vêm do Back. Não conectar ao banco ou duplicar cálculo financeiro no UI.
 Nenhuma alteração no singleton, callback, provider ou fluxo Auth aprovado.
+
+## MDL 4 — Financial Goals
+
+Rotas protegidas /finance/goals e /finance/goals/:goalId estendem FinanceLayout;
+goal-pages implementa lista/filtros, criação/edição, detalhe, eventos e histórico.
+goal-hooks usa queries privadas com owner e goal ID e histórico infinito paginado.
+As mutações invalidam somente o owner ainda conectado. Transporte/JWT/cache/
+Auth V2 são os existentes. Novos contratos Zod vêm do TypeBox do Back, sem
+dependência de filesystem Back no runtime/build. Não há acesso direto ao banco.
+
+Todos os read models (progresso, remaining, required, previsão e status derivado)
+vêm do servidor. goal-view só agrupa strings monetárias com BigInt por currency
+e fornece labels; a barra visual é limitada a 100%, com percentual real no texto.
+Forms validam moeda/valor/prazo e não enviam owner ou campos derivados. O formulário
+de evento retém a mesma chave+conteúdo se a resposta for incerta e o usuário repetir;
+não há retry automático de writes. Meta ARCHIVED conserva leitura/histórico;
+PAUSED precisa retomar para novos eventos. Nenhuma nova dependência de produção.
