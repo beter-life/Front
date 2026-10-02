@@ -1,0 +1,37 @@
+# Finance frontend — MDL 2/3
+
+`src/features/finance/` é isolado do Auth V2: API, contratos gerados, money,
+datas, hooks, formulários e páginas. Auth/provider/guards existentes continuam
+responsáveis pela sessão. Finance usa o transporte Bearer existente; nunca
+acessa tabelas Supabase diretamente nem adiciona service-role/secret key.
+
+Rotas protegidas: `/finance`, `/finance/accounts`, `/finance/categories`,
+`/finance/transactions`. Navegação principal passa a incluir Finanças;
+`/app` e os fluxos Identity validados permanecem intactos.
+
+QueryClient usa chaves privadas por owner. Logout/mudança de identidade limpa
+o cache; mutation tardia de sessão anterior não repopula dados. AbortSignal é
+propagado às queries. Mutations não têm retry automático e o formulário bloqueia
+submissão dupla/Enter+click. Transferências preservam a chave idempotente em
+retry da mesma submissão, sem chamar duas operações independentes.
+
+`contracts.generated.ts` vem do gerador TypeBox do Back, não de um contrato
+financeiro duplicado manualmente. O arquivo é versionado, autocontido e traz
+SHA-256 da fonte; clonar Front não exige checkout Back em runtime/build.
+Regenerar a partir do artefato publicado do Back, mantendo o cabeçalho.
+Mais detalhes de Auth em [ARCHITECTURE](ARCHITECTURE.md).
+
+## Monthly Budgeting
+
+`/finance/budgets` permanece no mesmo bounded context e guard Auth V2.
+`budget-pages.tsx` oferece navegação mensal/moeda, resumo, ritmo, progresso,
+limites inline, desativação confirmada, cópia anterior e gastos sem orçamento.
+Estados de loading, erro/retry e vazio são explícitos. Layout responsivo e
+progressbar com texto/ícones não dependem apenas de cor.
+
+`budget-hooks.ts` usa chaves owner+month+currency e o transporte autenticado
+existente. Alterações invalidam as queries Finance do owner atual; sessão
+tardia não repopula cache de outro usuário. Sem retry automático de writes.
+`budget-view.ts` só apresenta valores/calendário: regras, gastos, rollover e
+ritmo vêm do Back. Não conectar ao banco ou duplicar cálculo financeiro no UI.
+Nenhuma alteração no singleton, callback, provider ou fluxo Auth aprovado.

@@ -1,0 +1,19 @@
+# Frontend foundation and identity
+
+Browser → Supabase Auth (session and identity); browser → Fastify `/api/v1/me` (application profile); Fastify → PostgreSQL. Front never queries database tables directly.
+
+- `app`: constructs one API client and QueryClient per application; clears private cache on identity changes or logout and provides application data services to React.
+- `auth-v2`: one default `createClient` singleton and one application-lifetime `onAuthStateChange` subscription, with an explicit loading state until the initial session arrives. Login uses `signInWithPassword`, signup uses `signUp`, and password recovery requests use `resetPasswordForEmail`. Callbacks verify TokenHash once (`email` for signup, `recovery` for password reset), then remove callback parameters from the URL. Only a verified recovery session can submit the new recovery password; authenticated password changes have their own protected route. Both use `updateUser`. SDK persistence, refresh and sign-out remain intact. StrictMode does not duplicate the Auth listener or callback verification.
+- `auth-v2/app` / `layouts`: guards distinguish loading, authenticated and unauthenticated states. Public and authenticated layouts share accessible primitives. No preview mode or legacy Auth entry point remains.
+- `api` / `profile`: current Bearer token in memory, safe errors and Zod response validation matching the backend's camelCase contract. A 401 invalidates only the session that issued that request. Private cache clears on identity changes/logout; a late profile mutation cannot restore another session's data.
+- `components/ui`: locally owned shadcn/ui-style Button (Radix Slot + CVA), Input, Label and Card, manually integrated following the official installation pattern. `components.json`, aliases and Tailwind tokens support further shadcn additions. Only needed primitives exist.
+
+Zod validates form and API boundaries; the profile editor uses React Hook Form. Input errors are linked by `aria-describedby`; loading, failure and success use live semantics. The layout supports 320px upwards, visible keyboard focus and reduced motion. Warm neutral surfaces, evergreen accents and restrained editorial headings establish the initial visual language.
+
+Supabase controls token storage/refresh; there is no application-managed JWT persistence. Profile fields never include an owner. Metadata is not authorization. Provider messages, JWTs and passwords are never logged. Browser configuration accepts only public key and safe URL origins. App data endpoints are not replaced with browser database access.
+
+Dependencies are pinned in the lockfile. TypeScript 6 is retained for compatibility with typescript-eslint's supported peer range; jsdom 26 supports the project's Node 24 baseline. Official references: [Supabase TokenHash verification](https://supabase.com/docs/reference/javascript/auth-verifyotp), [password update](https://supabase.com/docs/reference/javascript/auth-updateuser), [shadcn manual installation](https://ui.shadcn.com/docs/installation/manual).
+
+Tests: unit boundaries and session races; React integration with mocked external boundaries; Chromium desktop/mobile using the real browser SDK against intercepted Auth/API responses. Real remote checks and remaining human e-mail actions must be reported separately in PROJECT_STATE. No backend/schema migration or MDL 2 feature is introduced.
+
+The profile editor reads `GET /api/v1/me` and writes `PUT /api/v1/me/profile`; there is no separate profile GET endpoint. The API response owner must match the session identity, and a late mutation cannot repopulate private cache after that session changes. Login, signup/confirmation and recovery real gates were approved manually by the user before cutover. The pre-cutover Git checkpoint preserves the old implementation; the runtime and maintained tests use Auth V2 only.

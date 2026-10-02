@@ -9,3 +9,9 @@ description: Use for system boundaries, data flow, module ownership, and technic
 - Define interfaces, ownership, failure handling, and migration impact before implementation.
 - Prefer explicit contracts and simple components over premature abstractions.
 - Record confirmed decisions in the relevant design document; keep handoff state concise.
+
+## Confirmed frontend baseline
+
+- MDL 1F uses React/Vite/strict TypeScript and the default Supabase browser client; Auth V2 confirms signup and recovery with TokenHash.
+- Fastify remains the application-data boundary; profile ownership comes from its verified JWT.
+- See `docs/ARCHITECTURE.md` for module boundaries, callback behavior and validation limits.

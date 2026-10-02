@@ -19,5 +19,12 @@ const arbitrary = spawnSync(process.execPath, [hook], { input: JSON.stringify({ 
 if (arbitrary.stdout.trim()) throw new Error('hook rewrote an arbitrary command');
 const known = spawnSync(process.execPath, [hook], { input: JSON.stringify({ tool_input: { command: 'npm test' } }), encoding: 'utf8' });
 if (!/updatedInput/.test(known.stdout)) throw new Error('hook did not rewrite a known command');
-execFileSync('codex', ['--strict-config', '--help'], { cwd: root, stdio: 'pipe' });
+const codex = spawnSync('codex', ['--strict-config', '--help'], { cwd: root, encoding: 'utf8', stdio: 'pipe' });
+if (codex.error?.code === 'ENOENT') {
+  const config = readFileSync(resolve(root, '.codex', 'config.toml'), 'utf8');
+  if (!config.includes('[[hooks.SessionStart]]') || !config.includes('[[hooks.PreToolUse]]')) throw new Error('Codex CLI is unavailable and project config hooks are missing');
+  console.log('Codex CLI unavailable; project config hook declarations were checked.');
+} else if (codex.status !== 0) {
+  throw new Error('Codex rejected the strict project configuration');
+}
 console.log('Harness validation passed: success/failure, retained logs, strict hook scope, and Codex config.');

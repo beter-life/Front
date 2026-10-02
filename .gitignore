@@ -9,3 +9,6 @@
 node_modules/
 coverage/
 dist/
+test-results/
+playwright-report/
+package-lock.json
