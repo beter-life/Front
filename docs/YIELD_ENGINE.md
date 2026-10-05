@@ -22,9 +22,10 @@ Sources/status/date remain visible. STALE uses persisted BCB cache; missing need
 data is UNAVAILABLE, never invented. Back/docs/YIELD_ENGINE.md documents official
 BCB/B3/tax sources, bounded adapter, rounding and migration integrity.
 
-## Gate humano pendente
+## Gate humano aprovado
 
-At http://localhost:3101/finance/yield, log in with a real existing account:
+The user approved this real hosted checklist on 2026-10-05 (PASS), using
+http://localhost:3101/finance/yield and a real existing account:
 
 1. Configure one active BRL account with fixed10% annual; reload and verify the
    saved rule, gross/net estimates and unchanged real account/net-worth balances.
@@ -39,4 +40,5 @@ At http://localhost:3101/finance/yield, log in with a real existing account:
 
 Do not create SQL fixtures to substitute the human gate. Automated tests use
 synthetic identity and intercepted external boundaries, not human approval.
-MDL7_STATUS=AWAITING_REAL_GATE; REAL_GATE=PENDING; READY_FOR_MDL8=false.
+MDL7_STATUS=COMPLETE; REAL_GATE=PASS. Release requires green branch/PR/main CI
+and merge commits; MDL8 remains not started.

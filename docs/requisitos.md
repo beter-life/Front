@@ -109,5 +109,5 @@ comparação BRL de CDI100%,poupança e fixa sem criar contas. Arquivamento exig
 confirmação e é terminal. Contas inativas/arquivadas mantêm histórico sem futuro.
 Loading/vazio/erro/retry e labels/teclado/layout desktop/tablet/mobile usam o
 visual existente. Nenhum ganho estimado aparece como saldo/patrimônio real.
-Gates automatizados não substituem gate hospedado humano, ainda PENDING:
-[roteiro](./YIELD_ENGINE.md#gate-humano-pendente). MDL8 fora do escopo.
+Gate hospedado humano aprovado pelo usuário em 2026-10-05 (PASS); testes automatizados são evidência complementar:
+[roteiro](./YIELD_ENGINE.md#gate-humano-aprovado). MDL8 fora do escopo.
