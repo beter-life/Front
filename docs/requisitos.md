@@ -32,7 +32,7 @@ Gate real MDL 3 aprovado pelo usuário em 2026-10-02: orçamento, despesa,
 cálculos, reload, edição, copy previous e ownership PASS.
 
 Não implementado: recorrência, cartão ou investimentos avançados, importação,
-integração bancária, OpenFinance, IA, rendimento ou MDL5+.
+integração bancária, OpenFinance, IA, rendimento ou MDL6+.
 
 ## MDL 4 — Metas financeiras (COMPLETE)
 
@@ -52,4 +52,41 @@ Exemplo do fluxo de gate: criar Reserva teste 10.000 BRL/plano 1.000/prazo futur
 projeção/ownership e ausência de efeitos financeiros. Não inserir registros por SQL.
 META/CONTRIBUIÇÃO/RETIRADA/CÁLCULOS/RELOAD/EDIÇÃO/PAUSE_RESUME/PROJEÇÃO/
 ISOLAMENTO_FINANCEIRO/OWNERSHIP=PASS. REAL_GATE=PASS; READY_FOR_MDL5=true.
-Integração em main autorizada após gates verdes; MDL5 não iniciado.
+MDL4 integrado em main após gates verdes. MDL5 aguarda gate na branch dedicada; MDL6 não iniciado.
+
+## MDL 5 — Recurrences and Calendar
+
+Branch codex/mdl5-recurring-calendar from verified main baseline
+af276b612c368e04fb631fba017d77c7305988d6. MDL0–4 gates remain PASS.
+STATUS=AWAITING_REAL_GATE; REAL_GATE=PENDING; READY_FOR_MDL6=false.
+
+/finance/recurrences: owned paginated list (50/page), status/type/kind/currency/
+account/category filters; RHF/Zod create/edit form for name/description/type/
+kind/money/currency/optional account/category/frequency/interval/start/end;
+SUBSCRIPTION forces EXPENSE; type/currency fixed in edit; compatible active new
+links only. Existing inactive links are labelled and retained for unrelated edits.
+Pause/resume invalidates owned list/radar/calendar. Archive requires confirmation
+and preserves terminal rule visibility through filters. Retry/loading/empty/
+validation/errors remain explicit; no fabricated success or financial balances.
+
+Radar: ACTIVE user-entered subscriptions, next date and actual charges within
+server [today,today+30), total by currency. Repeated weekly occurrences all count;
+future/ended subscriptions can have zero charges. No monthly equivalents.
+/finance/calendar: compact month navigation and chronological agenda by civil
+DATE; filters currency/type/kind; server income, expense and projected net per
+currency. Net is not available balance. It shows only recurrence projections;
+confirmed/future registered transactions remain in Movimentos, with no matching.
+
+Responsive desktop/tablet/mobile; keyboard, labels, icons plus status text;
+localized civil dates retain API YYYY-MM-DD. Forms reject invalid money, range,
+interval and incompatible associations before writes. Server enforces ownership
+and invariant validation; protected routes/cache use the existing Auth V2.
+
+Human gate at http://localhost:3101/finance/recurrences: create monthly Assinatura
+teste, 100 BRL, start 2026-10-31. Check 31/10, 30/11, 31/12, 31/01 in calendar,
+radar actual dates in its displayed window, edit and reload. Pause should remove
+calendar/radar projections and resume should restore them. Verify terminal
+archive; income and optional USD retain separate totals. Confirm account balances,
+transactions, transfers, budgets and goals remain unchanged. Another user checks
+ownership when available. Automated intercepted browser tests do not certify
+hosted human behavior; no SQL fixtures substitute the gate. Await user PASS.

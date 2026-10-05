@@ -12,6 +12,8 @@ import { useAuthV2 } from './hooks';
 import { FinanceLayout, FinanceDashboard, AccountsPage, CategoriesPage, TransactionsPage } from '../features/finance/pages';
 import { BudgetPage } from '../features/finance/budget-pages';
 import { GoalsPage, GoalDetailPage } from '../features/finance/goal-pages';
+import { RecurrencesPage } from '../features/finance/recurrence-pages';
+import { FinancialCalendarPage } from '../features/finance/calendar-page';
 
 function RouteFocus() {
   const { pathname } = useLocation();
@@ -64,6 +66,8 @@ export function AuthV2Routes() {
         <Route path="budgets" element={<BudgetPage />} />
         <Route path="goals" element={<GoalsPage />} />
         <Route path="goals/:goalId" element={<GoalDetailPage />} />
+        <Route path="recurrences" element={<RecurrencesPage />} />
+        <Route path="calendar" element={<FinancialCalendarPage />} />
       </Route>
     </Route></Route>
   </Routes></>;

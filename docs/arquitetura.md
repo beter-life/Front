@@ -52,3 +52,20 @@ Forms validam moeda/valor/prazo e não enviam owner ou campos derivados. O formu
 de evento retém a mesma chave+conteúdo se a resposta for incerta e o usuário repetir;
 não há retry automático de writes. Meta ARCHIVED conserva leitura/histórico;
 PAUSED precisa retomar para novos eventos. Nenhuma nova dependência de produção.
+
+## MDL 5 — Front boundary
+
+AuthV2Routes mounts protected RecurrencesPage and FinancialCalendarPage inside
+FinanceLayout. Existing navigation adds Recorrências and Calendário. API methods
+reuse authenticated transport and generated strict Back TypeBox → Zod contracts.
+recurrence-hooks keys include private/finance/owner and list/radar/calendar filters;
+list uses both cursor fields. Mutations invalidate only the connected owner, using
+existing session safeguards. No backend source imports or direct database access.
+
+RecurrenceEditor follows RHF/Zod form patterns, validates display amounts and
+civil input dates/associations, then sends only the generated input/patch DTO.
+recurrence-view supplies labels and localized DATE strings, never projections.
+Calendar groups ordered server entries by day and renders server totals. All
+projection computation stays in Back; tests use canned server date responses to
+verify rendering and navigation, while Back tests prove the real calendar engine.
+No new production packages or changes to Auth/account/budget/goal functionality.

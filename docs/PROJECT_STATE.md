@@ -2,25 +2,33 @@
 
 | Field | Value |
 | --- | --- |
-| MODULE | MDL 4 — Financial Goals |
+| MODULE | MDL 5 — Recurrences, Subscriptions & Financial Calendar |
 | STATUS | COMPLETE |
-| SCOPE | Protected goal planning UI in Finance; Auth V2 and MDL 2/3 preserved |
-| BRANCH | main; codex/mdl4-financial-goals retained at the closure checkpoint |
-| BASELINE_MAIN | 3b7d2e0430f0cd33c2ec182d1ace00bc7890fc01 contains approved MDL 0–4; merge commit from [PR #2](https://github.com/beter-life/Front/pull/2) |
-| LAST_TESTED_COMMIT | 3b7d2e0430f0cd33c2ec182d1ace00bc7890fc01; post-merge main CI 37037050437 PASS includes the full regression; subsequent integration snapshot changes documentation only |
-| DONE | /finance/goals and /finance/goals/:goalId; create/edit, status/currency filters, per-currency totals, server projections, fixed currency and priority, contribution/withdrawal, paginated history, pause/resume/archive and preserved replay key after uncertain response |
-| DECISIONS | Goals are declared planning, with no account/transaction/transfer/budget movement; generated Back contract; owner-scoped cache; all financial projections from Back; exact BigInt presentation, real percentage text and visual bar capped at 100%; inactive actions blocked |
-| BACKEND | Migration 0005 applied to Supabase DEV after PostgreSQL/RLS PASS with TLS verify-full and existing data unchanged; goals/events RLS, composite owner FK, locked idempotency and overdraft prevention; no SQL goal test data inserted |
-| TESTS | Final closure regression 2026-10-02: Unit 30 + integration 29 + browser desktop/mobile 56 PASS, including tablet/keyboard and existing Auth/Finance/Budget regressions; lint, typecheck, build, secret scan and harness PASS; screenshots checked; full logs in ignored .harness/logs/ |
-| TEST_LIMITS | Automated browser tests use the real SDK with intercepted external responses; they do not certify the hosted human gate |
-| CI | Final closure branch [37034384287](https://github.com/beter-life/Front/actions/runs/37034384287) PASS; PR [37036656388](https://github.com/beter-life/Front/actions/runs/37036656388) PASS; post-merge main [37037050437](https://github.com/beter-life/Front/actions/runs/37037050437) PASS. The documentation snapshot runs the unchanged quality workflow |
-| LOCAL | Front http://localhost:3101/finance/goals; Back localhost:3001; local env files preserved |
-| GATES | GOAL_MODEL=PASS; GOAL_EVENTS=PASS; CONTRIBUTIONS=PASS; WITHDRAWALS=PASS; IDEMPOTENCY=PASS; PROGRESS=PASS; REQUIRED_MONTHLY=PASS; ESTIMATED_COMPLETION=PASS; GOAL_STATUS=PASS; PRIORITY=PASS; MULTI_CURRENCY=PASS; RLS=PASS; OWNERSHIP=PASS; OPENAPI=PASS; PERSISTENCE=PASS; ISOLATION_FROM_ACCOUNTS=PASS; ISOLATION_FROM_TRANSACTIONS=PASS; ISOLATION_FROM_TRANSFERS=PASS; ISOLATION_FROM_BUDGETS=PASS |
-| MERGED_TO_MAIN | true |
-| REAL_GATE | PASS |
-| HUMAN_GATE | Approved by user on 2026-10-02: META=PASS; CONTRIBUIÇÃO=PASS; RETIRADA=PASS; CÁLCULOS=PASS; RELOAD=PASS; EDIÇÃO=PASS; PAUSE_RESUME=PASS; PROJEÇÃO=PASS; ISOLAMENTO_FINANCEIRO=PASS; OWNERSHIP=PASS |
-| BLOCKER | None; human gate, final local regression, branch CI, PR CI, merge and post-merge main CI PASS |
-| CLOSURE_COMMIT | 4e6ebffb68f2af448f7c76b5bc55c3459141d7ff; final branch closure commit and checkpoint target |
-| CHECKPOINT | checkpoint/mdl4-financial-goals-complete-2026-10-02; tag on final MDL 4 branch closure commit; earlier module checkpoints preserved |
-| READY_FOR_MDL5 | true |
-| NEXT | MDL 4 complete and integrated into main. Stop here and await a separate user instruction; MDL 5 has not been started |
+| REAL_GATE | PASS; human gate approved by the user on 2026-10-05 |
+| READY_FOR_MDL6 | false |
+| BRANCH | codex/mdl5-recurring-calendar; created exclusively from synchronized main |
+| BASELINE_MAIN | af276b612c368e04fb631fba017d77c7305988d6; approved MDL0–4, MDL4 COMPLETE/REAL_GATE=PASS/MERGED_TO_MAIN=true; main unchanged |
+| SCOPE | Protected recurrence forms/list/status/filters, subscription radar and monthly chronological financial calendar |
+| LAST_TESTED_COMMIT | 7fe88c1bc2680ad0ca716d25bb654749cf2663e2; final local Unit44 + integration40 + browser68 desktop/mobile, tablet/keyboard, lint/typecheck/build, secret scan and harness PASS; closure changes documentation only |
+| CI | Full quality workflow required on final branch, PR and main; latest status is available in GitHub Actions; documentation-only closure still runs the complete workflow |
+| DONE | Routes /finance/recurrences and /finance/calendar; RHF/Zod create/edit, compatible optional links, retained inactive references, paginated owner list, URL filters, explicit pause/resume, confirmed terminal archive, radar actual occurrences, agenda/month navigation, separate currency summaries, loading/empty/error/retry, keyboard/mobile/tablet |
+| DECISIONS | Recurrence != transaction; expectations never change confirmed ledger, accounts, transfers, budgets or goals. Type/currency fixed after creation; archive terminal. Edits replace rule and recalculate projections, no historical occurrence ledger. SUBSCRIPTION is a user classification requiring EXPENSE; no autodetection/matching/automatic posting |
+| DATES | DATE / YYYY-MM-DD years 1000–9998; 9999-01-01 only exclusive upper calendar bound; original anchor retained after clamp. Profile timezone discovers today, UTC fallback; projected dates never become UTC-midnight timestamps |
+| MONEY | BIGINT >0 and JSON integer strings; exact BigInt aggregation/formatting by currency; no FX. Projected net is income minus expense, never available balance |
+| LIMITS | WEEKLY 1–52, MONTHLY 1–24, YEARLY 1–10; inclusive optional end; calendar [from,to) 1–366 days; list default50/max100 with createdAt+id cursor; explicit 409 above 500 eligible rules. Calendar loads rules once, no occurrence N+1 |
+| RADAR | ACTIVE subscriptions in [today,today+30), actual repeated charges by currency, no monthly equivalent. Counts include active future/ended subscriptions; zero charges permitted and ended next date null |
+| OWNERSHIP | JWT sub only; no owner input; foreign rule/account/category IDs 404; joins scoped to owner; own active new links, account currency/category type compatible; existing later-inactive associations preserved |
+| DATABASE | 0006_financial_recurrences reviewed and applied to existing Supabase DEV after disposable PostgreSQL17 migration/RLS PASS; verified TLS, no destructive operations, no changed 0001–0005 migration, no fixture records inserted remotely |
+| EXISTING_DATA | Exact before/after hashes of profiles plus eight previous Finance tables (accounts/categories/transactions/transfers/budget periods/allocations/goals/events) unchanged; integration also proves isolated writes with nonempty profile/budget/ledger/goal data |
+| SECURITY | New private app table has owner SELECT/INSERT/UPDATE USING+WITH CHECK and no DELETE policy; composite owner+currency/type FKs; no new hosted grants/Data API exposure; local env files preserved, scans PASS |
+| CONTRACT | Back TypeBox → OpenAPI/client → byte-identical copied Front Zod; no backend runtime filesystem dependency; all Auth/MDL2/3/4 functionality retained |
+| TESTS | Unit44 + integration40 + full browser68 desktop/mobile PASS; MDL5 browser12 rechecked after final accessibility/mobile layout adjustment, tablet/keyboard included; lint, typecheck/build, secret scan and harness PASS; screenshots reviewed |
+| TEST_LIMITS | Automated browsers use the real SDK with intercepted provider/API responses and canned server dates; Back tests prove the actual recurrence engine. They do not certify the hosted human gate |
+| LOCAL | Back http://localhost:3001 (ready200, protected recurrence401 without JWT); Front http://localhost:3101/finance/recurrences and /finance/calendar (200), approved CORS; apps running for human gate |
+| AUTOMATED_GATES | RECURRENCE_MODEL=PASS; RECURRENCE_ENGINE=PASS; WEEKLY=PASS; MONTHLY=PASS; YEARLY=PASS; MONTH_END_CLAMP=PASS; LEAP_YEAR=PASS; SUBSCRIPTIONS=PASS; SUBSCRIPTION_RADAR=PASS; NEXT_OCCURRENCE=PASS; FINANCIAL_CALENDAR=PASS; PROJECTED_TOTALS=PASS; MULTI_CURRENCY=PASS; ACCOUNT_LINK=PASS; CATEGORY_LINK=PASS; PAUSE_RESUME=PASS; ARCHIVE=PASS; FINANCIAL_ISOLATION=PASS; RLS=PASS; OWNERSHIP=PASS; OPENAPI=PASS |
+| PERSISTENCE | PASS; human reload gate approved |
+| HUMAN_GATE | ASSINATURA=PASS; MONTH_END_CLAMP=PASS; RADAR=PASS; PAUSE_RESUME=PASS; RECEITA_RECORRENTE=PASS; CALENDÁRIO=PASS; PROJECTED_TOTALS=PASS; RELOAD=PASS; ARCHIVE=PASS; ISOLAMENTO_FINANCEIRO=PASS; OWNERSHIP=PASS |
+| CHECKPOINT | checkpoint/mdl5-recurring-calendar-complete-2026-10-05 targets the final branch closure commit; previous checkpoints preserved |
+| MERGED_TO_MAIN | false; merge requires final branch and PR CI PASS |
+| BLOCKER | Final CI/merge validation pending; no application regression found |
+| NEXT | Validate final CI, checkpoint and merge using merge commits only; validate main CI. Do not initiate MDL6 |
