@@ -97,3 +97,18 @@ saldos assinados de contas somente leitura, itens externos, avaliações append-
 posição histórica e arquivamento terminal. Sem FX, projeções ou alteração do ledger.
 O gate humano foi aprovado em 2026-10-05. Regras, API, schema, limites e roteiro estão em
 [Net Worth](./net-worth.md).
+
+## MDL 7 — Yield Engine / Rendimentos
+
+Taxas do formulário são percentuais; payload normaliza10%→0.10 e115%→1.15,
+sem float monetário. O backend decide vigência, composição, principal elegível,
+tributação estimada e aniversários. A UI distingue taxa anual de retorno diário,
+Selic Over de Meta Selic, projeção CURRENT_RATE de histórico ESTIMATED.
+
+Mensagens: “Estimativa — não altera seu saldo”, “Usando o último dado disponível”
+e “Taxa indisponível no momento”. Poupança mostra próximo aniversário, sem crédito
+diário fictício. Calendário futuro weekdays sem feriados completos é explícito.
+Bruto/líquido/IR/IOF não são retorno garantido ou imposto exato. Histórico é
+contrafactual, não rendimento confirmado pela instituição. Moedas não são somadas.
+Perfil precisa ser escolhido/configurado, não inferido por banco/tipo de conta.
+Nenhuma ação Yield altera ledger, patrimônio, budgets, metas ou recorrências.

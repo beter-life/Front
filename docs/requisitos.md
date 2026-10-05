@@ -98,3 +98,16 @@ saldos assinados de contas somente leitura, itens externos, avaliações append-
 posição histórica e arquivamento terminal. Sem FX, projeções ou alteração do ledger.
 O gate humano foi aprovado em 2026-10-05. Regras, API, schema, limites e roteiro estão em
 [Net Worth](./net-worth.md).
+
+## MDL 7 — Yield Engine / Rendimentos
+
+`/finance/yield`: benchmarks com fonte/unidade/data e estados atual/desatualizado/
+indisponível; resumo30 dias por moeda; configuração explícita em conta ativa;
+ZERO/fixa/CDI/Selic/poupança, carência/teto/impostos; versões e histórico retidos.
+Projeções30/90/365 dias ou data personalizada, bruto/líquido/IR/IOF separados;
+comparação BRL de CDI100%,poupança e fixa sem criar contas. Arquivamento exige
+confirmação e é terminal. Contas inativas/arquivadas mantêm histórico sem futuro.
+Loading/vazio/erro/retry e labels/teclado/layout desktop/tablet/mobile usam o
+visual existente. Nenhum ganho estimado aparece como saldo/patrimônio real.
+Gate hospedado humano aprovado pelo usuário em 2026-10-05 (PASS); testes automatizados são evidência complementar:
+[roteiro](./YIELD_ENGINE.md#gate-humano-aprovado). MDL8 fora do escopo.

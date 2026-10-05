@@ -11,6 +11,14 @@ export function createFinanceApi(transport: ApiClient) {
   const budgetPath = (month: string) => base + '/budgets/' + C.BudgetMonthSchema.parse(month);
   const budgetQuery = (currency: C.Currency) => query(C.BudgetCurrencyQuerySchema.parse({ currency }));
   return {
+    yieldBenchmarks: (signal?:AbortSignal)=>transport.request(base+'/yield/benchmarks',C.YieldBenchmarksSchema,'GET',undefined,signal),
+    yieldProfiles: (signal?:AbortSignal)=>transport.request(base+'/yield/profiles',C.YieldProfilesSchema,'GET',undefined,signal),
+    yieldProfile: (id:string,signal?:AbortSignal)=>transport.request(base+'/accounts/'+z.uuid().parse(id)+'/yield-profile',C.YieldProfileResultSchema,'GET',undefined,signal),
+    saveYieldRule: (id:string,input:C.YieldRuleInput,creating:boolean)=>transport.request(base+'/accounts/'+z.uuid().parse(id)+'/yield-profile'+(creating?'':'/versions'),C.YieldProfileSchema,'POST',C.YieldRuleInputSchema.parse(input)),
+    archiveYield: (id:string)=>transport.request(base+'/accounts/'+z.uuid().parse(id)+'/yield-profile/archive',C.YieldProfileSchema,'POST',{}),
+    yieldEstimate: (id:string,filters:C.YieldEstimateQuery,signal?:AbortSignal)=>transport.request(base+'/accounts/'+z.uuid().parse(id)+'/yield/estimate'+query(C.YieldEstimateQuerySchema.parse(filters)),C.YieldEstimateSchema,'GET',undefined,signal),
+    yieldSummary: (filters:C.YieldEstimateQuery,signal?:AbortSignal)=>transport.request(base+'/yield/summary'+query(C.YieldEstimateQuerySchema.parse(filters)),C.YieldSummarySchema,'GET',undefined,signal),
+    yieldComparison: (input:C.YieldComparisonInput)=>transport.request(base+'/yield/comparison',C.YieldComparisonSchema,'POST',C.YieldComparisonInputSchema.parse(input)),
     netWorth: (filters:C.NetWorthQuery={},signal?:AbortSignal) => transport.request(base+'/net-worth'+query(C.NetWorthQuerySchema.parse(filters)),C.NetWorthSummarySchema,'GET',undefined,signal),
     netWorthHistory: (filters:C.NetWorthHistoryQuery,signal?:AbortSignal) => transport.request(base+'/net-worth/history'+query(C.NetWorthHistoryQuerySchema.parse(filters)),C.NetWorthHistorySchema,'GET',undefined,signal),
     netWorthItems: (filters:C.NetWorthItemQuery={},signal?:AbortSignal) => transport.request(base+'/net-worth/items'+query(C.NetWorthItemQuerySchema.parse(filters)),C.NetWorthItemsPageSchema,'GET',undefined,signal),
