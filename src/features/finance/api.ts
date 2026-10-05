@@ -11,6 +11,15 @@ export function createFinanceApi(transport: ApiClient) {
   const budgetPath = (month: string) => base + '/budgets/' + C.BudgetMonthSchema.parse(month);
   const budgetQuery = (currency: C.Currency) => query(C.BudgetCurrencyQuerySchema.parse({ currency }));
   return {
+    netWorth: (filters:C.NetWorthQuery={},signal?:AbortSignal) => transport.request(base+'/net-worth'+query(C.NetWorthQuerySchema.parse(filters)),C.NetWorthSummarySchema,'GET',undefined,signal),
+    netWorthHistory: (filters:C.NetWorthHistoryQuery,signal?:AbortSignal) => transport.request(base+'/net-worth/history'+query(C.NetWorthHistoryQuerySchema.parse(filters)),C.NetWorthHistorySchema,'GET',undefined,signal),
+    netWorthItems: (filters:C.NetWorthItemQuery={},signal?:AbortSignal) => transport.request(base+'/net-worth/items'+query(C.NetWorthItemQuerySchema.parse(filters)),C.NetWorthItemsPageSchema,'GET',undefined,signal),
+    netWorthItem: (id:string,signal?:AbortSignal) => transport.request(base+'/net-worth/items/'+z.uuid().parse(id),C.NetWorthItemSchema,'GET',undefined,signal),
+    createNetWorthItem: (input:C.NetWorthItemInput) => transport.request(base+'/net-worth/items',C.NetWorthItemSchema,'POST',C.NetWorthItemInputSchema.parse(input)),
+    patchNetWorthItem: (id:string,input:C.NetWorthItemPatch) => transport.request(base+'/net-worth/items/'+z.uuid().parse(id),C.NetWorthItemSchema,'PATCH',C.NetWorthItemPatchSchema.parse(input)),
+    archiveNetWorthItem: (id:string) => transport.request(base+'/net-worth/items/'+z.uuid().parse(id)+'/archive',C.NetWorthItemSchema,'POST',{}),
+    netWorthValuations: (id:string,filters:C.NetWorthValuationQuery={},signal?:AbortSignal) => transport.request(base+'/net-worth/items/'+z.uuid().parse(id)+'/valuations'+query(C.NetWorthValuationQuerySchema.parse(filters)),C.NetWorthValuationsPageSchema,'GET',undefined,signal),
+    addNetWorthValuation: (id:string,input:C.NetWorthValuationInput) => transport.request(base+'/net-worth/items/'+z.uuid().parse(id)+'/valuations',C.NetWorthValuationSchema,'POST',C.NetWorthValuationInputSchema.parse(input)),
     recurrences: (filters:C.RecurrenceQuery,signal?:AbortSignal) => transport.request(base+'/recurrences'+query(C.RecurrenceQuerySchema.parse(filters)),C.RecurrencePageSchema,'GET',undefined,signal),
     recurrence: (id:string,signal?:AbortSignal) => transport.request(base+'/recurrences/'+z.uuid().parse(id),C.RecurrenceSchema,'GET',undefined,signal),
     createRecurrence: (input:C.RecurrenceInput) => transport.request(base+'/recurrences',C.RecurrenceSchema,'POST',C.RecurrenceInputSchema.parse(input)),

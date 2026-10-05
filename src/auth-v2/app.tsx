@@ -14,6 +14,7 @@ import { BudgetPage } from '../features/finance/budget-pages';
 import { GoalsPage, GoalDetailPage } from '../features/finance/goal-pages';
 import { RecurrencesPage } from '../features/finance/recurrence-pages';
 import { FinancialCalendarPage } from '../features/finance/calendar-page';
+import { NetWorthPage } from '../features/finance/net-worth-page';
 
 function RouteFocus() {
   const { pathname } = useLocation();
@@ -68,6 +69,7 @@ export function AuthV2Routes() {
         <Route path="goals/:goalId" element={<GoalDetailPage />} />
         <Route path="recurrences" element={<RecurrencesPage />} />
         <Route path="calendar" element={<FinancialCalendarPage />} />
+        <Route path="net-worth" element={<NetWorthPage />} />
       </Route>
     </Route></Route>
   </Routes></>;
