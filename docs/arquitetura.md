@@ -69,3 +69,11 @@ Calendar groups ordered server entries by day and renders server totals. All
 projection computation stays in Back; tests use canned server date responses to
 verify rendering and navigation, while Back tests prove the real calendar engine.
 No new production packages or changes to Auth/account/budget/goal functionality.
+
+## MDL 6 — Net Worth / Patrimônio
+
+Implementado em `codex/mdl6-net-worth`, sem merge: patrimônio por moeda,
+saldos assinados de contas somente leitura, itens externos, avaliações append-only,
+posição histórica e arquivamento terminal. Sem FX, projeções ou alteração do ledger.
+O gate humano foi aprovado em 2026-10-05. Regras, API, schema, limites e roteiro estão em
+[Net Worth](./net-worth.md).

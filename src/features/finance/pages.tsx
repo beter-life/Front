@@ -66,6 +66,7 @@ export function FinanceLayout() {
         <NavLink to="/finance/goals">Metas</NavLink>
         <NavLink to="/finance/recurrences">Recorrências</NavLink>
         <NavLink to="/finance/calendar">Calendário</NavLink>
+        <NavLink to="/finance/net-worth">Patrimônio</NavLink>
       </nav>
       <Outlet />
     </>

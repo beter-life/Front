@@ -56,3 +56,11 @@ truncating totals. Reload reads persisted rules; forecasts never write old table
 Migration applied to Supabase DEV after reviewed PostgreSQL17/RLS PASS with TLS
 verify-full; all nine previous tables' exact row hashes unchanged. No remote test
 records, resets or destructive migrations; local env/secrets remain preserved.
+
+## MDL 6 — Net Worth / Patrimônio
+
+Implementado em `codex/mdl6-net-worth`, sem merge: patrimônio por moeda,
+saldos assinados de contas somente leitura, itens externos, avaliações append-only,
+posição histórica e arquivamento terminal. Sem FX, projeções ou alteração do ledger.
+O gate humano foi aprovado em 2026-10-05. Regras, API, schema, limites e roteiro estão em
+[Net Worth](./net-worth.md).

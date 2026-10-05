@@ -90,3 +90,11 @@ archive; income and optional USD retain separate totals. Confirm account balance
 transactions, transfers, budgets and goals remain unchanged. Another user checks
 ownership when available. Automated intercepted browser tests do not certify
 hosted human behavior; no SQL fixtures substitute the gate. Await user PASS.
+
+## MDL 6 — Net Worth / Patrimônio
+
+Implementado em `codex/mdl6-net-worth`, sem merge: patrimônio por moeda,
+saldos assinados de contas somente leitura, itens externos, avaliações append-only,
+posição histórica e arquivamento terminal. Sem FX, projeções ou alteração do ledger.
+O gate humano foi aprovado em 2026-10-05. Regras, API, schema, limites e roteiro estão em
+[Net Worth](./net-worth.md).

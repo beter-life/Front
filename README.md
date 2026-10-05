@@ -55,5 +55,13 @@ The Back supplies dates and totals; the client formats exact money and civil dat
 Rules are expectations and never post ledger entries or change budgets/goals.
 [Finance requirements](docs/requisitos.md#mdl-5--recurrences-and-calendar) describe
 the human gate and [PROJECT_STATE](docs/PROJECT_STATE.md) records verified tests.
-MDL5 is AWAITING_REAL_GATE; REAL_GATE=PENDING; READY_FOR_MDL6=false. Main remains
-at the approved MDL0–4 baseline; no MDL5 PR/merge. Local Front localhost:3101.
+MDL5 is COMPLETE; REAL_GATE=PASS; merged to main with the approved MDL0–5 baseline.
+MDL6 continues on its dedicated branch. Local Front localhost:3101.
+
+## MDL 6 — Net Worth / Patrimônio
+
+Implementado em `codex/mdl6-net-worth`, sem merge: patrimônio por moeda,
+saldos assinados de contas somente leitura, itens externos, avaliações append-only,
+posição histórica e arquivamento terminal. Sem FX, projeções ou alteração do ledger.
+O gate humano foi aprovado em 2026-10-05. Regras, API, schema, limites e roteiro estão em
+[Net Worth](docs/net-worth.md).
