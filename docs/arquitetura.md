@@ -77,3 +77,13 @@ saldos assinados de contas somente leitura, itens externos, avaliações append-
 posição histórica e arquivamento terminal. Sem FX, projeções ou alteração do ledger.
 O gate humano foi aprovado em 2026-10-05. Regras, API, schema, limites e roteiro estão em
 [Net Worth](./net-worth.md).
+
+## MDL 7 — Yield Engine / Rendimentos
+
+A rota protegida `/finance/yield` usa o provider/guards Auth V2 existentes.
+yield-page/editor/hooks → FinanceApi → DTO Zod gerado do Back. Cache privado
+inclui owner; mutations invalidam somente o usuário conectado. O Front apresenta
+valores retornados, não calcula o motor financeiro nem chama BCB/PostgreSQL.
+Percentuais de formulário são normalizados exatamente com BigInt; money reutiliza
+as utilidades do projeto. Não há dependência de produção nova ou redesign global.
+[Modelo e gate](./YIELD_ENGINE.md).

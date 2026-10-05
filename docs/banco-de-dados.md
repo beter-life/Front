@@ -64,3 +64,13 @@ saldos assinados de contas somente leitura, itens externos, avaliações append-
 posição histórica e arquivamento terminal. Sem FX, projeções ou alteração do ledger.
 O gate humano foi aprovado em 2026-10-05. Regras, API, schema, limites e roteiro estão em
 [Net Worth](./net-worth.md).
+
+## MDL 7 — Yield Engine / Rendimentos
+
+Front acessa somente endpoints JWT de Yield na API Finance. As três tabelas da
+migration0008, constraints, RLS, cache BCB e triggers ficam exclusivamente no
+Back. Não há migration, CA ou DATABASE_URL no browser. Generated Zod permanece
+byte-idêntico ao artefato oficial do Back e valida profile/versões/estimativas.
+Reads não criam transactions nem avaliações; mutation configura só profile/regra
+ou arquiva profile. Logout remove acesso e cache privado; reload lê persistência.
+Não há conexão direta do Front ao BCB, banco ou Data API.
