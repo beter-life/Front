@@ -40,5 +40,5 @@ http://localhost:3101/finance/yield and a real existing account:
 
 Do not create SQL fixtures to substitute the human gate. Automated tests use
 synthetic identity and intercepted external boundaries, not human approval.
-MDL7_STATUS=COMPLETE; REAL_GATE=PASS. Release requires green branch/PR/main CI
-and merge commits; MDL8 remains not started.
+MDL7_STATUS=COMPLETE; REAL_GATE=PASS. Branch/PR/main CI and merge commits PASS;
+MDL8 remains not started.

@@ -1,13 +1,13 @@
 # Beter Life · Front
 
-MDL 1F Auth V2 is preserved. MDL 2 adds Financial Core: accounts, categories, income/expense, atomic transfers, exact balances and basic queries. The user-approved real financial gate confirmed persistence in Supabase. MDL 3 adds monthly budgets; its real gate was approved on 2026-10-02 and MDL 0–6 are integrated into main. MDL 4 Financial Goals adds personal planning goals, declared contributions/withdrawals, progress, monthly requirements and a no-interest completion estimate. Its real gate was approved by the user on 2026-10-02. MDL 5 recurrence planning and MDL 6 Net Worth are COMPLETE after approved human gates; MDL7 Yield Engine is COMPLETE after the user-approved real gate on 2026-10-05; integration into main is pending; MDL8 is not started. React, Vite, strict TypeScript, Tailwind v4, shadcn/ui primitives, React Router, TanStack Query, React Hook Form and Zod.
+MDL 1F Auth V2 is preserved. MDL 2 adds Financial Core: accounts, categories, income/expense, atomic transfers, exact balances and basic queries. The user-approved real financial gate confirmed persistence in Supabase. MDL 3 adds monthly budgets; its real gate was approved on 2026-10-02 and MDL 0–7 are integrated into main. MDL 4 Financial Goals adds personal planning goals, declared contributions/withdrawals, progress, monthly requirements and a no-interest completion estimate. Its real gate was approved by the user on 2026-10-02. MDL 5 recurrence planning and MDL 6 Net Worth are COMPLETE after approved human gates; MDL7 Yield Engine is COMPLETE after the user-approved real gate on 2026-10-05; branch/PR/main CI and merge commits PASS; MDL8 is not started. React, Vite, strict TypeScript, Tailwind v4, shadcn/ui primitives, React Router, TanStack Query, React Hook Form and Zod.
 
 ## Local development
 
 MDL7 adds protected `/finance/yield`: explicit versioned rules, official benchmark
 states, estimated gross/net/taxes, history and read-only comparison. Real balances
 and net worth are unchanged. [Model and approved human gate](docs/YIELD_ENGINE.md).
-REAL_GATE=PASS; MDL7_STATUS=COMPLETE. Closure PR/merge/main CI are authorized; do not start MDL8 before stable main or without a new request.
+REAL_GATE=PASS; MDL7_STATUS=COMPLETE. Closure PR/merge/main CI PASS; await an explicit MDL8 request.
 
 Use Node 24 and pnpm 11.19.0. Run `pnpm install --frozen-lockfile`, create an ignored `.env.local` from `.env.example`, and set only the three public browser values. Use the Supabase **publishable** key (`sb_publishable_…`); this project intentionally rejects secret/service-role keys. Never copy the backend `.env` into Front.
 
