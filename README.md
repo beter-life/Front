@@ -1,6 +1,6 @@
 # Beter Life · Front
 
-MDL 1F Auth V2 is preserved. MDL 2 adds Financial Core: accounts, categories, income/expense, atomic transfers, exact balances and basic queries. The user-approved real financial gate confirmed persistence in Supabase. MDL 3 adds monthly budgets; its real gate was approved on 2026-10-02 and MDL 0–4 are integrated into main. MDL 4 Financial Goals adds personal planning goals, declared contributions/withdrawals, progress, monthly requirements and a no-interest completion estimate in `main`. Its real gate was approved by the user on 2026-10-02; MDL 4 is complete; MDL5 recurrence planning is implemented on codex/mdl5-recurring-calendar and awaits the human gate; MDL6+ is not implemented. React, Vite, strict TypeScript, Tailwind v4, shadcn/ui primitives, React Router, TanStack Query, React Hook Form and Zod.
+MDL 1F Auth V2 is preserved. MDL 2 adds Financial Core: accounts, categories, income/expense, atomic transfers, exact balances and basic queries. The user-approved real financial gate confirmed persistence in Supabase. MDL 3 adds monthly budgets; its real gate was approved on 2026-10-02 and MDL 0–6 are integrated into main. MDL 4 Financial Goals adds personal planning goals, declared contributions/withdrawals, progress, monthly requirements and a no-interest completion estimate. Its real gate was approved by the user on 2026-10-02. MDL 5 recurrence planning and MDL 6 Net Worth are COMPLETE after approved human gates; MDL 7+ is not implemented. React, Vite, strict TypeScript, Tailwind v4, shadcn/ui primitives, React Router, TanStack Query, React Hook Form and Zod.
 
 ## Local development
 
@@ -44,7 +44,7 @@ by currency. Paused/archived goals keep history and reject new events. A failed
 response can be retried with the same event idempotency key and normalized content.
 The Back supplies all projections; the client only formats exact money and renders
 accessible text/progress/status. The MDL4 human gate is PASS and the module is COMPLETE.
-READY_FOR_MDL5=true records prerequisite approval; MDL5 is awaiting its human gate on the dedicated branch.
+READY_FOR_MDL5=true records prerequisite approval; MDL5 is COMPLETE and integrated into main.
 
 ## MDL 5 — Recurrences and Financial Calendar
 
@@ -56,11 +56,11 @@ Rules are expectations and never post ledger entries or change budgets/goals.
 [Finance requirements](docs/requisitos.md#mdl-5--recurrences-and-calendar) describe
 the human gate and [PROJECT_STATE](docs/PROJECT_STATE.md) records verified tests.
 MDL5 is COMPLETE; REAL_GATE=PASS; merged to main with the approved MDL0–5 baseline.
-MDL6 continues on its dedicated branch. Local Front localhost:3101.
+MDL6 is COMPLETE and integrated into main. Local Front localhost:3101.
 
 ## MDL 6 — Net Worth / Patrimônio
 
-Implementado em `codex/mdl6-net-worth`, sem merge: patrimônio por moeda,
+MDL6 COMPLETE, integrado em `main`: patrimônio por moeda,
 saldos assinados de contas somente leitura, itens externos, avaliações append-only,
 posição histórica e arquivamento terminal. Sem FX, projeções ou alteração do ledger.
 O gate humano foi aprovado em 2026-10-05. Regras, API, schema, limites e roteiro estão em

@@ -52,13 +52,12 @@ Exemplo do fluxo de gate: criar Reserva teste 10.000 BRL/plano 1.000/prazo futur
 projeção/ownership e ausência de efeitos financeiros. Não inserir registros por SQL.
 META/CONTRIBUIÇÃO/RETIRADA/CÁLCULOS/RELOAD/EDIÇÃO/PAUSE_RESUME/PROJEÇÃO/
 ISOLAMENTO_FINANCEIRO/OWNERSHIP=PASS. REAL_GATE=PASS; READY_FOR_MDL5=true.
-MDL4 integrado em main após gates verdes. MDL5 aguarda gate na branch dedicada; MDL6 não iniciado.
+MDL4, MDL5 e MDL6 integrados em main após gates verdes.
 
 ## MDL 5 — Recurrences and Calendar
 
-Branch codex/mdl5-recurring-calendar from verified main baseline
-af276b612c368e04fb631fba017d77c7305988d6. MDL0–4 gates remain PASS.
-STATUS=AWAITING_REAL_GATE; REAL_GATE=PENDING; READY_FOR_MDL6=false.
+Implemented and integrated into main; MDL0–MDL5 approved ancestry is preserved.
+STATUS=COMPLETE; REAL_GATE=PASS; READY_FOR_MDL6=true.
 
 /finance/recurrences: owned paginated list (50/page), status/type/kind/currency/
 account/category filters; RHF/Zod create/edit form for name/description/type/
@@ -89,11 +88,12 @@ calendar/radar projections and resume should restore them. Verify terminal
 archive; income and optional USD retain separate totals. Confirm account balances,
 transactions, transfers, budgets and goals remain unchanged. Another user checks
 ownership when available. Automated intercepted browser tests do not certify
-hosted human behavior; no SQL fixtures substitute the gate. Await user PASS.
+hosted human behavior; no SQL fixtures substitute the gate. The human gate is
+approved; MDL5 is COMPLETE and merged.
 
 ## MDL 6 — Net Worth / Patrimônio
 
-Implementado em `codex/mdl6-net-worth`, sem merge: patrimônio por moeda,
+MDL6 COMPLETE, integrado em `main`: patrimônio por moeda,
 saldos assinados de contas somente leitura, itens externos, avaliações append-only,
 posição histórica e arquivamento terminal. Sem FX, projeções ou alteração do ledger.
 O gate humano foi aprovado em 2026-10-05. Regras, API, schema, limites e roteiro estão em
