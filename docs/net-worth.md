@@ -30,9 +30,14 @@ are present; archived history remains available. No FX, yield/debt planner or AI
 
 Unit/integration and desktop/mobile/tablet browser fixtures exercise interactions;
 Back disposable PostgreSQL17 tests prove accounting and RLS. They do not replace
-hosted human validation. Run the real gate: record BRL baseline, add Carro50,000,
+hosted human validation. Approved real gate: record BRL baseline, add Carro50,000,
 add Financiamento20,000, revalue Carro55,000, verify baseline+35,000 and retained
 50,000 history, reload, verify account breakdown, archive debt, check currencies
 and confirm earlier financial modules unchanged. Automation inserts no hosted fixture.
 
-MDL6_STATUS=AWAITING_REAL_GATE; REAL_GATE=PENDING; READY_FOR_MDL7=false.
+MDL6_STATUS=COMPLETE; REAL_GATE=PASS; READY_FOR_MDL7=true.
+
+Human gate approved by the user on 2026-10-05: net worth, account breakdown,
+manual asset/liability, valuation/history, monthly history, reload, archive,
+currency separation, financial isolation and ownership PASS. Final closure
+regression PASS; do not start MDL7 without a separate explicit request.
