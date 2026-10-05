@@ -70,3 +70,12 @@ saldos assinados de contas somente leitura, itens externos, avaliações append-
 posição histórica e arquivamento terminal. Sem FX, projeções ou alteração do ledger.
 O gate humano foi aprovado em 2026-10-05. Regras, API, schema, limites e roteiro estão em
 [Net Worth](docs/net-worth.md).
+
+## MDL 8 — Cards, Invoices & Installments
+
+`/finance/cards` and `/finance/cards/:cardId`: cards, invoice history, exact purchase
+preview, transfer payments, billing versions and corrective cancellation/archive.
+Recognized balance, invoice and future commitments are explicitly separate;
+Backend TypeBox generates the Zod contract, no hand-written duplicate DTOs.
+No global redesign, PAN/CVV, FX, interest or payment processing.
+[Pending real human gate](docs/CARDS_INVOICES.md). No final PR/merge or MDL9.

@@ -1,0 +1,13 @@
+import { describe, it, expect } from 'vitest';
+import { installmentPreview, requestKey } from '../../src/features/finance/card-view';
+import { CardInputSchema, PurchaseInputSchema, CardViewSchema } from '../../src/features/finance/contracts.generated';
+import { cardFixture, cardViewFixture } from '../fixtures/cards';
+describe('card form exactness and generated contract', () => {
+  it.each(['BRL', 'JPY', 'KWD'] as const)('preview exact minor-unit split %s', currency => { const p = installmentPreview('1000', currency, 3, '2026-01-31'); expect(p.reduce((sum, i) => sum + BigInt(i.amountMinor), 0n)).toBe(currency === 'JPY' ? 1000n : currency === 'KWD' ? 1000000n : 100000n); expect(p.map(i => i.scheduledDate)).toEqual(['2026-01-31', '2026-02-28', '2026-03-31']); });
+  it('BRL remainder on last, leap anchor and no float', () => { expect(installmentPreview('1000', 'BRL', 3, '2024-01-31').map(i => i.amountMinor)).toEqual(['33333', '33333', '33334']); expect(installmentPreview('1000', 'BRL', 3, '2024-01-31')[1]?.scheduledDate).toBe('2024-02-29'); });
+  it.each([0, 61, 1.1])('rejects invalid count %s', count => expect(() => installmentPreview('1000', 'BRL', count, '2026-01-31')).toThrow());
+  it('rejects invalid dates and impossible positive installments', () => { expect(() => installmentPreview('0.02', 'BRL', 3, '2026-01-01')).toThrow(); expect(() => installmentPreview('1', 'BRL', 1, '2026-02-30')).toThrow(); });
+  it('preview billing boundary; real totals come from server', () => { const rules = cardViewFixture().rules; expect(installmentPreview('100', 'BRL', 1, '2026-10-10', rules)[0]?.closingDate).toBe('2026-10-10'); expect(installmentPreview('100', 'BRL', 1, '2026-10-11', rules)[0]?.closingDate).toBe('2026-11-10'); expect(CardViewSchema.parse(cardViewFixture()).realBalanceMinor).toBe('-33333'); });
+  it('same payload keeps idempotency key on retry; changed payload creates new key', () => { const a = requestKey(null, { amount: '100' }); expect(requestKey(a, { amount: '100' })).toBe(a); expect(requestKey(a, { amount: '200' }).key).not.toBe(a.key); });
+  it('strict generated contracts reject PAN/CVV/owner and accept only last4', () => { const input = { displayName: 'x', currency: 'BRL', trackingStartDate: '2026-10-01', closingDay: 10, dueDay: 17 }; expect(CardInputSchema.parse({ ...input, last4: '1234' }).last4).toBe('1234'); for (const extra of [{ last4: '123' }, { pan: 'invalid' }, { cvv: '123' }, { ownerId: cardFixture.id }]) expect(() => CardInputSchema.parse({ ...input, ...extra })).toThrow(); expect(() => PurchaseInputSchema.parse({ ownerId: cardFixture.id })).toThrow(); });
+});
