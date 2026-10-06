@@ -25,4 +25,11 @@ unchanged purchase/payment keeps its idempotency key. No PAN/CVV/PIN or credenti
 are accepted; only optional last4. No processor, FX, revolving interest or refund.
 Calendar contract is unchanged; due dates are available on the Cards page.
 
-Automated gates do not replace this test. REAL_GATE=PENDING; no final PR/merge or MDL9.
+## Approved result
+
+The user completed and approved this gate on 2026-10-06: card, purchase1x,
+transfer payment/no double counting, installments/exact split/future commitments,
+reload, billing-rule versioning, correction, archive, Budget/Net Worth integration,
+financial isolation and ownership. REAL_GATE=PASS; MDL8=COMPLETE.
+The steps above remain a reference, not a request to repeat the gate. DEV records
+are preserved; no additional financial fixtures or MDL9 implementation.
