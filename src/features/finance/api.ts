@@ -11,6 +11,21 @@ export function createFinanceApi(transport: ApiClient) {
   const budgetPath = (month: string) => base + '/budgets/' + C.BudgetMonthSchema.parse(month);
   const budgetQuery = (currency: C.Currency) => query(C.BudgetCurrencyQuerySchema.parse({ currency }));
   return {
+    cards: (signal?: AbortSignal) => transport.request(base + '/cards', z.array(C.CardSchema), 'GET', undefined, signal),
+    card: (id: string, signal?: AbortSignal) => transport.request(base + '/cards/' + z.uuid().parse(id), C.CardViewSchema, 'GET', undefined, signal),
+    cardsSummary: (signal?: AbortSignal) => transport.request(base + '/cards/summary', C.CardsSummarySchema, 'GET', undefined, signal),
+    createCard: (input: C.CardInput) => transport.request(base + '/cards', C.CardSchema, 'POST', C.CardInputSchema.parse(input)),
+    patchCard: (id: string, input: C.CardPatch) => transport.request(base + '/cards/' + z.uuid().parse(id), C.CardSchema, 'PATCH', C.CardPatchSchema.parse(input)),
+    archiveCard: (id: string) => transport.request(base + '/cards/' + z.uuid().parse(id) + '/archive', C.CardSchema, 'POST', {}),
+    cardRules: (id: string, signal?: AbortSignal) => transport.request(base + '/cards/' + z.uuid().parse(id) + '/billing-rules', z.array(C.BillingRuleSchema), 'GET', undefined, signal),
+    addCardRule: (id: string, input: C.BillingRuleInput) => transport.request(base + '/cards/' + z.uuid().parse(id) + '/billing-rules', C.BillingRuleSchema, 'POST', C.BillingRuleInputSchema.parse(input)),
+    cardPurchases: (id: string, filters: C.PurchaseQuery = {}, signal?: AbortSignal) => transport.request(base + '/cards/' + z.uuid().parse(id) + '/purchases' + query(C.PurchaseQuerySchema.parse(filters)), C.PurchasePageSchema, 'GET', undefined, signal),
+    createCardPurchase: (id: string, input: C.PurchaseInput) => transport.request(base + '/cards/' + z.uuid().parse(id) + '/purchases', C.PurchaseSchema, 'POST', C.PurchaseInputSchema.parse(input)),
+    patchCardPurchase: (id: string, purchaseId: string, input: C.PurchasePatch) => transport.request(base + '/cards/' + z.uuid().parse(id) + '/purchases/' + z.uuid().parse(purchaseId), C.PurchaseSchema, 'PATCH', C.PurchasePatchSchema.parse(input)),
+    cancelCardPurchase: (id: string, purchaseId: string) => transport.request(base + '/cards/' + z.uuid().parse(id) + '/purchases/' + z.uuid().parse(purchaseId) + '/cancel', C.PurchaseSchema, 'POST', {}),
+    cardInvoices: (id: string, filters: C.InvoiceQuery = {}, signal?: AbortSignal) => transport.request(base + '/cards/' + z.uuid().parse(id) + '/invoices' + query(C.InvoiceQuerySchema.parse(filters)), z.array(C.InvoiceSchema), 'GET', undefined, signal),
+    cardInvoice: (id: string, closingDate: string, signal?: AbortSignal) => transport.request(base + '/cards/' + z.uuid().parse(id) + '/invoices/' + z.iso.date().parse(closingDate), C.InvoiceSchema, 'GET', undefined, signal),
+    payCard: (id: string, input: C.PaymentInput) => transport.request(base + '/cards/' + z.uuid().parse(id) + '/payments', C.PaymentSchema, 'POST', C.PaymentInputSchema.parse(input)),
     yieldBenchmarks: (signal?:AbortSignal)=>transport.request(base+'/yield/benchmarks',C.YieldBenchmarksSchema,'GET',undefined,signal),
     yieldProfiles: (signal?:AbortSignal)=>transport.request(base+'/yield/profiles',C.YieldProfilesSchema,'GET',undefined,signal),
     yieldProfile: (id:string,signal?:AbortSignal)=>transport.request(base+'/accounts/'+z.uuid().parse(id)+'/yield-profile',C.YieldProfileResultSchema,'GET',undefined,signal),
