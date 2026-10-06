@@ -17,6 +17,7 @@ import { FinancialCalendarPage } from '../features/finance/calendar-page';
 import { NetWorthPage } from '../features/finance/net-worth-page';
 import { YieldPage } from '../features/finance/yield-page';
 import { CardsPage, CardDetailPage } from '../features/finance/cards-page';
+import { DebtsPage, DebtDetailPage } from '../features/finance/debts-page';
 
 function RouteFocus() {
   const { pathname } = useLocation();
@@ -75,6 +76,8 @@ export function AuthV2Routes() {
         <Route path="yield" element={<YieldPage />} />
         <Route path="cards" element={<CardsPage />} />
         <Route path="cards/:cardId" element={<CardDetailPage />} />
+        <Route path="debts" element={<DebtsPage />} />
+        <Route path="debts/:debtId" element={<DebtDetailPage />} />
       </Route>
     </Route></Route>
   </Routes></>;

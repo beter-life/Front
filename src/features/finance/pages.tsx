@@ -33,6 +33,7 @@ const accountTypes = {
   credit: 'Crédito',
   investment: 'Investimento',
   other: 'Outra',
+  debt: 'Dívida',
 };
 const kindLabel = { INCOME: 'Receita', EXPENSE: 'Despesa', TRANSFER: 'Transferência' };
 function Intro({ title, description }: { title: string; description: string }) {
@@ -69,6 +70,7 @@ export function FinanceLayout() {
         <NavLink to="/finance/net-worth">Patrimônio</NavLink>
         <NavLink to="/finance/yield">Rendimentos</NavLink>
         <NavLink to="/finance/cards">Cartões</NavLink>
+        <NavLink to="/finance/debts">Dívidas</NavLink>
       </nav>
       <Outlet />
     </>

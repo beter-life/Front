@@ -74,3 +74,7 @@ byte-idêntico ao artefato oficial do Back e valida profile/versões/estimativas
 Reads não criam transactions nem avaliações; mutation configura só profile/regra
 ou arquiva profile. Logout remove acesso e cache privado; reload lê persistência.
 Não há conexão direta do Front ao BCB, banco ou Data API.
+
+## MDL9 — Migration0010
+
+0010_financial_debts: financial_debts/terms/payments, compound owner/currency/type FKs, RLS own SELECT com escrita controlada pelo backend, versões imutáveis/não sobrepostas, constraints diferidas do ledger. Tipo debt acrescentado ao CHECK existente; uniques de conta e transferência suportam FKs novas. Migrations0001–0009 e dados existentes preservados; sem reset, Auth/TLS ou grants Data API. [Integridade e rollout](./DEBT_PAYOFF.md).

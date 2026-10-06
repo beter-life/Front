@@ -87,3 +87,7 @@ valores retornados, não calcula o motor financeiro nem chama BCB/PostgreSQL.
 Percentuais de formulário são normalizados exatamente com BigInt; money reutiliza
 as utilidades do projeto. Não há dependência de produção nova ou redesign global.
 [Modelo e gate](./YIELD_ENGINE.md).
+
+## MDL9 — Fluxos de dívida
+
+DebtsPage/DebtDetailPage → hooks privados por sessão → FinanceApi → TypeBox/OpenAPI/Zod gerado no Back. Formulários reutilizam estrutura estável, formatos monetários exatos e chaves idempotentes retidas para retry. Resultados do simulador vêm apenas do Back; UI separa principal/custos reais de projeções. [Decisões](./DEBT_PAYOFF.md). Sem redesign global ou nova dependência.

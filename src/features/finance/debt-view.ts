@@ -1,0 +1,9 @@
+import { parseMoney } from './money';
+import type { Currency, Debt } from './contracts.generated';
+export const debtTypes:Record<Debt['debtType'],string>={PERSONAL_LOAN:'Empréstimo pessoal',MORTGAGE:'Hipoteca',VEHICLE_FINANCING:'Financiamento de veículo',CONSUMER_FINANCING:'Financiamento de consumo',STUDENT:'Estudantil',MEDICAL:'Médica',TAX:'Tributária',OTHER:'Outra'};
+export const debtStatuses:Record<Debt['status'],string>={ACTIVE:'Ativa',PAID_OFF:'Quitada',ARCHIVED:'Arquivada'};
+// Percent input has eight decimal places: shifting two decimal positions gives
+// the API's exact ten-place fraction, without floating-point arithmetic.
+export function percentToRate(value:string){const text=value.trim().replace(',','.');if(!/^(0|[1-9][0-9]{0,2})(\.[0-9]{1,8})?$/.test(text))throw Error('Informe uma taxa de 0% a 100%, com até 8 casas decimais.');const [whole,fraction='']=text.split('.'),units=BigInt(whole!)*100000000n+BigInt(fraction.padEnd(8,'0'));if(units>10000000000n)throw Error('A taxa máxima é 100%.');return (String(units/10000000000n)+'.'+String(units%10000000000n).padStart(10,'0')).replace(/\.?0+$/,'')||'0';}
+export function rateToPercent(value:string){const [whole,fraction='']=value.split('.'),units=BigInt(whole!)*10000000000n+BigInt(fraction.padEnd(10,'0'));return (String(units/100000000n)+'.'+String(units%100000000n).padStart(8,'0')).replace(/\.?0+$/,'')||'0';}
+export function paymentPreview(principal:string,interest:string,fee:string,outstanding:string,currency:Currency){const amounts=[principal,interest,fee].map(v=>BigInt(parseMoney(v||'0',currency,false)));if(amounts.some(a=>a<0n)||amounts[0]!>BigInt(outstanding))throw Error('O principal deve estar entre zero e o saldo devedor.');return {totalMinor:String(amounts.reduce((a,b)=>a+b,0n)),remainingMinor:String(BigInt(outstanding)-amounts[0]!)};}

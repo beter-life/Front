@@ -11,6 +11,17 @@ export function createFinanceApi(transport: ApiClient) {
   const budgetPath = (month: string) => base + '/budgets/' + C.BudgetMonthSchema.parse(month);
   const budgetQuery = (currency: C.Currency) => query(C.BudgetCurrencyQuerySchema.parse({ currency }));
   return {
+    debts: (signal?: AbortSignal) => transport.request(base + '/debts', z.array(C.DebtSchema), 'GET', undefined, signal),
+    debt: (id: string, signal?: AbortSignal) => transport.request(base + '/debts/' + z.uuid().parse(id), C.DebtViewSchema, 'GET', undefined, signal),
+    debtSummary: (signal?: AbortSignal) => transport.request(base + '/debts/summary', C.DebtSummarySchema, 'GET', undefined, signal),
+    createDebt: (input: C.DebtInput) => transport.request(base + '/debts', C.DebtSchema, 'POST', C.DebtInputSchema.parse(input)),
+    patchDebt: (id: string, input: C.DebtPatch) => transport.request(base + '/debts/' + z.uuid().parse(id), C.DebtSchema, 'PATCH', C.DebtPatchSchema.parse(input)),
+    archiveDebt: (id: string) => transport.request(base + '/debts/' + z.uuid().parse(id) + '/archive', C.DebtSchema, 'POST', {}),
+    addDebtTerm: (id: string, input: C.DebtTermInput) => transport.request(base + '/debts/' + z.uuid().parse(id) + '/terms', C.DebtTermSchema, 'POST', C.DebtTermInputSchema.parse(input)),
+    debtPayments: (id: string, filters: C.DebtPaymentQuery = {}, signal?: AbortSignal) => transport.request(base + '/debts/' + z.uuid().parse(id) + '/payments' + query(C.DebtPaymentQuerySchema.parse(filters)), C.DebtPaymentPageSchema, 'GET', undefined, signal),
+    payDebt: (id: string, input: C.DebtPaymentInput) => transport.request(base + '/debts/' + z.uuid().parse(id) + '/payments', C.DebtPaymentSchema, 'POST', C.DebtPaymentInputSchema.parse(input)),
+    cancelDebtPayment: (id: string, paymentId: string) => transport.request(base + '/debts/' + z.uuid().parse(id) + '/payments/' + z.uuid().parse(paymentId) + '/cancel', C.DebtPaymentSchema, 'POST', {}),
+    simulateDebts: (input: C.DebtSimulationInput) => transport.request(base + '/debts/simulate', C.DebtSimulationResponseSchema, 'POST', C.DebtSimulationInputSchema.parse(input)),
     cards: (signal?: AbortSignal) => transport.request(base + '/cards', z.array(C.CardSchema), 'GET', undefined, signal),
     card: (id: string, signal?: AbortSignal) => transport.request(base + '/cards/' + z.uuid().parse(id), C.CardViewSchema, 'GET', undefined, signal),
     cardsSummary: (signal?: AbortSignal) => transport.request(base + '/cards/summary', C.CardsSummarySchema, 'GET', undefined, signal),
