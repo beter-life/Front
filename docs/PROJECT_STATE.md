@@ -22,13 +22,14 @@
 | EXISTING_DATA | PASS; original safe before/after counts+SHA256 for all19 existing app tables match; existing columns/policies/RLS unchanged and other objects preserved; no hosted fixtures or automatic debts; existing human Cards data preserved |
 | HOSTED_SECURITY | Existing Auth/JWT/JWKS configuration and TLS verify-full preserved; NODE_USE_SYSTEM_CA=1 uses system trust without disabling certificate validation; local env SHA256 unchanged and ignored |
 | TESTS | unit81; integration69; browser102 (desktop/mobile, MDL9 tablet/keyboard/layout stability); lint/typecheck/build/secret scan/harness PASS |
-| CI | [Exact code-commit run](https://github.com/beter-life/Front/actions/runs/37490993153) PASS for 2fb9f9473f2b9e4a8116457a319af47add90d359; subsequent checkpoint changes documentation only and reruns the same workflow; final documentation HEAD CI reported at handoff |
+| CI | [Exact product-code run](https://github.com/beter-life/Front/actions/runs/37490993153) PASS for 2fb9f9473f2b9e4a8116457a319af47add90d359; subsequent checkpoint corrects E2E selectors/synchronization and documentation, with product code unchanged; complete final HEAD CI reported at handoff |
+| TEST_HARNESS_REGRESSION | CI exposed an ambiguous payment-history selector and a test advancing before the terms form finished closing. Scope history assertions and await visible mutation completion; no sleeps, retries or product changes. All36 repeated MDL9 browser cases PASS locally; lint/typecheck/secret scan/harness PASS |
 | MODEL_GATES | DEBT_MODEL=PASS; DEBT_ACCOUNT_TYPE=PASS; TERM_VERSIONING=PASS; RATE_ENGINE=PASS; PAYOFF=PASS; AVALANCHE=PASS; SNOWBALL=PASS; NEGATIVE_AMORTIZATION=PASS; SIMULATION_HORIZON=PASS; MULTI_CURRENCY=PASS |
 | ACCOUNTING_GATES | PAYMENTS=PASS; PRINCIPAL_TRANSFER=PASS; INTEREST_EXPENSE=PASS; FEE_EXPENSE=PASS; NO_DOUBLE_COUNTING_DEBT=PASS; PAYMENT_IDEMPOTENCY=PASS; BUDGET_INTEGRATION=PASS; NET_WORTH_INTEGRATION=PASS; MANUAL_LIABILITY_CONVERSION=PASS |
 | ISOLATION_GATES | CARD_ISOLATION=PASS; YIELD_ISOLATION=PASS; existing MDL0–MDL8 regressions PASS; no paid APIs or new production dependencies |
 | CONTRACT_GATES | RLS=PASS; OWNERSHIP=PASS; OPENAPI=PASS; TypeBox source → generated Front Zod; contract drift PASS |
 | LOCAL_APP | Back localhost:3001 live/ready200; Front localhost:3101/finance/debts200; authenticated browser shows Debt dashboard without hosted writes; unauthenticated Debt API401; processes kept running for human gate |
 | HUMAN_GATE | PENDING: create10,000 debt/12% effective annual/minimum500/due10; payment400 principal+90 interest+10fee; reload; compare extra500/month; two-debt priorities; future terms; small-debt full payoff; Budget/Net Worth/Cards/Yield/recurrence isolation; second-user ownership if available |
-| CHECKPOINT | checkpoint/mdl9-debt-payoff-simulator-dev-2026-10-06; DEV snapshot at final documentation commit; prior checkpoints preserved; no COMPLETE checkpoint |
+| CHECKPOINT | checkpoint/mdl9-debt-payoff-simulator-dev-2026-10-06-v2; DEV snapshot with E2E synchronization correction; previous DEV and MDL0–MDL8 checkpoints preserved; no COMPLETE checkpoint |
 | BLOCKER | NONE for development handoff; real human approval remains outstanding |
 | NEXT | User performs MDL9 real gate at /finance/debts. Await explicit results before closure/PR/merge. Do not start MDL10 |
