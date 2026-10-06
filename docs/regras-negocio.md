@@ -112,3 +112,7 @@ Bruto/líquido/IR/IOF não são retorno garantido ou imposto exato. Histórico �
 contrafactual, não rendimento confirmado pela instituição. Moedas não são somadas.
 Perfil precisa ser escolhido/configurado, não inferido por banco/tipo de conta.
 Nenhuma ação Yield altera ledger, patrimônio, budgets, metas ou recorrências.
+
+## MDL9 — Separação de principal e custos
+
+Principal real deriva da abertura negativa e do ledger, sem setter. Principal pago é transferência; somente juros/tarifas são despesas. Taxas efetivas fixas com conversão composta e arredondamento HALF_UP em unidades mínimas. Nenhuma projeção posta juros reais. Conversão manual apenas explícita e com valor/moeda/owner iguais; histórico imutável. [Regras completas](./DEBT_PAYOFF.md).

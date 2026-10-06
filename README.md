@@ -78,4 +78,8 @@ preview, transfer payments, billing versions and corrective cancellation/archive
 Recognized balance, invoice and future commitments are explicitly separate;
 Backend TypeBox generates the Zod contract, no hand-written duplicate DTOs.
 No global redesign, PAN/CVV, FX, interest or payment processing.
-[Approved real human gate](docs/CARDS_INVOICES.md). MDL8 COMPLETE; no MDL9 implementation.
+[Approved real human gate](docs/CARDS_INVOICES.md). MDL8 COMPLETE; MDL9 is COMPLETE with its user-approved real gate PASS; integration gates are recorded in PROJECT_STATE.
+
+## MDL9 — Dívidas e simulador
+
+Rotas protegidas /finance/debts e /finance/debts/:debtId: resumo por moeda, cadastro, pagamentos reais com prévia exata, termos e histórico/correção. Comparação de mínimos/avalanche/snowball usa resultados do Back, sem simulação financeira paralela no cliente. Gate humano aprovado (REAL_GATE=PASS). [Premissas e validação](docs/DEBT_PAYOFF.md). Sem MDL10.
