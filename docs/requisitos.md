@@ -112,6 +112,6 @@ visual existente. Nenhum ganho estimado aparece como saldo/patrimônio real.
 Gate hospedado humano aprovado pelo usuário em 2026-10-05 (PASS); testes automatizados são evidência complementar:
 [roteiro](./YIELD_ENGINE.md#gate-humano-aprovado). MDL8 fora do escopo.
 
-## MDL9 — Dívidas e quitação (DEV)
+## MDL9 — Dívidas e quitação
 
-API privada de dívidas, termos versionados, pagamentos atômicos/idempotentes, payoff/arquivo e correção controlada. Simulador de até20 dívidas da mesma moeda por até600 meses; comparação e schedule opt-in. Gate humano pendente. [Contrato e limites](./DEBT_PAYOFF.md).
+API privada de dívidas, termos versionados, pagamentos atômicos/idempotentes, payoff/arquivo e correção controlada. Simulador de até20 dívidas da mesma moeda por até600 meses; comparação e schedule opt-in. Gate humano aprovado (REAL_GATE=PASS). [Contrato e limites](./DEBT_PAYOFF.md).
