@@ -32,7 +32,11 @@ export function RecurrencesPage() {
   const query=useRecurrences(filters),accounts=useAccounts(),categories=useCategories(),me=useMe(),{finance}=useServices(),locale=me.data?.profile?.locale??'pt-BR';
   const mutation=useFinanceMutation<{id:string;action:'pause'|'resume'|'archive'}>(v=>finance.recurrenceStatus(v.id,v.action));
   const rows=query.data?.pages.flatMap(p=>p.items)??[];
-  const update=(key:string,value:string)=>{const next=new URLSearchParams(params);if(value)next.set(key,value);else next.delete(key);setParams(next);setEditing(null);setCreating(false);};
+  const update=(key:string,value:string)=>{
+    // Commit each intent to the stable params before navigating; callbacks receive a copy.
+    if(value)params.set(key,value);else params.delete(key);setParams(params);
+    setEditing(null);setCreating(false);
+  };
   const status=async(id:string,action:'pause'|'resume'|'archive')=>{try{await mutation.mutateAsync({id,action});setConfirmArchive(null);setMessage(action==='pause'?'Recorrência pausada.':action==='resume'?'Recorrência retomada.':'Recorrência arquivada.');}catch{/* Safe API feedback below. */}};
   const options=(labels:Record<string,string>)=>Object.entries(labels).map(([value,label])=><option value={value} key={value}>{label}</option>);
   return <div className="finance-page recurrence-page"><header className="finance-page-heading"><div><p className="finance-eyebrow">FINANCE · PLANEJAMENTO</p><h1 tabIndex={-1}>Recorrências e assinaturas</h1><p>Organize receitas e despesas que se repetem e acompanhe seus próximos compromissos.</p></div><div className="finance-actions"><Button variant="outline" asChild><Link to="/finance/calendar">Ver calendário</Link></Button><Button onClick={()=>{setCreating(true);setEditing(null);setMessage('');}} disabled={accounts.isPending||categories.isPending||accounts.isError||categories.isError}>Nova recorrência</Button></div></header>
