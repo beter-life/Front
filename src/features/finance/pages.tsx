@@ -71,6 +71,7 @@ export function FinanceLayout() {
         <NavLink to="/finance/yield">Rendimentos</NavLink>
         <NavLink to="/finance/cards">Cartões</NavLink>
         <NavLink to="/finance/debts">Dívidas</NavLink>
+        <NavLink to="/finance/safe-to-spend">Quanto posso gastar?</NavLink>
       </nav>
       <Outlet />
     </>

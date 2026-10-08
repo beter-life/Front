@@ -91,3 +91,7 @@ as utilidades do projeto. Não há dependência de produção nova ou redesign g
 ## MDL9 — Fluxos de dívida
 
 DebtsPage/DebtDetailPage → hooks privados por sessão → FinanceApi → TypeBox/OpenAPI/Zod gerado no Back. Formulários reutilizam estrutura estável, formatos monetários exatos e chaves idempotentes retidas para retry. Resultados do simulador vêm apenas do Back; UI separa principal/custos reais de projeções. [Decisões](./DEBT_PAYOFF.md). Sem redesign global ou nova dependência.
+
+## MDL10 — Safe to Spend
+
+Snapshot financeiro único repeatable-read/read-only, leituras batch e cálculo puro. Reutiliza Cards, Debt terms, Budget, Goals e Recurrences; apenas configurações próprias são escritas. Contratos TypeBox → OpenAPI/Zod gerado, sem cálculo monetário paralelo no Front. [Modelo e limites](./SAFE_TO_SPEND.md).

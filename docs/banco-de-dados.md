@@ -78,3 +78,7 @@ Não há conexão direta do Front ao BCB, banco ou Data API.
 ## MDL9 — Migration0010
 
 0010_financial_debts: financial_debts/terms/payments, compound owner/currency/type FKs, RLS own SELECT com escrita controlada pelo backend, versões imutáveis/não sobrepostas, constraints diferidas do ledger. Tipo debt acrescentado ao CHECK existente; uniques de conta e transferência suportam FKs novas. Migrations0001–0009 e dados existentes preservados; sem reset, Auth/TLS ou grants Data API. [Integridade e rollout](./DEBT_PAYOFF.md).
+
+## MDL10 — Safe to Spend
+
+0011_financial_safe_to_spend adiciona somente financial_safe_spend_profiles e financial_safe_spend_accounts privadas, RLS own SELECT e escritas backend-controlled. FKs compostas preservam owner/moeda/tipo; identidade imutável. Migrations0001–0010 permanecem intactas; não há tabela de saldo, resultado ou snapshot financeiro. [Modelo e limites](./SAFE_TO_SPEND.md).
