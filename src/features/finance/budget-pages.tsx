@@ -302,7 +302,7 @@ export function BudgetPage() {
     <>
       <div className="page-intro">
         <p className="eyebrow">CLAREZA FINANCEIRA</p>
-        <h1 tabIndex={-1}>Um mês com direção.</h1>
+        <h1 tabIndex={-1}>Orçamento mensal</h1>
         <p>Planeje por categoria e acompanhe o que já foi gasto.</p>
       </div>
       <div className="budget-toolbar">

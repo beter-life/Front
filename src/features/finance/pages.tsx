@@ -64,8 +64,8 @@ export function FinanceDashboard() {
   return (
     <>
       <Intro
-        title="Seu dinheiro, com clareza."
-        description="Saldos reais, movimentos organizados e um passo de cada vez."
+        title="Visão financeira"
+        description="Consulte os saldos e acompanhe o resultado do período, por moeda."
       />
       <div className="finance-toolbar">
         <div className="finance-period">
@@ -107,20 +107,20 @@ export function FinanceDashboard() {
       ) : (
         <div className="finance-summary">
           {summary.data.currencies.map((row) => (
-            <Card key={row.currency}>
+            <Card key={row.currency} className="finance-summary-card">
               <p className="eyebrow">{row.currency} · SALDO ATÉ O FIM DO PERÍODO</p>
               <p className="finance-balance">
                 {formatMoney(row.totalBalanceMinor, row.currency, locale)}
               </p>
               <dl>
-                <div>
+                <div className="metric-income">
                   <dt>
                     <ArrowDownLeft />
                     Receitas
                   </dt>
                   <dd>{formatMoney(row.incomeMinor, row.currency, locale)}</dd>
                 </div>
-                <div>
+                <div className="metric-expense">
                   <dt>
                     <ArrowUpRight />
                     Despesas
@@ -153,7 +153,7 @@ export function FinanceDashboard() {
           </div>
         </section>
       )}
-      <SectionHeader title="Seu próximo passo" /><div className="ui-actions">{navigationItems.filter(item => ['budget', 'cards', 'debts', 'safe-spend'].includes(item.id)).map(item => <Button key={item.id} asChild variant="outline"><Link to={item.path}>{item.label}</Link></Button>)}</div>
+      <SectionHeader title="Planejamento" /><div className="finance-planning-links">{navigationItems.filter(item => ['budget', 'cards', 'debts', 'safe-spend'].includes(item.id)).map(item => <Link key={item.id} to={item.path}><item.icon aria-hidden="true" /><span>{item.label}</span></Link>)}</div>
       <p className="finance-note">
         Moedas são mostradas separadamente. Transferências não são receitas nem despesas. Datas no
         fuso {timezone}.
@@ -248,8 +248,8 @@ export function AccountsPage() {
   return (
     <>
       <Intro
-        title="Um lugar para cada conta."
-        description="Separe seu dinheiro por conta. O histórico continua disponível mesmo quando você desativa uma delas."
+        title="Contas"
+        description="Consulte seus saldos e gerencie suas contas. Desativar preserva o histórico."
       />
       <div className="finance-toolbar">
         <h2>Contas financeiras</h2>
@@ -317,7 +317,7 @@ export function CategoriesPage() {
   return (
     <>
       <Intro
-        title="Cada movimento tem um contexto."
+        title="Categorias"
         description="Crie categorias de receita e despesa. Desativar mantém seus movimentos anteriores intactos."
       />
       <div className="finance-columns">
@@ -524,7 +524,7 @@ export function TransactionsPage() {
   return (
     <>
       <Intro
-        title="Sua vida financeira em movimento."
+        title="Movimentos"
         description="Receitas, despesas e transferências, sem perder a história. Cancelar um movimento preserva o registro e remove seu efeito no saldo."
       />
       <div className="finance-toolbar">
@@ -611,7 +611,7 @@ export function TransactionsPage() {
         <Card className="finance-movements">
           <ul className="finance-list">
             {transactions.data.items.map((row) => (
-              <li key={row.id}>
+              <li key={row.id} className={'movement-row ' + row.type.toLowerCase() + (row.isCancelled ? ' cancelled' : '')}>
                 <div className={`movement-icon ${row.type.toLowerCase()}`}>
                   {row.type === 'TRANSFER' ? (
                     <ArrowLeftRight aria-hidden="true" />
@@ -624,9 +624,9 @@ export function TransactionsPage() {
                 <div className="movement-detail">
                   <strong>{row.description || kindLabel[row.type]}</strong>
                   <p>
-                    {accountName(row.accountId)}
+                    <span className="movement-kind">{kindLabel[row.type]}</span> · {accountName(row.accountId)}
                     {row.destinationAccountId &&
-                      ' → ' + accountName(row.destinationAccountId)} · {kindLabel[row.type]}
+                      ' → ' + accountName(row.destinationAccountId)}
                     {row.categoryId &&
                       ' · ' +
                         (categories.data?.find((category) => category.id === row.categoryId)
