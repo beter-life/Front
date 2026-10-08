@@ -1,6 +1,6 @@
 # Beter Life · Front
 
-MDL 1F Auth V2 is preserved. MDL 2 adds Financial Core: accounts, categories, income/expense, atomic transfers, exact balances and basic queries. The user-approved real financial gate confirmed persistence in Supabase. MDL 3 adds monthly budgets; its real gate was approved on 2026-10-02 and MDL 0–7 are integrated into main. MDL 4 Financial Goals adds personal planning goals, declared contributions/withdrawals, progress, monthly requirements and a no-interest completion estimate. Its real gate was approved by the user on 2026-10-02. MDL 5 recurrence planning and MDL 6 Net Worth are COMPLETE after approved human gates; MDL7 Yield Engine is COMPLETE after the user-approved real gate on 2026-10-05; MDL8 Cards is COMPLETE after the user-approved real gate on 2026-10-06; publication/merge readiness is tracked in PROJECT_STATE. React, Vite, strict TypeScript, Tailwind v4, shadcn/ui primitives, React Router, TanStack Query, React Hook Form and Zod.
+MDL 1F Auth V2 is preserved. MDL 2 adds Financial Core: accounts, categories, income/expense, atomic transfers, exact balances and basic queries. The user-approved real financial gate confirmed persistence in Supabase. MDL 3 adds monthly budgets; its real gate was approved on 2026-10-02 and MDL 0–10 are integrated into main. MDL 4 Financial Goals adds personal planning goals, declared contributions/withdrawals, progress, monthly requirements and a no-interest completion estimate. Its real gate was approved by the user on 2026-10-02. MDL 5 recurrence planning and MDL 6 Net Worth are COMPLETE after approved human gates; MDL7 Yield Engine is COMPLETE after the user-approved real gate on 2026-10-05; MDL8 Cards is COMPLETE after the user-approved real gate on 2026-10-06; publication/merge readiness is tracked in PROJECT_STATE. React, Vite, strict TypeScript, Tailwind v4, shadcn/ui primitives, React Router, TanStack Query, React Hook Form and Zod.
 
 ## Local development
 
@@ -26,7 +26,7 @@ Confirmation and recovery each call `verifyOtp({ token_hash, type })` once, then
 
 ## Routes and contracts
 
-`/login`, `/signup`, `/auth/confirm`, `/forgot-password`, `/auth/recovery`, protected `/app`, `/profile` and `/account/password`. `/app` is an identity landing page, not a financial dashboard.
+`/login`, `/signup`, `/auth/confirm`, `/forgot-password`, `/auth/recovery`, protected `/app`, `/profile` and `/account/password`. `/app` is a grouped portal of implemented tools and direct creation shortcuts; financial totals remain in `/finance` and its official read models.
 
 Finance uses protected `/finance`, `/finance/accounts`, `/finance/categories`, `/finance/transactions` and `/finance/budgets`. Budgets accept explicit `month=YYYY-MM&currency=BRL` navigation and use the profile timezone for the current month. See [Finance architecture](docs/arquitetura.md), [requirements](docs/requisitos.md), [money/date rules](docs/regras-negocio.md) and [data boundary](docs/banco-de-dados.md). Its generated contracts are pinned in `src/features/finance/contracts.generated.ts`; build/runtime do not require the Back checkout. Never pass ownership IDs from the client.
 
@@ -86,4 +86,12 @@ Rotas protegidas /finance/debts e /finance/debts/:debtId: resumo por moeda, cada
 
 ## MDL10 — Safe to Spend
 
-Estimativa conservadora por moeda, contas explicitamente selecionadas, obrigações e reservas, Budget como teto e receitas previstas em cenário separado. Somente configurações próprias são escritas. Rota protegida /finance/safe-to-spend; implementação automatizada preparada para gate humano PENDING, não COMPLETE. [Fórmula, limites e validação](docs/SAFE_TO_SPEND.md). Sem MDL11.
+Estimativa conservadora por moeda, contas explicitamente selecionadas, obrigações e reservas, Budget como teto e receitas previstas em cenário separado. Somente configurações próprias são escritas. Rota protegida /finance/safe-to-spend; gate humano aprovado e MDL0–10 integrados em main. [Fórmula, limites e validação](docs/SAFE_TO_SPEND.md). Sem MDL11.
+
+## UI/UX Foundation V2 — development gate
+
+One typed navigation configuration supplies grouped desktop navigation, an optional icon rail, mobile bottom navigation/full modal menu, page finder, breadcrumbs and Home tools. Ctrl/Cmd+K searches page names/aliases only; editing a field keeps the shortcut inactive. Creation shortcuts open existing forms without submitting them.
+
+Light/Dark/System persist a non-sensitive local preference; the theme initializer runs before first paint. Violet action/focus tokens and semantic status colors apply to public/private surfaces. Native modal dialogs manage focus and preserve existing confirmation conditions. Auth, API contracts, financial calculations and hosted data are unchanged.
+
+The navigation and appearance await the human gate at `http://localhost:3101`. Only a DEV checkpoint is allowed: no final PR/merge and no MDL11. See [audit, decisions and visual evidence](docs/UIUX_FOUNDATION_V2.md).
