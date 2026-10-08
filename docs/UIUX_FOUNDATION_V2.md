@@ -33,13 +33,13 @@ Previous navigation: private sidebar (Home, Finance, Profile, Password) → Fina
 
 Typed navigation configuration → grouped desktop sidebar, mobile drawer/bottom bar, local page finder, breadcrumbs and Home tools. Existing route tree → AppShell → unchanged page services/forms. Theme preference → document tokens only; no server write.
 
-Groups: Início (Home); Finanças (Overview, Movements, Safe to Spend); Dinheiro (Accounts, Cards, Budget); Planejamento (Calendar, Recurrences, Goals, Debts); Patrimônio (Net Worth, Yield); Organização (Categories); Conta (Profile, Security, Logout). These are UI groups, not domain boundaries. No second Finance navigation. Detail breadcrumbs expose “Detalhes”, not UUIDs.
+V2.1 groups: Principal (Home, Overview, Movements, Safe to Spend, Budget), always direct; Contas e pagamentos (Accounts, Cards, Debts), Planejamento (Calendar, Recurrences, Goals), Patrimônio (Net Worth, Yield), the only three desktop accordions; Mais (Categories), direct; Profile/Security/Logout at the bottom. These are UI groups, not domain boundaries. No second Finance navigation. Detail breadcrumbs expose “Detalhes”, not UUIDs.
 
 Desktop: current group remains open; other groups can expand; icon rail preference is local/non-sensitive. Mobile: Home, Finance, Movements, Planejar (Safe to Spend), More → full drawer. Page search matches labels and synonyms only, never private data; Ctrl/Cmd+K is ignored while editing a field.
 
 ## Visual and shared-component decisions
 
-Violet primary/selection/focus; neutral surfaces; separate semantic success/warning/error tokens; tabular financial numerals. Light/Dark/System use only local preference, with early theme initialization and OS changes. Existing Button/Input/Card/Label and native selects retained. Shared PageHeader, SectionHeader, IconButton, Badge, ActionToolbar, Empty/Error/Skeleton, responsive-list styling and native modal Dialog/Drawer avoid a new cosmetic dependency.
+Crimson Red primary actions/selection/focus; neutral surfaces; separate semantic success/warning/error/expense tokens; tabular financial numerals. Light/Dark/System use only local preference, with early theme initialization and OS changes. Existing Button/Input/Card/Label and native selects retained. Shared PageHeader, SectionHeader, IconButton, Badge, ActionToolbar, Empty/Error/Skeleton, responsive-list styling and native modal Dialog/Drawer avoid a new cosmetic dependency. V2.1 details and the rejected earlier visual direction are recorded below.
 
 Native dialog `showModal()` supplies background inertness and focus containment; Escape/backdrop/close/navigation dismiss and restore focus. Destructive financial requests and conditions remain exactly those of the existing services. See [native dialog semantics](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dialog).
 
@@ -74,3 +74,48 @@ Remaining limits: appearance/ease of navigation await user approval; automated s
 Local product-design, architecture, testing, security and checkpoint skills guided reusable presentation, focus management, unchanged financial assertions, secret isolation and compact handoff. Full historical CSS consolidation is intentionally progressive, not a blind rewrite.
 
 Human gate: open `http://localhost:3101`, login normally, locate Cards → Movements → Budget → Safe to Spend → an existing Debt → list → Goals → Profile. Try Ctrl/Cmd+K, sidebar groups/rail, Light/Dark/System, mobile/tablet More drawer, an existing form without saving, reload and logout. Approve or reject navigation ease, appearance, clarity and responsiveness. Do not create financial fixtures for this review. No final PR/merge or MDL11 starts before approval.
+
+## UI/UX V2.1 — Crimson Red Refinement
+
+The user rejected the earlier appearance; this is a design iteration, not a completed human gate. The supplemental screenshots exposed an overly wide technical-looking Safe to Spend form, scattered horizontal checkboxes, empty space before actions, seven navigation headers and salmon-filled dark buttons. The follow-up explicitly requested darker red in Dark. These concrete findings, not a palette swap alone, guide this revision.
+
+### Consolidated identity and components
+
+`src/styles.css` owns the two theme token blocks and imports `uiux-v2.css`, which now contains only shell/shared layout rules. `main.tsx` has one stylesheet entry. Conflicting evergreen/beige roots, violet overrides, old private shell/sidebar/Finance-nav selectors and redundant module panel definitions were removed after checking usage. Semantic success green remains intentional, never decorative branding. No dependencies changed.
+
+| Role | Light | Dark |
+| --- | --- | --- |
+| Primary action / hover / text | #B91C1C / #991B1B / white | #B91C1C / #991B1B / white |
+| Readable link/focus | #B91C1C | #E05D5D, darker than the rejected #F87171 |
+| Background / card | #FAF9F7 / white | #111216 / #1D1F25 |
+| Main text / secondary text | #20242C / #59616D | #F4F5F7 / #BFC4CF |
+| Brand feature surface | #451719 | #2A1417 |
+| Success | Green | Green |
+| Expense / transfer / destructive | Amber / blue / magenta | Amber / blue / magenta |
+
+Buttons share 44px minimum height, 10px radius, semibold inherited typography, stable padding, neutral secondary/ghost variants and visible focus. Destructive confirmations use their existing impact text and an independent visual variant. Text contrast tests cover the actual CSS (not a vacuous raw import), including action/hover pairs, both themes and control boundaries. Numeric typography uses tabular figures; no financial signs or currency precision changed.
+
+### Navigation and work surfaces
+
+- Sidebar: five direct everyday destinations, only three secondary accordions, automatic current-group opening, direct Categories and bottom Profile/Security. Active text is neutral high-contrast with a discreet red indicator/icon, not an alert. The 248px sidebar, 76px icon rail, existing URLs and mobile bottom bar/full modal menu remain.
+- Header: 68px desktop density, discoverable page search/shortcut, compact mobile controls and readable breadcrumbs. Search still matches only pages; no new financial search or server request.
+- Home: four essential destinations first, one primary movement action, compact existing create shortcuts and three remaining-tool groups; profile is secondary. No invented metrics or API aggregation.
+- Finance: clear balance/per-currency hierarchy, receipt/expense/neutral-result semantics, readable period/filter controls and compact account/planning surfaces. Mobile metrics stack; account balances and summary values remain the server's results.
+- Movements: explicit type/icon/color distinction, legible metadata and cancelled-state styling. Cards/Debts/Goals/Budget/Net Worth/Yield/Recurrences retain real formulas, fields, actions and warnings while sharing panel/metric/type/feedback styles. Tables retain all columns with bounded horizontal scrolling.
+- Forms: consistent native inputs/selects, two-column desktop/one-column mobile layouts where appropriate and reserved, bounded error feedback. Existing validation/submission locks and exact-money parsers are preserved.
+
+### Safe to Spend feedback implemented
+
+Settings content is bounded to 840px, with three labelled native fieldsets: account selection, safety reserve and planning options. Full clickable selection rows align checkbox/name/support left and balance right; checked, hover and keyboard focus are explicit. Eligibility, no automatic savings selection, account names and submitted IDs remain unchanged. The safety-buffer input is bounded to 360px and explains the difference from an account named Reserva. Three vertical planning rows have native checkbox semantics with a switch appearance; their existing names/defaults/FormData behavior are unchanged. Cancel precedes Save directly after the last group. Reserved error feedback is below the actions so it cannot push them away from the options; form height and action position remain stable on validation.
+
+### Visual proof and verification limits
+
+New `crimson.spec.ts` captures Home, Finance, Movements, Budget, Cards, Debts, Safe to Spend, Profile and Login at 1440/768/390, both themes, plus mobile menu, expanded/rail sidebar and Safe to Spend settings. Existing six-width 320/375/390/768/1024/1440 reflow/deep-link/keyboard/theme coverage remains. Deterministic fixtures stay isolated from real Auth/API writes. One synthetic savings account exists only inside the settings visual test, never in hosted data. Animations are disabled only during screenshot capture; panel-only captures temporarily hide fixed shell chrome to avoid screenshot stitching overlays. Separate page/menu captures retain actual navigation.
+
+All artifacts are local and ignored under `.harness/tmp/crimson/`. Original V2 before-images remain `before-desktop-*`; after-images are `after-desktop-*`. The populated Movements after-image uses deterministic transactions, while its original before-image was empty; this is a styling demonstration, not proof of new data or behavior. Supplied user screenshots also serve as the direct before-reference for settings/sidebar.
+
+Inspected supplemental evidence: `settings-panel-desktop-1440-dark.png`, `settings-panel-desktop-390-dark.png`, `settings-panel-desktop-1440-light.png`, `sidebar-expanded-desktop-dark.png`, `sidebar-rail-desktop-dark.png`, and `after-desktop-390-dark-menu.png`; representative Home/Finance/Card/Mobile evidence is listed in the delivery report. Screenshot inspection checks hierarchy, alignment, wrap, spacing and action placement beyond DOM assertions.
+
+Tested implementation/tests commit: `427254fb3109ff517e3ab0175c31360312f79e9b`. Final regression: 117 unit, 84 integration, 151 browser PASS and one pre-existing duplicate mobile/tablet skip; final affected desktop/mobile rerun: 14 PASS. Lint, typecheck, build, heuristic secret scan plus manual scope review and harness PASS. CI keeps two existing optional local-baseline comparisons skipped, so its expected browser result is 149 PASS / 3 skips; width/theme/reflow checks always execute. Exact final HEAD CI is verified in delivery. No Auth client/provider/guard/service, API/generated contract, money/date helper, backend, Supabase, migration, RLS or real financial record changed. Local product-design/testing/security/checkpoint skills guided the component reuse, semantic distinction, unchanged financial assertions and handoff.
+
+Human gate remains PENDING. Review the actual app on port 3101: Safe to Spend → Edit configuration (do not save merely for visual testing), selected/unselected rows, reserve/planning/options/actions, sidebar direct links/secondary groups/rail, Home/Finance, Light/Dark/System and mobile drawer. Approve or reject aesthetics, density and ease of use. Full manual screen-reader/WCAG certification and subjective design approval are not claimed; Chromium-only browser checks and the pre-existing large single-bundle warning remain. Only `checkpoint/uiux-v2-crimson-red-review-2026-10-08` is prepared, never COMPLETE. No final PR, merge or MDL11.

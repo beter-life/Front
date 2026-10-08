@@ -92,6 +92,6 @@ Estimativa conservadora por moeda, contas explicitamente selecionadas, obriga√ß√
 
 One typed navigation configuration supplies grouped desktop navigation, an optional icon rail, mobile bottom navigation/full modal menu, page finder, breadcrumbs and Home tools. Ctrl/Cmd+K searches page names/aliases only; editing a field keeps the shortcut inactive. Creation shortcuts open existing forms without submitting them.
 
-Light/Dark/System persist a non-sensitive local preference; the theme initializer runs before first paint. Violet action/focus tokens and semantic status colors apply to public/private surfaces. Native modal dialogs manage focus and preserve existing confirmation conditions. Auth, API contracts, financial calculations and hosted data are unchanged.
+Light/Dark/System persist a non-sensitive local preference; the theme initializer runs before first paint. V2.1 uses Crimson Red with deep-red/white primary buttons in both themes, separate semantic status colors and one token source. Five everyday links stay visible; only three secondary groups expand. Safe to Spend settings separate account selection, the safety reserve and planning options. Native modal dialogs preserve focus and existing confirmation conditions. Auth, API contracts, financial calculations and hosted data are unchanged.
 
 The navigation and appearance await the human gate at `http://localhost:3101`. Only a DEV checkpoint is allowed: no final PR/merge and no MDL11. See [audit, decisions and visual evidence](docs/UIUX_FOUNDATION_V2.md).
