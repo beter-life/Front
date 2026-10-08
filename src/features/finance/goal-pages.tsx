@@ -2,6 +2,8 @@ import { useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { CheckCircle2, Target, TriangleAlert } from 'lucide-react';
 import { z } from 'zod';
+import { useCreationShortcut } from '../../navigation/use-creation-shortcut';
+import { ConfirmAction } from '../../components/ui/confirm-action';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Feedback } from '../../components/feedback';
@@ -59,7 +61,7 @@ function GoalEditor({ existing, done }: { existing?: Goal; done: (goal: Goal) =>
 export function GoalsPage() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useCreationShortcut();
   const parsed = GoalQuerySchema.safeParse({ ...(params.get('status') ? { status: params.get('status') } : {}), ...(params.get('currency') ? { currency: params.get('currency') } : {}) });
   const goals = useGoals(parsed.success ? parsed.data : {});
   const me = useMe();
@@ -80,6 +82,7 @@ function GoalAction({ goal, status, label }: { goal: Goal; status: Goal['status'
   const { finance } = useServices();
   const mutation = useFinanceMutation(() => finance.patchGoal(goal.id, { status }));
   const locked = useRef(false);
+  if (status === 'ARCHIVED') return <ConfirmAction label={label} title="Arquivar meta" impact="O histórico permanece disponível. A meta sai do planejamento ativo e não poderá receber novos eventos." confirmLabel="Confirmar arquivamento" pending={mutation.isPending} onConfirm={() => mutation.mutateAsync(undefined)} />;
   return <div><Button disabled={mutation.isPending} onClick={async () => { if (locked.current) return; locked.current = true; try { await mutation.mutateAsync(undefined); } catch { /* mutation exposes safe feedback */ } finally { locked.current = false; } }}>{label}</Button>{mutation.isError && <Feedback>{mutation.error.message}</Feedback>}</div>;
 }
 function GoalEventForm({ goal, type, done }: { goal: Goal; type: GoalEventInput['type']; done: () => void }) {

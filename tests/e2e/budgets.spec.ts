@@ -1,3 +1,4 @@
+import { logoutThroughAccount } from './navigation-helper';
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import type {
@@ -301,7 +302,7 @@ test('loading and API failures are accessible; logout revokes budget access', as
     page.getByText('Não foi possível concluir a solicitação. Tente novamente.'),
   ).toBeVisible();
   await expect(page.getByRole('button', { name: 'Tentar novamente' })).toBeVisible();
-  await page.getByRole('button', { name: 'Sair da conta' }).click();
+  await logoutThroughAccount(page);
   await page.goto('/finance/budgets');
   await expect(page).toHaveURL('http://localhost:3103/login');
 });

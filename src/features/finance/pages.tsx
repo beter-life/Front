@@ -1,9 +1,13 @@
 import { useState } from 'react';
-import { Link, NavLink, Outlet } from 'react-router';
+import { Link, Outlet } from 'react-router';
 import { ArrowDownLeft, ArrowUpRight, ArrowLeftRight, Plus, Wallet } from 'lucide-react';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
+import { ConfirmAction } from '../../components/ui/confirm-action';
 import { Feedback } from '../../components/feedback';
+import { PageHeader, SectionHeader } from '../../components/ui/surface';
+import { useCreationShortcut } from '../../navigation/use-creation-shortcut';
+import { navigationItems } from '../../navigation/navigation-config';
 import { useServices } from '../../hooks/use-services';
 import { useMe } from '../../profile/hooks';
 import {
@@ -37,13 +41,7 @@ const accountTypes = {
 };
 const kindLabel = { INCOME: 'Receita', EXPENSE: 'Despesa', TRANSFER: 'Transferência' };
 function Intro({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="page-intro">
-      <p className="eyebrow">CLAREZA FINANCEIRA</p>
-      <h1 tabIndex={-1}>{title}</h1>
-      <p>{description}</p>
-    </div>
-  );
+  return <PageHeader title={title} description={description} />;
 }
 function usePresentation() {
   const me = useMe();
@@ -53,30 +51,7 @@ function usePresentation() {
     ready: !me.isPending,
   };
 }
-export function FinanceLayout() {
-  return (
-    <>
-      <nav className="finance-nav" aria-label="Finanças">
-        <NavLink to="/finance" end>
-          Visão geral
-        </NavLink>
-        <NavLink to="/finance/accounts">Contas</NavLink>
-        <NavLink to="/finance/transactions">Movimentos</NavLink>
-        <NavLink to="/finance/categories">Categorias</NavLink>
-        <NavLink to="/finance/budgets">Orçamento</NavLink>
-        <NavLink to="/finance/goals">Metas</NavLink>
-        <NavLink to="/finance/recurrences">Recorrências</NavLink>
-        <NavLink to="/finance/calendar">Calendário</NavLink>
-        <NavLink to="/finance/net-worth">Patrimônio</NavLink>
-        <NavLink to="/finance/yield">Rendimentos</NavLink>
-        <NavLink to="/finance/cards">Cartões</NavLink>
-        <NavLink to="/finance/debts">Dívidas</NavLink>
-        <NavLink to="/finance/safe-to-spend">Quanto posso gastar?</NavLink>
-      </nav>
-      <Outlet />
-    </>
-  );
-}
+export function FinanceLayout() { return <Outlet />; }
 export function FinanceDashboard() {
   const { timezone, locale } = usePresentation();
   const now = localDateTime(new Date().toISOString(), timezone);
@@ -110,7 +85,7 @@ export function FinanceDashboard() {
           />
         </div>
         <Button asChild>
-          <Link to="/finance/transactions">
+          <Link to="/finance/transactions?action=create">
             <Plus />
             Novo movimento
           </Link>
@@ -126,7 +101,7 @@ export function FinanceDashboard() {
           <h2>Sua primeira conta é o começo.</h2>
           <p>Organize seu dinheiro sem perder de vista o que importa.</p>
           <Button asChild>
-            <Link to="/finance/accounts">Criar primeira conta</Link>
+            <Link to="/finance/accounts?action=create">Criar primeira conta</Link>
           </Button>
         </Card>
       ) : (
@@ -178,6 +153,7 @@ export function FinanceDashboard() {
           </div>
         </section>
       )}
+      <SectionHeader title="Seu próximo passo" /><div className="ui-actions">{navigationItems.filter(item => ['budget', 'cards', 'debts', 'safe-spend'].includes(item.id)).map(item => <Button key={item.id} asChild variant="outline"><Link to={item.path}>{item.label}</Link></Button>)}</div>
       <p className="finance-note">
         Moedas são mostradas separadamente. Transferências não são receitas nem despesas. Datas no
         fuso {timezone}.
@@ -262,7 +238,10 @@ export function AccountsPage() {
   const accounts = useAccounts();
   const { locale } = usePresentation();
   const { finance } = useServices();
-  const [editing, setEditing] = useState<Account | 'new' | null>(null);
+  const [creating, setCreating] = useCreationShortcut();
+  const [editingState, setEditingState] = useState<Account | 'new' | null>(null);
+  const editing = editingState ?? (creating ? 'new' : null);
+  const setEditing = (next: Account | 'new' | null) => { setEditingState(next); if (next !== 'new') setCreating(false); };
   const patch = useFinanceMutation((account: Account) =>
     finance.patchAccount(account.id, { isActive: !account.isActive }),
   );
@@ -314,13 +293,7 @@ export function AccountsPage() {
                 <Button variant="outline" onClick={() => setEditing(account)}>
                   Editar {account.name}
                 </Button>
-                <Button
-                  variant="ghost"
-                  disabled={patch.isPending}
-                  onClick={() => patch.mutate(account)}
-                >
-                  {account.isActive ? 'Desativar' : 'Reativar'}
-                </Button>
+                <ConfirmAction label={account.isActive ? 'Desativar' : 'Reativar'} title={account.isActive ? 'Desativar conta' : 'Reativar conta'} impact="O histórico e o saldo permanecem preservados. A disponibilidade da conta em novos registros será atualizada." pending={patch.isPending} onConfirm={() => patch.mutateAsync(account)} />
               </div>
             </Card>
           ))}
@@ -378,13 +351,7 @@ export function CategoriesPage() {
                       {kindLabel[category.kind]} · {category.isActive ? 'Ativa' : 'Inativa'}
                     </p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    disabled={patch.isPending}
-                    onClick={() => patch.mutate(category)}
-                  >
-                    {category.isActive ? 'Desativar' : 'Reativar'}
-                  </Button>
+                  <ConfirmAction label={category.isActive ? 'Desativar' : 'Reativar'} title={category.isActive ? 'Desativar categoria' : 'Reativar categoria'} impact="Os movimentos existentes permanecem preservados. A disponibilidade da categoria em novos registros será atualizada." pending={patch.isPending} onConfirm={() => patch.mutateAsync(category)} />
                 </li>
               ))}
             </ul>
@@ -541,7 +508,7 @@ function MovementEditor({ done }: { done: () => void }) {
 }
 export function TransactionsPage() {
   const [filters, setFilters] = useState<TransactionQuery>({ limit: '25' });
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useCreationShortcut();
   const accounts = useAccounts();
   const categories = useCategories();
   const transactions = useTransactions(filters);
@@ -674,16 +641,7 @@ export function TransactionsPage() {
                   {formatMoney(row.amountMinor, row.currency, locale)}
                 </strong>
                 {!row.isCancelled && (
-                  <Button
-                    variant="ghost"
-                    disabled={cancel.isPending}
-                    onClick={() => {
-                      if (window.confirm('Cancelar este movimento? O registro será preservado.'))
-                        cancel.mutate(row);
-                    }}
-                  >
-                    Cancelar
-                  </Button>
+                  <ConfirmAction label="Cancelar" title="Cancelar este movimento?" impact="O registro será preservado e deixará de afetar o saldo. Esta é uma correção de lançamento." confirmLabel="Confirmar cancelamento" pending={cancel.isPending} onConfirm={() => cancel.mutateAsync(row)} />
                 )}
               </li>
             ))}

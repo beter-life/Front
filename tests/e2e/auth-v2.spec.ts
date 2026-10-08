@@ -1,3 +1,4 @@
+import { navigateFeature, logoutThroughAccount } from './navigation-helper';
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
@@ -91,7 +92,7 @@ test('new SDK login opens the protected /me route and logout blocks it', async (
   expect(state.logins).toBe(1);
   expect(state.loginEmailCurrent).toBe(true);
   expect(state.meReads).toBeGreaterThan(0);
-  await page.getByRole('button', { name: 'Sair da conta' }).click();
+  await logoutThroughAccount(page);
   await expect(page.getByRole('heading', { name: 'Bom ter você aqui.' })).toBeVisible();
   expect(state.logouts).toBe(1);
   await page.goto('/app');
@@ -210,7 +211,7 @@ test('profile persists through reload and logout removes protected access', asyn
   await page.getByLabel('E-mail').fill('test@example.test');
   await page.getByLabel('Senha', {exact:true}).fill('synthetic-password');
   await page.getByRole('button',{name:'Entrar na minha conta'}).click();
-  await page.getByRole('link',{name:'Meu perfil',exact:true}).click();
+  await navigateFeature(page, 'Meu perfil');
   await page.getByLabel('Como prefere ser chamado?').fill('Perfil persistido');
   await page.getByRole('button',{name:'Salvar perfil'}).click();
   await expect(page.getByText('Perfil salvo. Tudo do seu jeito.')).toBeVisible();
@@ -218,7 +219,7 @@ test('profile persists through reload and logout removes protected access', asyn
   await page.reload();
   await expect(page.getByLabel('Como prefere ser chamado?')).toHaveValue('Perfil persistido');
   expect(state.logins).toBe(1);
-  await page.getByRole('button',{name:'Sair da conta'}).click();
+  await logoutThroughAccount(page);
   await expect(page).toHaveURL('http://localhost:3103/login');
   await page.goto('/profile');
   await expect(page).toHaveURL('http://localhost:3103/login');
@@ -232,14 +233,14 @@ test('authenticated password change preserves the session and allows login with 
   await page.getByLabel('E-mail').fill('test@example.test');
   await page.getByLabel('Senha',{exact:true}).fill('synthetic-password');
   await page.getByRole('button',{name:'Entrar na minha conta'}).click();
-  await page.getByRole('link',{name:'Alterar senha',exact:true}).click();
+  await navigateFeature(page, 'Segurança');
   await page.getByLabel('Nova senha',{exact:true}).fill('authenticated-new-password');
   await page.getByLabel('Confirmar nova senha').fill('authenticated-new-password');
   await page.getByRole('button',{name:'Salvar nova senha'}).click();
   await expect(page.getByText('Senha atualizada.',{exact:true})).toBeVisible();
   expect(state.updates).toBe(1);
   expect(state.logouts).toBe(0);
-  await page.getByRole('button',{name:'Sair da conta'}).click();
+  await logoutThroughAccount(page);
   await page.getByLabel('E-mail').fill('test@example.test');
   await page.getByLabel('Senha',{exact:true}).fill('authenticated-new-password');
   await page.getByRole('button',{name:'Entrar na minha conta'}).click();

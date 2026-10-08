@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router';
-import { House, KeyRound, LogOut, Sprout, UserRound, Wallet } from 'lucide-react';
+import { Link, Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router';
 import { PublicLayout } from '../layouts/public-layout';
 import { Button } from '../components/ui/button';
-import { Feedback } from '../components/feedback';
+import { AppShell } from '../navigation/app-shell';
+import { activeNavigation } from '../navigation/navigation-config';
 import { ConfirmationPageV2, ForgotPasswordPageV2, LoginPageV2, RecoveryPageV2, SignupPageV2 } from './pages';
 import { ProtectedRouteV2 } from './guards';
 import { HomePage, ProfilePage } from '../profile/pages';
@@ -23,8 +23,16 @@ import { SafeSpendPage } from '../features/finance/safe-spend-page';
 function RouteFocus() {
   const { pathname } = useLocation();
   useEffect(() => {
-    document.title = 'Beter Life — Seu espaço';
-    document.querySelector<HTMLHeadingElement>('h1')?.focus();
+    document.title = 'Beter Life — ' + (activeNavigation(pathname)?.label ?? 'Seu espaço');
+    const focusHeading = () => {
+      const heading = document.querySelector<HTMLHeadingElement>('#main h1');
+      if (!heading) return false;
+      heading.focus(); return true;
+    };
+    if (focusHeading()) return;
+    const observer = new MutationObserver(() => { if (focusHeading()) observer.disconnect(); });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
   }, [pathname]);
   return null;
 }
@@ -41,11 +49,7 @@ function PrivateLayoutV2() {
     catch { setError(true); }
     finally { setBusy(false); }
   }
-  return <div className="private-shell"><aside className="sidebar"><Link className="brand" to="/app"><Sprout aria-hidden="true" />beter life.</Link>
-    <p className="eyebrow sidebar-caption">SEU ESPAÇO</p><nav aria-label="Navegação principal"><NavLink to="/app"><House aria-hidden="true" />Início</NavLink><NavLink to="/finance"><Wallet aria-hidden="true" />Finanças</NavLink><NavLink to="/profile"><UserRound aria-hidden="true" />Meu perfil</NavLink><NavLink to="/account/password"><KeyRound aria-hidden="true" />Alterar senha</NavLink></nav>
-    <div className="sidebar-bottom"><p>Pequenos passos.<br />Novas possibilidades.</p><Button variant="ghost" onClick={logout} disabled={busy}><LogOut aria-hidden="true" />{busy ? 'Saindo…' : 'Sair da conta'}</Button></div></aside>
-    <div className="private-content"><header className="private-header"><span>SEU PONTO DE PARTIDA</span><span className="status-dot">Conta conectada</span></header>{error && <div className="mx-6 mt-4"><Feedback>Não foi possível sair. Tente novamente.</Feedback></div>}
-      <main id="main" className="private-main"><Outlet /></main><footer className="private-footer">Beter Life · Feito para uma vida com mais clareza.</footer></div></div>;
+  return <AppShell busy={busy} error={error} onLogout={() => { void logout(); }}><Outlet /></AppShell>;
 }
 
 export function AuthV2Routes() {

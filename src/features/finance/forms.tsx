@@ -79,8 +79,8 @@ export function FinanceForm({
       <fieldset disabled={busy} className="finance-fields">
         {children}
       </fieldset>
-      {error && <Feedback>{error}</Feedback>}
-      {message && <Feedback success>{message}</Feedback>}
+      <div className="ui-form-feedback">{error && <Feedback>{error}</Feedback>}
+      {message && <Feedback success>{message}</Feedback>}</div>
       <Button disabled={busy} type="submit">
         {busy ? 'Salvando…' : button}
       </Button>

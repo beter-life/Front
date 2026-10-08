@@ -1,3 +1,4 @@
+import { navigateFeature, logoutThroughAccount } from './navigation-helper';
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import type {
@@ -227,12 +228,12 @@ test('financial empty state → account → categories → income/expense → at
 }, testInfo) => {
   const fixture = await boundary(page);
   await login(page);
-  await page.getByRole('link', { name: 'Finanças', exact: true }).click();
+  await navigateFeature(page, 'Visão geral');
   await expect(page.getByText('Sua primeira conta é o começo.')).toBeVisible();
   await page.getByRole('link', { name: 'Criar primeira conta' }).click();
   await createAccount(page, 'Principal', '1000');
   await createAccount(page, 'Reserva', '0');
-  await page.getByRole('link', { name: 'Categorias', exact: true }).click();
+  await navigateFeature(page, 'Categorias');
   await page.getByLabel('Nome da categoria').fill('Salário');
   await page.getByLabel('Tipo da categoria').selectOption('INCOME');
   await page.getByRole('button', { name: 'Criar categoria' }).click();
@@ -241,7 +242,7 @@ test('financial empty state → account → categories → income/expense → at
   await page.getByLabel('Tipo da categoria').selectOption('EXPENSE');
   await page.getByRole('button', { name: 'Criar categoria' }).click();
   await expect(page.getByText('Mercado', { exact: true })).toBeVisible();
-  await page.getByRole('link', { name: 'Movimentos', exact: true }).click();
+  await navigateFeature(page, 'Movimentos');
   for (const [kind, description, amount, category] of [
     ['Receita', 'Pagamento', '200', 'Salário'],
     ['Despesa', 'Compras', '50', 'Mercado'],
@@ -268,7 +269,7 @@ test('financial empty state → account → categories → income/expense → at
   expect(fixture.state.accountWrites).toBe(2);
   expect(fixture.state.transactionWrites).toBe(2);
   expect(fixture.state.transferWrites).toBe(1);
-  await page.getByRole('link', { name: 'Visão geral', exact: true }).click();
+  await navigateFeature(page, 'Visão geral');
   await expect(page.locator('.finance-summary').getByText(/1\.150,00/)).toBeVisible();
   await expect(page.locator('.finance-account-grid').getByText(/1\.050,00/)).toBeVisible();
   await page.reload();
@@ -304,7 +305,7 @@ test('filters use selected account/type/period and clearing restores the first p
   await login(page);
   await page.goto('/finance/accounts');
   await createAccount(page, 'Principal', '0');
-  await page.getByRole('link', { name: 'Movimentos', exact: true }).click();
+  await navigateFeature(page, 'Movimentos');
   await page.getByLabel('Filtrar conta').selectOption({ label: 'Principal' });
   await page.getByLabel('Filtrar tipo').selectOption('EXPENSE');
   await page.getByLabel('Data inicial').fill('2026-01-01');
@@ -328,10 +329,10 @@ test('Finance loading remains accessible and logout revokes protected UI access'
 }) => {
   await boundary(page, { slow: true });
   await login(page);
-  await page.getByRole('link', { name: 'Finanças', exact: true }).click();
+  await navigateFeature(page, 'Visão geral');
   await expect(page.getByRole('status')).toBeVisible();
   await expect(page.getByText('Sua primeira conta é o começo.')).toBeVisible();
-  await page.getByRole('button', { name: 'Sair da conta' }).click();
+  await logoutThroughAccount(page);
   await page.goto('/finance/transactions');
   await expect(page).toHaveURL('http://localhost:3103/login');
 });
