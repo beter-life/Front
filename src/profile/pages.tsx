@@ -11,7 +11,7 @@ import { Button } from '../components/ui/button';
 import { FormInput } from '../components/form-input';
 import { Loading, Feedback } from '../components/feedback';
 import { PageHeader, SectionHeader } from '../components/ui/surface';
-import { navigationItems, navigationGroups } from '../navigation/navigation-config';
+import { navigationItems } from '../navigation/navigation-config';
 
 function QueryFailure({ retry }: { retry: () => void }) { return <div className="space-y-5"><Feedback>Não foi possível carregar seu perfil. Sua sessão continua protegida.</Feedback><Button variant="outline" onClick={retry}>Tentar novamente</Button></div>; }
 export function HomePage() {
@@ -19,14 +19,22 @@ export function HomePage() {
   if (me.isPending) return <Loading>Buscando seu perfil…</Loading>;
   if (me.isError) return <QueryFailure retry={() => { void me.refetch(); }} />;
   const profile = me.data.profile;
-  return <><PageHeader title={profile ? 'Bom ter você aqui, ' + profile.displayName + '.' : 'Seu espaço começa com você.'} description="Tudo o que você precisa para cuidar da sua vida financeira, em um só lugar." />
-    <SectionHeader title="O que você quer fazer?" /><div className="home-actions">{navigationItems.filter(item => item.shortcut).map(item => <Button asChild key={item.id} variant={item.id === 'movements' ? 'default' : 'outline'}><Link to={item.shortcut!.path}><item.icon aria-hidden="true" />{item.shortcut!.label}</Link></Button>)}<Button asChild variant="outline"><Link to="/finance/budgets">Ver orçamento</Link></Button></div>
-    <SectionHeader title="Suas ferramentas" /><div className="home-tools">{navigationGroups.filter(group => group !== 'Conta' && group !== 'Início').map(group => <Card key={group}><h3>{group}</h3>{navigationItems.filter(item => item.group === group).map(item => <Link className="home-tool" key={item.id} to={item.path} aria-label={'Acessar ' + item.label}><item.icon aria-hidden="true" /><span>{item.label}</span><ArrowRight aria-hidden="true" /></Link>)}</Card>)}</div>
-    <Card className="home-profile"><div><h2>{profile ? 'Perfil configurado' : 'Complete seu perfil'}</h2><p>Nome, idioma e fuso horário para sua experiência.</p></div><Button asChild variant="outline"><Link to="/profile">{profile ? 'Revisar perfil' : 'Completar meu perfil'}<ArrowRight aria-hidden="true" /></Link></Button></Card></>;
+  const essentials = ['overview', 'safe-spend', 'budget', 'cards'];
+  const descriptions: Record<string, string> = { overview: 'Saldos e resultado por moeda.', 'safe-spend': 'Planeje sem comprometer suas reservas.', budget: 'Acompanhe os limites do mês.', cards: 'Faturas, compras e pagamentos.' };
+  const remaining = navigationItems.filter(item => !essentials.includes(item.id) && item.group !== 'Conta' && item.id !== 'home');
+  const toolGroups = [{ label: 'Dia a dia', groups: ['Principal', 'Contas e pagamentos', 'Mais'] }, { label: 'Planejamento', groups: ['Planejamento'] }, { label: 'Patrimônio', groups: ['Patrimônio'] }];
+  return <><PageHeader title={profile ? 'Bom ter você aqui, ' + profile.displayName + '.' : 'Seu espaço começa com você.'} description="Seu dinheiro, seus planos. Comece pelo que importa hoje." actions={<Button asChild><Link to="/finance/transactions?action=create"><ArrowRight aria-hidden="true" />Novo movimento</Link></Button>} />
+    <SectionHeader title="Seu dia financeiro" /><nav aria-label="Ferramentas essenciais" className="home-essential">{essentials.map(id => {
+      const item = navigationItems.find(item => item.id === id)!;
+      return <Link key={id} className="home-essential-link" to={item.path} aria-label={'Acessar ' + item.label}><item.icon aria-hidden="true" /><strong>{id === 'overview' ? 'Visão financeira' : item.label}</strong><p>{descriptions[id]}</p></Link>;
+    })}</nav>
+    <div className="home-actions" aria-label="Atalhos de criação">{navigationItems.filter(item => item.shortcut && item.id !== 'movements').map(item => <Button asChild key={item.id} variant="outline"><Link to={item.shortcut!.path}><item.icon aria-hidden="true" />{item.shortcut!.label}</Link></Button>)}</div>
+    <SectionHeader title="Organize e planeje" /><div className="home-tools">{toolGroups.map(group => <section className="home-tool-group" key={group.label}><h3>{group.label}</h3>{remaining.filter(item => group.groups.includes(item.group)).map(item => <Link className="home-tool" key={item.id} to={item.path} aria-label={'Acessar ' + item.label}><item.icon aria-hidden="true" /><span>{item.label}</span><ArrowRight aria-hidden="true" /></Link>)}</section>)}</div>
+    <section className="home-profile"><div><h2>{profile ? 'Seu perfil' : 'Complete seu perfil'}</h2><p>Nome, idioma e fuso horário.</p></div><Button asChild variant="ghost"><Link to="/profile">{profile ? 'Revisar perfil' : 'Completar meu perfil'}<ArrowRight aria-hidden="true" /></Link></Button></section></>;
 }
 export function ProfilePage() {
   const me = useMe();
-  return <><div className="page-intro"><p className="eyebrow">DO SEU JEITO</p><h1 tabIndex={-1}>Seu perfil.</h1><p>O básico para uma experiência que combina com você.</p></div>{me.isPending ? <Loading>Buscando seu perfil…</Loading> : me.isError ? <QueryFailure retry={() => { void me.refetch(); }} /> : <ProfileForm profile={me.data.profile} />}</>;
+  return <><PageHeader title="Seu perfil." description="Gerencie seu nome, idioma e fuso horário." />{me.isPending ? <Loading>Buscando seu perfil…</Loading> : me.isError ? <QueryFailure retry={() => { void me.refetch(); }} /> : <ProfileForm profile={me.data.profile} />}</>;
 }
 function ProfileForm({ profile }: { profile: Profile | null }) {
   const mutation = useUpdateProfile();

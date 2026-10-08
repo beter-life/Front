@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router';
-import { ChevronDown, ChevronRight, LogOut, Menu, MoreHorizontal, PanelLeftClose, PanelLeftOpen, Search, Sparkles, UserRound } from 'lucide-react';
-import { navigationGroups, navigationItems, activeNavigation, mobileNavigation, pageBreadcrumbs, searchNavigation } from './navigation-config';
+import { ChevronDown, ChevronRight, LogOut, Menu, MoreHorizontal, PanelLeftClose, PanelLeftOpen, Search, Sprout, UserRound } from 'lucide-react';
+import { expandableNavigationGroups, navigationItems, activeNavigation, mobileNavigation, pageBreadcrumbs, searchNavigation } from './navigation-config';
 import type { NavigationItem } from './navigation-config';
 import { Button } from '../components/ui/button';
 import { Dialog } from '../components/ui/dialog';
@@ -23,10 +23,11 @@ function NavigationGroups({ rail = false, mobile = false, close }: { rail?: bool
   const { pathname } = useLocation(), current = activeNavigation(pathname);
   const [expanded, setExpanded] = useState<string[]>([]);
   return <nav aria-label={mobile ? 'Menu completo' : 'Navegação principal'} className="navigation-groups">
-    {navigationGroups.map(group => {
+    <div className="nav-group nav-primary">{!rail && <h3 className="nav-section-label">Principal</h3>}{navigationItems.filter(item => item.group === 'Principal').map(item => <NavigationLink key={item.id} item={item} rail={rail} close={close} />)}</div>
+    {expandableNavigationGroups.map(group => {
       const open = mobile || current?.group === group || expanded.includes(group);
       return <div className="nav-group" key={group}>
-        {!rail && mobile && <h3 className="nav-group-toggle">{group}</h3>}
+        {!rail && mobile && <h3 className="nav-section-label">{group}</h3>}
         {!rail && !mobile && <button type="button" className="nav-group-toggle" aria-expanded={open} aria-controls={'nav-' + group}
           onClick={() => setExpanded(values => values.includes(group) ? values.filter(value => value !== group) : [...values, group])}>
           {group}<ChevronDown aria-hidden="true" />
@@ -36,6 +37,8 @@ function NavigationGroups({ rail = false, mobile = false, close }: { rail?: bool
         </div>
       </div>;
     })}
+    <div className="nav-group">{!rail && <h3 className="nav-section-label">Mais</h3>}{navigationItems.filter(item => item.group === 'Mais').map(item => <NavigationLink key={item.id} item={item} rail={rail} close={close} />)}</div>
+    {mobile && <div className="nav-account"><h3 className="nav-section-label">Sua conta</h3>{navigationItems.filter(item => item.group === 'Conta').map(item => <NavigationLink key={item.id} item={item} close={close} />)}</div>}
   </nav>;
 }
 function Breadcrumbs() {
@@ -80,15 +83,15 @@ export function AppShell({ children, busy, error, onLogout }: { children: ReactN
   }, []);
   const logoutButton = <Button variant="ghost" onClick={onLogout} disabled={busy}><LogOut aria-hidden="true" />{busy ? 'Saindo…' : 'Sair da conta'}</Button>;
   return <div className={'app-shell' + (rail ? ' rail' : '')}>
-    <aside className="global-sidebar" aria-label="Barra lateral"><Link className="brand" to="/app" aria-label="Beter Life, página inicial"><Sparkles aria-hidden="true" /><span>beter life.</span></Link>
+    <aside className="global-sidebar" aria-label="Barra lateral"><div className="sidebar-brand-row"><Link className="brand" to="/app" aria-label="Beter Life, página inicial"><Sprout aria-hidden="true" /><span>beter life.</span></Link>
       <IconButton label={rail ? 'Expandir navegação' : 'Recolher navegação'} onClick={() => {
         setRail(value => { try { localStorage.setItem(railKey, String(!value)); } catch { /* Optional UI preference. */ } return !value; });
-      }}>{rail ? <PanelLeftOpen /> : <PanelLeftClose />}</IconButton>
-      <NavigationGroups rail={rail} /><div className="nav-account">{rail ? <IconButton label="Sair da conta" onClick={onLogout} disabled={busy}><LogOut /></IconButton> : logoutButton}</div>
+      }}>{rail ? <PanelLeftOpen /> : <PanelLeftClose />}</IconButton></div>
+      <NavigationGroups rail={rail} /><div className="nav-account">{navigationItems.filter(item => item.group === 'Conta').map(item => <NavigationLink key={item.id} item={item} rail={rail} />)}{rail ? <IconButton label="Sair da conta" onClick={onLogout} disabled={busy}><LogOut /></IconButton> : logoutButton}</div>
     </aside>
     <div className="app-content"><header className="app-header">
       <IconButton label="Abrir menu completo" className="mobile-menu-trigger" onClick={() => setOverlay('menu')}><Menu /></IconButton>
-      <Breadcrumbs /><div className="header-actions"><IconButton label="Buscar páginas" onClick={() => setOverlay('search')}><Search /></IconButton><ThemeControl /><IconButton label="Menu da conta" onClick={() => setOverlay('account')}><UserRound /></IconButton></div>
+      <Breadcrumbs /><div className="header-actions"><button type="button" className="header-search" aria-label="Buscar páginas" onClick={() => setOverlay('search')}><Search aria-hidden="true" /><span>Buscar páginas</span><kbd aria-hidden="true">⌘ / Ctrl K</kbd></button><ThemeControl /><IconButton label="Menu da conta" onClick={() => setOverlay('account')}><UserRound /></IconButton></div>
     </header>{error && <div className="shell-feedback"><Feedback>Não foi possível sair. Tente novamente.</Feedback></div>}
       <main id="main" className="app-main">{children}</main><footer className="app-footer">Beter Life · Clareza para suas escolhas.</footer>
     </div>
