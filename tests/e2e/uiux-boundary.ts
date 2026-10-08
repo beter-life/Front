@@ -8,7 +8,7 @@ import { netWorthSummary, netWorthHistory, netWorthItem } from '../fixtures/net-
 import { yieldAccount, yieldBenchmarks, yieldProfile, yieldSummary, yieldEstimate } from '../fixtures/yield';
 import { safeSettings, safeView } from '../fixtures/safe-spend';
 
-export async function uiuxBoundary(page: Page) {
+export async function uiuxBoundary(page: Page, options: { movements?: boolean } = {}) {
   const owner = '11111111-1111-4111-8111-111111111111', instant = '2026-01-01T00:00:00Z';
   const user = { id: owner, aud: 'authenticated', role: 'authenticated', email: 'test@example.test', created_at: instant, app_metadata: {}, user_metadata: {} };
   const token = [Buffer.from('{"alg":"ES256","kid":"synthetic"}').toString('base64url'), Buffer.from(JSON.stringify({ sub: owner, exp: Math.floor(Date.now()/1000)+3600 })).toString('base64url'), 'synthetic-signature'].join('.');
@@ -54,7 +54,13 @@ export async function uiuxBoundary(page: Page) {
     if (path.endsWith('/yield-profile')) return reply(yieldProfile());
     if (path.endsWith('/estimate')) return reply(yieldEstimate);
     if (path.endsWith('/yield/summary')) return reply(yieldSummary);
-    if (path.endsWith('/transactions')) return reply({ items: [], nextCursor: null });
+    if (path.endsWith('/transactions')) return reply({ items: options.movements ? ['INCOME', 'EXPENSE', 'TRANSFER'].map((type, index) => ({
+      id: `55555555-5555-4555-8555-55555555555${index}`, createdAt: instant, updatedAt: instant,
+      accountId: bankAccount.id, destinationAccountId: type === 'TRANSFER' ? cardAccount.id : null,
+      categoryId: type === 'EXPENSE' ? expenseCategory.id : null, type, currency: 'BRL',
+      amountMinor: ['350000', '12990', '33333'][index], description: ['Receita teste', 'Despesa teste', 'Pagamento teste'][index],
+      occurredAt: '2026-10-08T12:00:00Z', isCancelled: false,
+    })) : [], nextCursor: null });
     if (path.endsWith('/summary')) return reply({ from: url.searchParams.get('from'), to: url.searchParams.get('to'), currencies: [{ currency: 'BRL', totalBalanceMinor: '1000000', incomeMinor: '30000', expenseMinor: '10000', netMinor: '20000' }] });
     throw new Error('Unexpected UI fixture endpoint: ' + path);
   });

@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { activeNavigation, mobileNavigation, navigationGroups, navigationItems, pageBreadcrumbs, searchNavigation } from '../../src/navigation/navigation-config';
+import { activeNavigation, expandableNavigationGroups, mobileNavigation, navigationGroups, navigationItems, pageBreadcrumbs, searchNavigation } from '../../src/navigation/navigation-config';
 
 describe('single-source navigation', () => {
+  it('prioritizes five everyday destinations and only three secondary accordions', () => {
+    expect(navigationItems.filter(item => item.group === 'Principal').map(item => item.id)).toEqual(['home', 'overview', 'movements', 'safe-spend', 'budget']);
+    expect(expandableNavigationGroups).toHaveLength(3);
+    for (const group of expandableNavigationGroups) expect(navigationItems.filter(item => item.group === group).length).toBeGreaterThan(1);
+    expect(navigationItems.find(item => item.id === 'categories')?.group).toBe('Mais');
+  });
   it('maps all 16 existing base destinations without duplicate IDs/paths or fake routes', () => {
     expect(navigationItems).toHaveLength(16);
     expect(new Set(navigationItems.map(item => item.id)).size).toBe(16);

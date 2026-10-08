@@ -13,12 +13,19 @@ function setup(path = '/finance/cards', logout?: () => void) {
   return userEvent.setup();
 }
 describe('navigation presentation only', () => {
+  it('keeps five primary links direct, account links at the bottom, and only three toggles', () => {
+    setup('/app'); const nav = screen.getByRole('navigation', { name: 'Navegação principal' });
+    expect(within(nav).getAllByRole('button')).toHaveLength(3);
+    for (const name of ['Página inicial', 'Visão geral', 'Movimentos', 'Quanto posso gastar?', 'Orçamento', 'Categorias']) expect(within(nav).getByRole('link', { name })).toBeVisible();
+    expect(within(nav).queryByRole('link', { name: 'Meu perfil' })).not.toBeInTheDocument();
+    expect(within(screen.getByRole('complementary', { name: 'Barra lateral' })).getByRole('link', { name: 'Meu perfil' })).toBeVisible();
+  });
   it('opens the active group, supports expansion and does not add Finance horizontal nav', async () => {
     const user = setup(); const nav = screen.getByRole('navigation', { name: 'Navegação principal' });
-    expect(within(nav).getByRole('button', { name: 'Dinheiro' })).toHaveAttribute('aria-expanded', 'true');
+    expect(within(nav).getByRole('button', { name: 'Contas e pagamentos' })).toHaveAttribute('aria-expanded', 'true');
     expect(within(nav).getByRole('link', { name: 'Cartões' })).toHaveAttribute('aria-current', 'page');
     await user.click(within(nav).getByRole('button', { name: 'Planejamento' }));
-    expect(within(nav).getByRole('link', { name: 'Dívidas' })).toBeVisible();
+    expect(within(nav).getByRole('link', { name: 'Metas' })).toBeVisible();
     expect(screen.queryByRole('navigation', { name: 'Finanças' })).not.toBeInTheDocument();
   });
   it('searches aliases and routes by keyboard with a real breadcrumb', async () => {

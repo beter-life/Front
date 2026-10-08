@@ -4,7 +4,7 @@ import { navigationItems } from '../../src/navigation/navigation-config';
 export async function navigateFeature(page: Page, label: string) {
   const item = navigationItems.find(value => value.label === label)!;
   await expect(page.getByRole('button', { name: 'Menu da conta' })).toBeVisible();
-  const sidebar = page.getByRole('navigation', { name: 'Navegação principal' });
+  const sidebar = page.getByRole('complementary', { name: 'Barra lateral' });
   if (await sidebar.isVisible()) {
     const link = sidebar.getByRole('link', { name: label, exact: true });
     if (!await link.isVisible()) await sidebar.getByRole('button', { name: item.group, exact: true }).click();

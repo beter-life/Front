@@ -1,9 +1,18 @@
-import css from '../../src/uiux-v2.css?raw';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { applyTheme, readTheme, themeStorageKey } from '../../src/theme/theme';
+const css = readFileSync(resolve(process.cwd(), 'src/styles.css'), 'utf8');
+const shellCss = readFileSync(resolve(process.cwd(), 'src/uiux-v2.css'), 'utf8');
 
 afterEach(() => { localStorage.removeItem(themeStorageKey); vi.unstubAllGlobals(); });
 describe('theme preferences without session/financial persistence', () => {
+  it('defines identity only once per theme, without violet or decorative legacy green overrides', () => {
+    expect(css.match(/--primary:/g)).toHaveLength(2);
+    expect(shellCss).not.toMatch(/--primary:|:root/);
+    expect(css + shellCss).not.toMatch(/#(?:6d28d9|5b21b6|b8a1ff|cabaff|d4c3ff|245d4a|193d35|f7f7f2|dee7d8|95b4a5)/i);
+    expect(css).toContain('@import "./uiux-v2.css"');
+  });
   it.each(['light', 'dark'] as const)('persists valid %s preference only', preference => {
     localStorage.setItem(themeStorageKey, preference); expect(readTheme()).toBe(preference);
     applyTheme(preference); expect(document.documentElement.dataset.theme).toBe(preference);
@@ -19,9 +28,11 @@ describe('theme preferences without session/financial persistence', () => {
       const channels = [1, 3, 5].map(i => parseInt(value.slice(i, i + 2), 16) / 255).map(c => c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4);
       return channels[0]! * .2126 + channels[1]! * .7152 + channels[2]! * .0722;
     };
-    for (const block of css.matchAll(/:root(?:\[data-theme="dark"\])?\s*\{([^}]+)\}/g)) {
+    const blocks = [...css.matchAll(/:root(?:\[data-theme="dark"\])?\s*\{([^}]+)\}/g)];
+    expect(blocks).toHaveLength(2);
+    for (const block of blocks) {
       const colors = Object.fromEntries([...block[1]!.matchAll(/--([\w-]+):\s*(#[\da-f]+)/g)].map(match => [match[1], match[2]]));
-      for (const [a, b] of [['foreground', 'background'], ['muted-foreground', 'card'], ['primary', 'card'], ['primary-foreground', 'primary'], ['success', 'success-surface'], ['warning', 'warning-surface'], ['destructive', 'error-surface']]) {
+      for (const [a, b] of [['foreground', 'background'], ['muted-foreground', 'card'], ['muted-foreground', 'background'], ['primary', 'card'], ['primary-foreground', 'primary'], ['action-foreground', 'action-primary'], ['action-foreground', 'action-hover'], ['success', 'success-surface'], ['warning', 'warning-surface'], ['destructive', 'error-surface'], ['expense', 'expense-surface'], ['info', 'info-surface'], ['brand-foreground', 'brand-surface']]) {
         const x = luminance(colors[a!]!), y = luminance(colors[b!]!);
         expect((Math.max(x, y) + .05) / (Math.min(x, y) + .05), a + '/' + b).toBeGreaterThanOrEqual(4.5);
       }
