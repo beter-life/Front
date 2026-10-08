@@ -11,6 +11,10 @@ export function createFinanceApi(transport: ApiClient) {
   const budgetPath = (month: string) => base + '/budgets/' + C.BudgetMonthSchema.parse(month);
   const budgetQuery = (currency: C.Currency) => query(C.BudgetCurrencyQuerySchema.parse({ currency }));
   return {
+    safeSpendSettings: (currency:C.Currency,signal?:AbortSignal) => transport.request(base+'/safe-to-spend/settings'+query(C.SafeSpendQuerySchema.parse({currency})),C.SafeSpendSettingsResponseSchema,'GET',undefined,signal),
+    putSafeSpendSettings: (input:C.SafeSpendSettingsInput) => transport.request(base+'/safe-to-spend/settings',C.SafeSpendSettingsSchema,'PUT',C.SafeSpendSettingsInputSchema.parse(input)),
+    safeSpend: (currency:C.Currency,signal?:AbortSignal) => transport.request(base+'/safe-to-spend'+query(C.SafeSpendQuerySchema.parse({currency})),C.SafeSpendViewSchema,'GET',undefined,signal),
+    safeSpendSummary: (signal?:AbortSignal) => transport.request(base+'/safe-to-spend/summary',C.SafeSpendSummarySchema,'GET',undefined,signal),
     debts: (signal?: AbortSignal) => transport.request(base + '/debts', z.array(C.DebtSchema), 'GET', undefined, signal),
     debt: (id: string, signal?: AbortSignal) => transport.request(base + '/debts/' + z.uuid().parse(id), C.DebtViewSchema, 'GET', undefined, signal),
     debtSummary: (signal?: AbortSignal) => transport.request(base + '/debts/summary', C.DebtSummarySchema, 'GET', undefined, signal),

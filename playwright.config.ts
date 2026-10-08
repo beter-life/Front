@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
-  testDir: './tests/e2e', testMatch: ['auth-v2.spec.ts', 'finance.spec.ts', 'budgets.spec.ts', 'goals.spec.ts', 'recurrences.spec.ts', 'net-worth.spec.ts','yield.spec.ts','cards.spec.ts','debts.spec.ts'], fullyParallel: false, workers: 1, retries: 0,
+  testDir: './tests/e2e', testMatch: ['auth-v2.spec.ts', 'finance.spec.ts', 'budgets.spec.ts', 'goals.spec.ts', 'recurrences.spec.ts', 'net-worth.spec.ts','yield.spec.ts','cards.spec.ts','debts.spec.ts','safe-spend.spec.ts'], fullyParallel: false, workers: 1, retries: 0,
   reporter: 'list', use: { baseURL: 'http://localhost:3103', trace: 'off', screenshot: 'only-on-failure' },
   projects: [{ name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 960 } } }, { name: 'mobile', use: { ...devices['iPhone 13'], defaultBrowserType: 'chromium' } }],
   webServer: { command: 'node node_modules/vite/bin/vite.js --host localhost --port 3103 --strictPort', url: 'http://localhost:3103', reuseExistingServer: !process.env.CI, env: {

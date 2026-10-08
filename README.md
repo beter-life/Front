@@ -82,4 +82,8 @@ No global redesign, PAN/CVV, FX, interest or payment processing.
 
 ## MDL9 — Dívidas e simulador
 
-Rotas protegidas /finance/debts e /finance/debts/:debtId: resumo por moeda, cadastro, pagamentos reais com prévia exata, termos e histórico/correção. Comparação de mínimos/avalanche/snowball usa resultados do Back, sem simulação financeira paralela no cliente. Gate humano aprovado (REAL_GATE=PASS). [Premissas e validação](docs/DEBT_PAYOFF.md). Sem MDL10.
+Rotas protegidas /finance/debts e /finance/debts/:debtId: resumo por moeda, cadastro, pagamentos reais com prévia exata, termos e histórico/correção. Comparação de mínimos/avalanche/snowball usa resultados do Back, sem simulação financeira paralela no cliente. Gate humano aprovado (REAL_GATE=PASS). [Premissas e validação](docs/DEBT_PAYOFF.md).
+
+## MDL10 — Safe to Spend
+
+Estimativa conservadora por moeda, contas explicitamente selecionadas, obrigações e reservas, Budget como teto e receitas previstas em cenário separado. Somente configurações próprias são escritas. Rota protegida /finance/safe-to-spend; implementação automatizada preparada para gate humano PENDING, não COMPLETE. [Fórmula, limites e validação](docs/SAFE_TO_SPEND.md). Sem MDL11.
