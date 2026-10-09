@@ -1,4 +1,5 @@
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
+import type { KeyboardEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowRight, UserRound } from 'lucide-react';
@@ -13,6 +14,7 @@ import { FormInput } from '../components/form-input';
 import { Loading, Feedback } from '../components/feedback';
 import { PageHeader, SectionHeader } from '../components/ui/surface';
 import { navigationItems } from '../navigation/navigation-config';
+import { PasswordChangeFormV2 } from '../auth-v2/password-change';
 
 function QueryFailure({ retry }: { retry: () => void }) { return <div className="space-y-5"><Feedback>Não foi possível carregar seu perfil. Sua sessão continua protegida.</Feedback><Button variant="outline" onClick={retry}>Tentar novamente</Button></div>; }
 export function HomePage() {
@@ -31,11 +33,33 @@ export function HomePage() {
     })}</nav>
     <div className="home-actions" aria-label="Atalhos de criação">{navigationItems.filter(item => item.shortcut && item.id !== 'movements').map(item => <Button asChild key={item.id} variant="outline" size="compact"><Link to={item.shortcut!.path}><item.icon aria-hidden="true" />{item.shortcut!.label}</Link></Button>)}</div>
     <SectionHeader title="Organize e planeje" /><div className="home-tools">{toolGroups.map(group => <section className="home-tool-group" key={group.label}><h3>{group.label}</h3>{remaining.filter(item => group.groups.includes(item.group)).map(item => <Link className="home-tool" key={item.id} to={item.path} aria-label={'Acessar ' + item.label}><item.icon aria-hidden="true" /><span>{item.label}</span><ArrowRight aria-hidden="true" /></Link>)}</section>)}</div>
-    <section className="home-profile"><div><h2>{profile ? 'Seu perfil' : 'Complete seu perfil'}</h2><p>Nome, idioma e fuso horário.</p></div><Button asChild variant="ghost"><Link to="/profile">{profile ? 'Revisar perfil' : 'Completar meu perfil'}<ArrowRight aria-hidden="true" /></Link></Button></section></>;
+    <section className="home-profile"><div><h2>{profile ? 'Seu perfil' : 'Complete seu perfil'}</h2><p>Dados pessoais e segurança da conta.</p></div><Button asChild variant="ghost"><Link to="/profile">{profile ? 'Revisar perfil' : 'Completar meu perfil'}<ArrowRight aria-hidden="true" /></Link></Button></section></>;
 }
 export function ProfilePage() {
+  const [params, setParams] = useSearchParams();
+  const selected = params.get('tab') === 'security' ? 'security' : 'data';
+  const tabs = [{ id: 'data', label: 'Dados pessoais' }, { id: 'security', label: 'Segurança' }] as const;
+  function select(id: 'data' | 'security') {
+    if (selected === id) return;
+    const next = new URLSearchParams(params);
+    if (id === 'security') next.set('tab', id); else next.delete('tab');
+    setParams(next);
+  }
+  function move(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? 1 : event.key === 'ArrowRight' ? (index + 1) % 2 : event.key === 'ArrowLeft' ? (index + 1) % 2 : null;
+    if (next === null) return;
+    event.preventDefault(); select(tabs[next]!.id);
+    document.getElementById('profile-tab-' + tabs[next]!.id)?.focus();
+  }
+  return <><PageHeader title="Meu perfil" description="Seus dados pessoais e a segurança da conta." />
+    <div role="tablist" aria-label="Configurações do perfil" className="mb-6 flex flex-wrap gap-2">{tabs.map((tab, index) => <Button key={tab.id} id={'profile-tab-' + tab.id} role="tab" aria-selected={selected === tab.id} aria-controls={'profile-panel-' + tab.id} tabIndex={selected === tab.id ? 0 : -1} variant={selected === tab.id ? 'default' : 'outline'} onClick={() => select(tab.id)} onKeyDown={event => move(event, index)}>{tab.label}</Button>)}</div>
+    {tabs.map(tab => <section key={tab.id} id={'profile-panel-' + tab.id} role="tabpanel" aria-labelledby={'profile-tab-' + tab.id} hidden={selected !== tab.id} tabIndex={0}>
+      {selected === tab.id && (tab.id === 'security' ? <PasswordChangeFormV2 /> : <ProfileDataPanel />)}
+    </section>)}</>;
+}
+function ProfileDataPanel() {
   const me = useMe();
-  return <><PageHeader title="Perfil" description="Gerencie seu nome, idioma e fuso horário." />{me.isPending ? <Loading>Buscando seu perfil…</Loading> : me.isError ? <QueryFailure retry={() => { void me.refetch(); }} /> : <ProfileForm profile={me.data.profile} />}</>;
+  return me.isPending ? <Loading>Buscando seu perfil…</Loading> : me.isError ? <QueryFailure retry={() => { void me.refetch(); }} /> : <ProfileForm profile={me.data.profile} />;
 }
 function ProfileForm({ profile }: { profile: Profile | null }) {
   const mutation = useUpdateProfile();

@@ -8,10 +8,11 @@ describe('single-source navigation', () => {
     for (const group of expandableNavigationGroups) expect(navigationItems.filter(item => item.group === group).length).toBeGreaterThan(1);
     expect(navigationItems.find(item => item.id === 'categories')?.group).toBe('Mais');
   });
-  it('maps all 16 existing base destinations without duplicate IDs/paths or fake routes', () => {
-    expect(navigationItems).toHaveLength(16);
-    expect(new Set(navigationItems.map(item => item.id)).size).toBe(16);
-    expect(new Set(navigationItems.map(item => item.path)).size).toBe(16);
+  it('maps all 15 base destinations with account security nested under the profile', () => {
+    expect(navigationItems).toHaveLength(15);
+    expect(new Set(navigationItems.map(item => item.id)).size).toBe(15);
+    expect(new Set(navigationItems.map(item => item.path)).size).toBe(15);
+    expect(navigationItems.filter(item => item.group === 'Conta').map(item => item.id)).toEqual(['profile']);
     for (const item of navigationItems) { expect(navigationGroups).toContain(item.group); expect(item.icon).toBeDefined(); expect(item.keywords.length).toBeGreaterThan(0); }
     expect(mobileNavigation.every(item => navigationItems.some(page => page.id === item.id))).toBe(true);
   });
@@ -33,5 +34,10 @@ describe('single-source navigation', () => {
   it('never searches financial/private data and has a deterministic empty state', () => {
     expect(searchNavigation('gasto').map(item => item.id)).toEqual(['movements', 'safe-spend']);
     expect(searchNavigation('anything-not-a-page')).toEqual([]);
+  });
+  it.each(['segurança', 'senha', 'alterar senha'])('opens the security tab directly when searching %s', query => {
+    expect(searchNavigation(query).map(item => item.path)).toEqual(['/profile?tab=security']);
+    expect(pageBreadcrumbs('/profile', '?tab=security').map(item => item.label)).toEqual(['Meu perfil', 'Segurança']);
+    expect(activeNavigation('/profile')?.id).toBe('profile');
   });
 });

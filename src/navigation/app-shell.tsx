@@ -59,7 +59,7 @@ function NavigationGroups({ rail = false, mobile = false, close }: { rail?: bool
   </nav>;
 }
 function Breadcrumbs() {
-  const { pathname } = useLocation(), crumbs = pageBreadcrumbs(pathname);
+  const { pathname, search } = useLocation(), crumbs = pageBreadcrumbs(pathname, search);
   return <nav aria-label="Caminho da página" className="breadcrumbs"><ol>{crumbs.map((crumb, index) => <li key={crumb.path}>
     {index > 0 && <ChevronRight aria-hidden="true" />}{index === crumbs.length - 1 ? <span aria-current="page">{crumb.label}</span> : <Link to={crumb.path}>{crumb.label}</Link>}
   </li>)}</ol></nav>;

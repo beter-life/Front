@@ -233,7 +233,8 @@ test('authenticated password change preserves the session and allows login with 
   await page.getByLabel('E-mail').fill('test@example.test');
   await page.getByLabel('Senha',{exact:true}).fill('synthetic-password');
   await page.getByRole('button',{name:'Entrar na minha conta'}).click();
-  await navigateFeature(page, 'Segurança');
+  await navigateFeature(page, 'Meu perfil');
+  await page.getByRole('tab', { name: 'Segurança', exact: true }).click();
   await page.getByLabel('Nova senha',{exact:true}).fill('authenticated-new-password');
   await page.getByLabel('Confirmar nova senha').fill('authenticated-new-password');
   await page.getByRole('button',{name:'Salvar nova senha'}).click();
@@ -246,4 +247,74 @@ test('authenticated password change preserves the session and allows login with 
   await page.getByRole('button',{name:'Entrar na minha conta'}).click();
   await expect(page.getByRole('heading',{name:'Início'})).toBeVisible();
   expect(state.logins).toBe(2);
+});
+
+test('unified profile security supports legacy URLs, reload, search, keyboard and mobile account navigation', async ({ page }, info) => {
+  const state = await mockServices(page);
+  await page.goto('/login'); await page.getByLabel('E-mail').fill('test@example.test');
+  await page.getByLabel('Senha', { exact: true }).fill('synthetic-password');
+  await page.getByRole('button', { name: 'Entrar na minha conta' }).click();
+  await expect(page.getByRole('heading', { name: 'Início', exact: true })).toBeVisible();
+  await page.goto('/account/password'); await expect(page).toHaveURL(/\/profile\?tab=security$/);
+  await expect(page.getByRole('heading', { name: 'Meu perfil', exact: true })).toBeVisible();
+  const security = page.getByRole('tab', { name: 'Segurança', exact: true }), data = page.getByRole('tab', { name: 'Dados pessoais', exact: true });
+  await expect(security).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByLabel('Nova senha', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Como prefere ser chamado?')).toHaveCount(0);
+  await page.reload(); await expect(security).toHaveAttribute('aria-selected', 'true');
+  await security.focus(); await page.keyboard.press('Home'); await expect(data).toBeFocused();
+  await expect(page).toHaveURL(/\/profile$/); await expect(page.getByLabel('Como prefere ser chamado?')).toBeVisible();
+  await page.keyboard.press('ArrowLeft'); await expect(security).toBeFocused();
+  await expect(page).toHaveURL(/\/profile\?tab=security$/);
+  for (const query of ['segurança', 'senha', 'alterar senha']) {
+    await page.goto('/profile'); await page.getByRole('button', { name: 'Buscar páginas' }).click();
+    await page.getByRole('combobox', { name: 'Para onde você quer ir?' }).fill(query);
+    await page.keyboard.press('Enter'); await expect(page).toHaveURL(/\/profile\?tab=security$/);
+    await expect(security).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByRole('navigation', { name: 'Caminho da página' }).getByText('Segurança', { exact: true })).toBeVisible();
+  }
+  await page.getByRole('button', { name: 'Menu da conta' }).click();
+  const account = page.getByRole('dialog', { name: 'Sua conta' });
+  await expect(account.getByRole('link', { name: 'Meu perfil' })).toBeVisible();
+  await expect(account.getByRole('link', { name: 'Segurança' })).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  if (info.project.name === 'mobile') {
+    await page.getByRole('button', { name: 'Mais, abrir menu completo' }).click();
+    const menu = page.getByRole('dialog', { name: 'Todas as ferramentas' });
+    await expect(menu.getByRole('link', { name: 'Segurança' })).toHaveCount(0);
+    await menu.getByRole('link', { name: 'Meu perfil' }).click();
+    await security.click();
+  } else {
+    await expect(page.getByRole('complementary', { name: 'Barra lateral' }).getByRole('link', { name: 'Segurança' })).toHaveCount(0);
+    await expect(page.getByRole('complementary', { name: 'Barra lateral' }).getByRole('link', { name: 'Meu perfil' })).toHaveAttribute('aria-current', 'page');
+  }
+  for (const theme of ['light', 'dark']) {
+    await page.getByLabel('Tema').selectOption(theme);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: `.harness/tmp/profile-security-${info.project.name}-${theme}.png`, fullPage: true, animations: 'disabled' });
+  }
+  expect(state.updates).toBe(0); expect(state.recoveries).toBe(0); expect(state.logouts).toBe(0);
+});
+
+test('authenticated security validation and provider errors retain the draft without ending the session', async ({ page }) => {
+  const state = await mockServices(page, { updateFailure: true });
+  await page.goto('/login'); await page.getByLabel('E-mail').fill('test@example.test');
+  await page.getByLabel('Senha', { exact: true }).fill('synthetic-password');
+  await page.getByRole('button', { name: 'Entrar na minha conta' }).click();
+  await expect(page.getByRole('heading', { name: 'Início', exact: true })).toBeVisible();
+  await page.goto('/profile?tab=security');
+  await page.getByLabel('Nova senha', { exact: true }).fill('short'); await page.getByLabel('Confirmar nova senha').fill('short');
+  await page.getByRole('button', { name: 'Salvar nova senha' }).click(); await expect(page.getByText('Use pelo menos 8 caracteres.')).toBeVisible();
+  expect(state.updates).toBe(0);
+  await page.getByLabel('Nova senha', { exact: true }).fill('new-synthetic-password');
+  await page.getByRole('button', { name: 'Salvar nova senha' }).click(); await expect(page.getByText('As senhas precisam ser iguais.')).toBeVisible();
+  expect(state.updates).toBe(0);
+  await page.getByLabel('Confirmar nova senha').fill('new-synthetic-password');
+  await page.getByRole('button', { name: 'Salvar nova senha' }).click();
+  await expect(page.getByText('Não foi possível atualizar a senha. Tente novamente.')).toBeVisible();
+  await expect(page.getByLabel('Nova senha', { exact: true })).toHaveValue('new-synthetic-password');
+  await expect(page.getByLabel('Confirmar nova senha')).toHaveValue('new-synthetic-password');
+  expect(state.updates).toBe(1); expect(state.logouts).toBe(0);
+  await page.reload(); await expect(page.getByRole('tab', { name: 'Segurança' })).toHaveAttribute('aria-selected', 'true');
+  expect(state.logins).toBe(1);
 });

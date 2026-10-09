@@ -147,4 +147,60 @@ describe('clean-room routes with independently mocked boundaries', () => {
     expect(screen.queryByText('provider private error')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Salvar nova senha' })).toBeEnabled();
   });
+
+  it('opens security directly and switches the profile tabs by keyboard without exposing both forms', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ identity: { authUserId: session.user.id }, profile })));
+    const app = setup('/profile?tab=security', true);
+    const security = screen.getByRole('tab', { name: 'Segurança' });
+    expect(security).toHaveAttribute('aria-selected', 'true');
+    expect(screen.queryByLabelText('Como prefere ser chamado?')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Segurança' })).not.toBeInTheDocument();
+    security.focus(); await app.user.keyboard('{Home}');
+    const data = screen.getByRole('tab', { name: 'Dados pessoais' });
+    expect(data).toHaveFocus(); expect(data).toHaveAttribute('aria-selected', 'true');
+    expect(await screen.findByLabelText('Como prefere ser chamado?')).toBeVisible();
+    expect(screen.queryByLabelText('Nova senha', { exact: true })).not.toBeInTheDocument();
+    await app.user.keyboard('{ArrowLeft}');
+    expect(security).toHaveFocus(); expect(security).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', security.id);
+    expect(app.store.getSnapshot().status).toBe('authenticated');
+  });
+
+  it('validates the existing password rules, blocks concurrent submission and clears both fields only on success', async () => {
+    const app = setup('/profile?tab=security', true);
+    const password = screen.getByLabelText('Nova senha', { exact: true }), confirmation = screen.getByLabelText('Confirmar nova senha');
+    await app.user.type(password, 'short'); await app.user.type(confirmation, 'short');
+    await app.user.click(screen.getByRole('button', { name: 'Salvar nova senha' }));
+    expect(await screen.findByText('Use pelo menos 8 caracteres.')).toBeVisible();
+    await app.user.clear(password); await app.user.type(password, 'new-password');
+    await app.user.click(screen.getByRole('button', { name: 'Salvar nova senha' }));
+    expect(await screen.findByText('As senhas precisam ser iguais.')).toBeVisible();
+    expect(app.auth.updateUser).not.toHaveBeenCalled();
+    await app.user.clear(confirmation); await app.user.type(confirmation, 'new-password');
+    let complete!: (value: unknown) => void;
+    app.auth.updateUser.mockImplementation(() => new Promise(resolve => { complete = resolve; }));
+    await app.user.dblClick(screen.getByRole('button', { name: 'Salvar nova senha' }));
+    expect(app.auth.updateUser).toHaveBeenCalledExactlyOnceWith({ password: 'new-password' });
+    expect(screen.getByRole('button', { name: 'Atualizando…' })).toBeDisabled();
+    expect(password).toHaveValue('new-password');
+    complete({ data: { user: session.user }, error: null });
+    expect(await screen.findByText('Senha atualizada.')).toBeVisible();
+    expect(password).toHaveValue(''); expect(confirmation).toHaveValue('');
+    expect(app.auth.signOut).not.toHaveBeenCalled();
+    expect(app.store.getSnapshot().status).toBe('authenticated');
+  });
+
+  it('retains drafts and the authenticated session after a thrown provider failure', async () => {
+    const app = setup('/profile?tab=security', true);
+    app.auth.updateUser.mockRejectedValue(new Error('private provider diagnostic'));
+    await app.user.type(screen.getByLabelText('Nova senha', { exact: true }), 'new-password');
+    await app.user.type(screen.getByLabelText('Confirmar nova senha'), 'new-password');
+    await app.user.click(screen.getByRole('button', { name: 'Salvar nova senha' }));
+    expect(await screen.findByText('Não foi possível atualizar a senha. Tente novamente.')).toBeVisible();
+    expect(screen.queryByText('private provider diagnostic')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Nova senha', { exact: true })).toHaveValue('new-password');
+    expect(screen.getByLabelText('Confirmar nova senha')).toHaveValue('new-password');
+    expect(app.store.getSnapshot().status).toBe('authenticated');
+    expect(app.auth.signOut).not.toHaveBeenCalled();
+  });
 });

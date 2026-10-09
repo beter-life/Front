@@ -7,7 +7,6 @@ import { activeNavigation } from '../navigation/navigation-config';
 import { ConfirmationPageV2, ForgotPasswordPageV2, LoginPageV2, RecoveryPageV2, SignupPageV2 } from './pages';
 import { ProtectedRouteV2 } from './guards';
 import { HomePage, ProfilePage } from '../profile/pages';
-import { PasswordChangePageV2 } from './password-change';
 import { useAuthV2 } from './hooks';
 import { FinanceLayout, FinanceDashboard, AccountsPage, CategoriesPage, TransactionsPage } from '../features/finance/pages';
 import { BudgetPage } from '../features/finance/budget-pages';
@@ -66,7 +65,7 @@ export function AuthV2Routes() {
     <Route element={<ProtectedRouteV2 />}><Route element={<PrivateLayoutV2 />}>
       <Route path="/app" element={<HomePage />} />
       <Route path="/profile" element={<ProfilePage />} />
-      <Route path="/account/password" element={<PasswordChangePageV2 />} />
+      <Route path="/account/password" element={<Navigate to="/profile?tab=security" replace />} />
       <Route path="/finance" element={<FinanceLayout />}>
         <Route index element={<FinanceDashboard />} />
         <Route path="accounts" element={<AccountsPage />} />
