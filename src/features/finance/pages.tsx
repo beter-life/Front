@@ -1,9 +1,15 @@
 import { useState } from 'react';
-import { Link, NavLink, Outlet } from 'react-router';
+import type { ReactNode } from 'react';
+import { Link, Outlet } from 'react-router';
 import { ArrowDownLeft, ArrowUpRight, ArrowLeftRight, Plus, Wallet } from 'lucide-react';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
+import { ConfirmAction } from '../../components/ui/confirm-action';
 import { Feedback } from '../../components/feedback';
+import { PageHeader, SectionHeader, FormPanel, FilterPanel, SummaryGrid, DataSection } from '../../components/ui/surface';
+import { FormSection } from '../../components/ui/form-section';
+import { useCreationShortcut } from '../../navigation/use-creation-shortcut';
+import { navigationItems } from '../../navigation/navigation-config';
 import { useServices } from '../../hooks/use-services';
 import { useMe } from '../../profile/hooks';
 import {
@@ -13,6 +19,7 @@ import {
   useTransactions,
   useSummary,
 } from './hooks';
+import { CalendarPreferences } from '../../components/ui/calendar-preferences';
 import { Field, FinanceForm } from './forms';
 import { value } from './form-data';
 import {
@@ -36,14 +43,8 @@ const accountTypes = {
   debt: 'Dívida',
 };
 const kindLabel = { INCOME: 'Receita', EXPENSE: 'Despesa', TRANSFER: 'Transferência' };
-function Intro({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="page-intro">
-      <p className="eyebrow">CLAREZA FINANCEIRA</p>
-      <h1 tabIndex={-1}>{title}</h1>
-      <p>{description}</p>
-    </div>
-  );
+function Intro({ title, description, actions }: { title: string; description: string; actions?: ReactNode }) {
+  return <PageHeader title={title} description={description} actions={actions} />;
 }
 function usePresentation() {
   const me = useMe();
@@ -53,30 +54,7 @@ function usePresentation() {
     ready: !me.isPending,
   };
 }
-export function FinanceLayout() {
-  return (
-    <>
-      <nav className="finance-nav" aria-label="Finanças">
-        <NavLink to="/finance" end>
-          Visão geral
-        </NavLink>
-        <NavLink to="/finance/accounts">Contas</NavLink>
-        <NavLink to="/finance/transactions">Movimentos</NavLink>
-        <NavLink to="/finance/categories">Categorias</NavLink>
-        <NavLink to="/finance/budgets">Orçamento</NavLink>
-        <NavLink to="/finance/goals">Metas</NavLink>
-        <NavLink to="/finance/recurrences">Recorrências</NavLink>
-        <NavLink to="/finance/calendar">Calendário</NavLink>
-        <NavLink to="/finance/net-worth">Patrimônio</NavLink>
-        <NavLink to="/finance/yield">Rendimentos</NavLink>
-        <NavLink to="/finance/cards">Cartões</NavLink>
-        <NavLink to="/finance/debts">Dívidas</NavLink>
-        <NavLink to="/finance/safe-to-spend">Quanto posso gastar?</NavLink>
-      </nav>
-      <Outlet />
-    </>
-  );
-}
+export function FinanceLayout() { const me = useMe(); return <CalendarPreferences value={{ timeZone: me.data?.profile?.timezone ?? 'UTC', locale: me.data?.profile?.locale ?? 'pt-BR' }}><Outlet /></CalendarPreferences>; }
 export function FinanceDashboard() {
   const { timezone, locale } = usePresentation();
   const now = localDateTime(new Date().toISOString(), timezone);
@@ -89,8 +67,9 @@ export function FinanceDashboard() {
   return (
     <>
       <Intro
-        title="Seu dinheiro, com clareza."
-        description="Saldos reais, movimentos organizados e um passo de cada vez."
+        title="Visão financeira"
+        description="Saldos e resultado do período, por moeda."
+        actions={<Button asChild><Link to="/finance/transactions?action=create"><Plus />Novo movimento</Link></Button>}
       />
       <div className="finance-toolbar">
         <div className="finance-period">
@@ -109,12 +88,6 @@ export function FinanceDashboard() {
             onChange={(event) => setPeriod({ ...period, to: event.target.value || period.to })}
           />
         </div>
-        <Button asChild>
-          <Link to="/finance/transactions">
-            <Plus />
-            Novo movimento
-          </Link>
-        </Button>
       </div>
       {summary.isPending ? (
         <p role="status">Carregando sua visão financeira…</p>
@@ -123,29 +96,29 @@ export function FinanceDashboard() {
       ) : !summary.data.currencies.length ? (
         <Card className="finance-empty">
           <Wallet aria-hidden="true" />
-          <h2>Sua primeira conta é o começo.</h2>
+          <h2>Nenhuma conta cadastrada</h2>
           <p>Organize seu dinheiro sem perder de vista o que importa.</p>
           <Button asChild>
-            <Link to="/finance/accounts">Criar primeira conta</Link>
+            <Link to="/finance/accounts?action=create">Criar conta</Link>
           </Button>
         </Card>
       ) : (
-        <div className="finance-summary">
+        <SummaryGrid className="finance-summary">
           {summary.data.currencies.map((row) => (
-            <Card key={row.currency}>
+            <Card key={row.currency} className="finance-summary-card">
               <p className="eyebrow">{row.currency} · SALDO ATÉ O FIM DO PERÍODO</p>
               <p className="finance-balance">
                 {formatMoney(row.totalBalanceMinor, row.currency, locale)}
               </p>
               <dl>
-                <div>
+                <div className="metric-income">
                   <dt>
                     <ArrowDownLeft />
                     Receitas
                   </dt>
                   <dd>{formatMoney(row.incomeMinor, row.currency, locale)}</dd>
                 </div>
-                <div>
+                <div className="metric-expense">
                   <dt>
                     <ArrowUpRight />
                     Despesas
@@ -159,7 +132,7 @@ export function FinanceDashboard() {
               </dl>
             </Card>
           ))}
-        </div>
+        </SummaryGrid>
       )}
       {!!accounts.data?.length && (
         <section className="finance-overview">
@@ -178,6 +151,7 @@ export function FinanceDashboard() {
           </div>
         </section>
       )}
+      <SectionHeader title="Planejamento" /><div className="finance-planning-links">{navigationItems.filter(item => ['budget', 'cards', 'debts', 'safe-spend'].includes(item.id)).map(item => <Link key={item.id} to={item.path}><item.icon aria-hidden="true" /><span>{item.label}</span></Link>)}</div>
       <p className="finance-note">
         Moedas são mostradas separadamente. Transferências não são receitas nem despesas. Datas no
         fuso {timezone}.
@@ -211,13 +185,14 @@ function AccountEditor({ account, done }: { account?: Account; done: () => void 
       <h2>{account ? 'Editar conta' : 'Nova conta'}</h2>
       <FinanceForm
         reset={false}
+        onCancel={done}
         button={account ? 'Salvar conta' : 'Criar conta'}
         submit={async (data) => {
           await mutation.mutateAsync(data);
           done();
         }}
       >
-        <Field
+        <FormSection title="Identificação"><Field
           label="Nome da conta"
           name="name"
           required
@@ -231,8 +206,9 @@ function AccountEditor({ account, done }: { account?: Account; done: () => void 
             </option>
           ))}
         </Field>
+        </FormSection>
         {!account && (
-          <>
+          <FormSection title="Moeda e saldo inicial">
             <Field label="Moeda" name="currency" defaultValue="BRL">
               {Object.keys(currencyDigits).map((code) => (
                 <option key={code}>{code}</option>
@@ -249,12 +225,9 @@ function AccountEditor({ account, done }: { account?: Account; done: () => void 
               Saldo inicial e moeda ficam preservados após a criação. Use vírgula ou ponto decimal,
               sem milhar.
             </p>
-          </>
+          </FormSection>
         )}
       </FinanceForm>
-      <Button variant="ghost" onClick={done}>
-        Fechar
-      </Button>
     </Card>
   );
 }
@@ -262,23 +235,20 @@ export function AccountsPage() {
   const accounts = useAccounts();
   const { locale } = usePresentation();
   const { finance } = useServices();
-  const [editing, setEditing] = useState<Account | 'new' | null>(null);
+  const [creating, setCreating] = useCreationShortcut();
+  const [editingState, setEditingState] = useState<Account | 'new' | null>(null);
+  const editing = editingState ?? (creating ? 'new' : null);
+  const setEditing = (next: Account | 'new' | null) => { setEditingState(next); if (next !== 'new') setCreating(false); };
   const patch = useFinanceMutation((account: Account) =>
     finance.patchAccount(account.id, { isActive: !account.isActive }),
   );
   return (
     <>
       <Intro
-        title="Um lugar para cada conta."
-        description="Separe seu dinheiro por conta. O histórico continua disponível mesmo quando você desativa uma delas."
+        title="Contas"
+        description="Consulte saldos e gerencie suas contas."
+        actions={<Button onClick={() => setEditing('new')}><Plus />Nova conta</Button>}
       />
-      <div className="finance-toolbar">
-        <h2>Contas financeiras</h2>
-        <Button onClick={() => setEditing('new')}>
-          <Plus />
-          Nova conta
-        </Button>
-      </div>
       {editing && (
         <AccountEditor
           key={editing === 'new' ? 'new' : editing.id}
@@ -292,9 +262,9 @@ export function AccountsPage() {
         <Feedback>Não foi possível carregar suas contas.</Feedback>
       ) : !accounts.data.length ? (
         <Card className="finance-empty">
-          <h2>Nenhuma conta ainda.</h2>
-          <p>Comece cadastrando onde seu dinheiro está.</p>
-          <Button onClick={() => setEditing('new')}>Criar primeira conta</Button>
+          <h2>Nenhuma conta cadastrada</h2>
+          <p>Cadastre uma conta para registrar movimentos.</p>
+          {!editing && <Button onClick={() => setEditing('new')}>Criar conta</Button>}
         </Card>
       ) : (
         <div className="finance-account-grid">
@@ -314,13 +284,7 @@ export function AccountsPage() {
                 <Button variant="outline" onClick={() => setEditing(account)}>
                   Editar {account.name}
                 </Button>
-                <Button
-                  variant="ghost"
-                  disabled={patch.isPending}
-                  onClick={() => patch.mutate(account)}
-                >
-                  {account.isActive ? 'Desativar' : 'Reativar'}
-                </Button>
+                <ConfirmAction label={account.isActive ? 'Desativar' : 'Reativar'} title={account.isActive ? 'Desativar conta' : 'Reativar conta'} impact="O histórico e o saldo permanecem preservados. A disponibilidade da conta em novos registros será atualizada." pending={patch.isPending} onConfirm={() => patch.mutateAsync(account)} />
               </div>
             </Card>
           ))}
@@ -344,8 +308,8 @@ export function CategoriesPage() {
   return (
     <>
       <Intro
-        title="Cada movimento tem um contexto."
-        description="Crie categorias de receita e despesa. Desativar mantém seus movimentos anteriores intactos."
+        title="Categorias"
+        description="Organize receitas e despesas por categoria."
       />
       <div className="finance-columns">
         <Card>
@@ -378,13 +342,7 @@ export function CategoriesPage() {
                       {kindLabel[category.kind]} · {category.isActive ? 'Ativa' : 'Inativa'}
                     </p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    disabled={patch.isPending}
-                    onClick={() => patch.mutate(category)}
-                  >
-                    {category.isActive ? 'Desativar' : 'Reativar'}
-                  </Button>
+                  <ConfirmAction label={category.isActive ? 'Desativar' : 'Reativar'} title={category.isActive ? 'Desativar categoria' : 'Reativar categoria'} impact="Os movimentos existentes permanecem preservados. A disponibilidade da categoria em novos registros será atualizada." pending={patch.isPending} onConfirm={() => patch.mutateAsync(category)} />
                 </li>
               ))}
             </ul>
@@ -437,7 +395,7 @@ function MovementEditor({ done }: { done: () => void }) {
       );
   });
   return (
-    <Card>
+    <FormPanel>
       <h2>Novo movimento</h2>
       <div className="finance-kind" role="group" aria-label="Tipo do movimento">
         {Object.entries(kindLabel).map(([code, label]) => (
@@ -458,6 +416,7 @@ function MovementEditor({ done }: { done: () => void }) {
       ) : (
         <FinanceForm
           reset={false}
+          onCancel={done}
           button={
             kind === 'TRANSFER'
               ? 'Registrar transferência'
@@ -470,7 +429,7 @@ function MovementEditor({ done }: { done: () => void }) {
             done();
           }}
         >
-          <div className="finance-field">
+          <FormSection title="Contas e classificação"><div className="finance-field">
             <label htmlFor="movement-account">
               {kind === 'TRANSFER' ? 'Conta de origem' : 'Conta'}
             </label>
@@ -514,6 +473,7 @@ function MovementEditor({ done }: { done: () => void }) {
                 ))}
             </Field>
           )}
+          </FormSection><FormSection title="Valor e registro">
           <Field
             label={`Valor (${selected?.currency ?? 'BRL'})`}
             name="amount"
@@ -531,17 +491,16 @@ function MovementEditor({ done }: { done: () => void }) {
           <p className="finance-note">
             Fuso: {timezone}. Não use separador de milhar. Transferências exigem a mesma moeda.
           </p>
+          </FormSection>
         </FinanceForm>
       )}
-      <Button variant="ghost" onClick={done}>
-        Fechar
-      </Button>
-    </Card>
+      {(!available.length || !ready) && <Button variant="ghost" onClick={done}>Fechar</Button>}
+    </FormPanel>
   );
 }
 export function TransactionsPage() {
   const [filters, setFilters] = useState<TransactionQuery>({ limit: '25' });
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useCreationShortcut();
   const accounts = useAccounts();
   const categories = useCategories();
   const transactions = useTransactions(filters);
@@ -557,19 +516,12 @@ export function TransactionsPage() {
   return (
     <>
       <Intro
-        title="Sua vida financeira em movimento."
-        description="Receitas, despesas e transferências, sem perder a história. Cancelar um movimento preserva o registro e remove seu efeito no saldo."
+        title="Movimentos"
+        description="Consulte e registre receitas, despesas e transferências."
+        actions={<Button onClick={() => setEditing(true)}><Plus />Novo movimento</Button>}
       />
-      <div className="finance-toolbar">
-        <h2>Movimentos</h2>
-        <Button onClick={() => setEditing(true)}>
-          <Plus />
-          Novo movimento
-        </Button>
-      </div>
       {editing && <MovementEditor done={() => setEditing(false)} />}
-      <form
-        className="finance-filters"
+      <FilterPanel
         onSubmit={(event) => {
           event.preventDefault();
           const data = new FormData(event.currentTarget);
@@ -622,13 +574,13 @@ export function TransactionsPage() {
         </Field>
         <Field label="Data inicial" name="from" type="date" />
         <Field label="Data final" name="to" type="date" />
-        <Button variant="outline" type="submit">
+        <div className="filter-actions"><Button variant="outline" type="submit">
           Aplicar filtros
         </Button>
         <Button variant="ghost" type="reset" onClick={() => setFilters({ limit: '25' })}>
           Limpar
-        </Button>
-      </form>
+        </Button></div>
+      </FilterPanel>
       {transactions.isPending ? (
         <p role="status">Carregando movimentos…</p>
       ) : transactions.isError ? (
@@ -637,14 +589,14 @@ export function TransactionsPage() {
         </Feedback>
       ) : !transactions.data.items.length ? (
         <Card className="finance-empty">
-          <h2>Nenhum movimento neste filtro.</h2>
-          <p>Registre sua primeira receita ou despesa para acompanhar seu saldo.</p>
+          <h2>Nenhum movimento encontrado</h2>
+          <p>Ajuste os filtros ou registre um movimento.</p>
         </Card>
       ) : (
-        <Card className="finance-movements">
+        <DataSection className="finance-movements">
           <ul className="finance-list">
             {transactions.data.items.map((row) => (
-              <li key={row.id}>
+              <li key={row.id} className={'movement-row ' + row.type.toLowerCase() + (row.isCancelled ? ' cancelled' : '')}>
                 <div className={`movement-icon ${row.type.toLowerCase()}`}>
                   {row.type === 'TRANSFER' ? (
                     <ArrowLeftRight aria-hidden="true" />
@@ -657,9 +609,9 @@ export function TransactionsPage() {
                 <div className="movement-detail">
                   <strong>{row.description || kindLabel[row.type]}</strong>
                   <p>
-                    {accountName(row.accountId)}
+                    <span className="movement-kind">{kindLabel[row.type]}</span> · {accountName(row.accountId)}
                     {row.destinationAccountId &&
-                      ' → ' + accountName(row.destinationAccountId)} · {kindLabel[row.type]}
+                      ' → ' + accountName(row.destinationAccountId)}
                     {row.categoryId &&
                       ' · ' +
                         (categories.data?.find((category) => category.id === row.categoryId)
@@ -674,16 +626,7 @@ export function TransactionsPage() {
                   {formatMoney(row.amountMinor, row.currency, locale)}
                 </strong>
                 {!row.isCancelled && (
-                  <Button
-                    variant="ghost"
-                    disabled={cancel.isPending}
-                    onClick={() => {
-                      if (window.confirm('Cancelar este movimento? O registro será preservado.'))
-                        cancel.mutate(row);
-                    }}
-                  >
-                    Cancelar
-                  </Button>
+                  <ConfirmAction label="Cancelar" title="Cancelar este movimento?" impact="O registro será preservado e deixará de afetar o saldo. Esta é uma correção de lançamento." confirmLabel="Confirmar cancelamento" pending={cancel.isPending} onConfirm={() => cancel.mutateAsync(row)} />
                 )}
               </li>
             ))}
@@ -715,7 +658,7 @@ export function TransactionsPage() {
               Primeira página
             </Button>
           )}
-        </Card>
+        </DataSection>
       )}
       {cancel.isError && <Feedback>Não foi possível cancelar o movimento.</Feedback>}
     </>

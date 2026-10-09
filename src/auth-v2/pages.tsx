@@ -14,8 +14,8 @@ import { requestRecovery, setRecoveredPassword, verifyRecovery } from './recover
 import { requestSignup } from './signup';
 import { loginSchema, newPasswordSchema, recoveryRequestSchema, signupSchema } from './validation';
 
-function Intro({ tag, title, text }: { tag: string; title: string; text: string }) {
-  return <div className="form-intro"><p className="eyebrow">{tag}</p><h1 tabIndex={-1}>{title}</h1><p>{text}</p></div>;
+function Intro({ title, text }: { tag: string; title: string; text: string }) {
+  return <div className="form-intro"><h1 tabIndex={-1}>{title}</h1><p>{text}</p></div>;
 }
 
 function clearTokenHash(): void {
@@ -60,14 +60,14 @@ export function LoginPageV2() {
       setError(failure instanceof LoginFailure ? failure.message : 'Não foi possível entrar. Tente novamente em instantes.');
     } finally { pending.current = false; setBusy(false); }
   }
-  return <><Intro tag="BEM-VINDO DE VOLTA" title="Bom ter você aqui." text="Entre na sua conta e continue de onde parou." />
+  return <><Intro tag="BEM-VINDO DE VOLTA" title="Entrar" text="Acesse sua conta Beter Life." />
     {location.state?.passwordUpdated && <Feedback success>Senha atualizada. Entre com sua nova senha.</Feedback>}
     <form className="form-stack" noValidate onSubmit={submit}>
       <FormInput id="email" label="E-mail" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} />
       <div className="space-y-2"><FormInput id="password" label="Senha" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} /><Link className="text-link block text-right text-sm" to="/forgot-password">Esqueceu sua senha?</Link></div>
-      {error && <Feedback>{error}</Feedback>}
       <Button type="submit" disabled={busy} className="w-full">{busy ? 'Entrando…' : 'Entrar na minha conta'}<ArrowRight aria-hidden="true" /></Button>
-    </form><p className="form-footnote">Ainda não tem uma conta? <Link className="text-link" to="/signup">Comece por aqui</Link></p></>;
+      <div className="auth-feedback" aria-live="polite">{error && <Feedback>{error}</Feedback>}</div>
+    </form><p className="form-footnote">Ainda não tem uma conta? <Link className="text-link" to="/signup">Criar conta</Link></p></>;
 }
 
 export function SignupPageV2() {
@@ -94,13 +94,13 @@ export function SignupPageV2() {
     } catch { setSent(true); } // Same public response for provider failures and unknown accounts.
     finally { pending.current = false; setBusy(false); }
   }
-  return <><Intro tag="SEU PRIMEIRO PASSO" title="Vamos começar?" text="Crie sua conta. O resto, um passo de cada vez." />
+  return <><Intro tag="SEU PRIMEIRO PASSO" title="Criar conta" text="Informe seu e-mail e escolha uma senha." />
     <form className="form-stack" noValidate onSubmit={submit}>
       <FormInput id="email" label="E-mail" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} />
       <FormInput id="password" label="Senha" type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} />
       <FormInput id="confirmPassword" label="Confirmar senha" type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
-      {error && <Feedback>{error}</Feedback>}
       <Button type="submit" disabled={busy} className="w-full">{busy ? 'Solicitando…' : 'Criar minha conta'}<ArrowRight aria-hidden="true" /></Button>
+      <div className="auth-feedback" aria-live="polite">{error && <Feedback>{error}</Feedback>}</div>
     </form><p className="form-footnote">Já tem uma conta? <Link className="text-link" to="/login">Entrar</Link></p></>;
 }
 
@@ -124,11 +124,11 @@ export function ForgotPasswordPageV2() {
     } catch { setSent(true); } // Never claim an email was sent or disclose account existence.
     finally { pending.current = false; setBusy(false); }
   }
-  return <><Intro tag="RECUPERAR ACESSO" title="Acontece. Vamos resolver." text="Informe seu e-mail para solicitar a recuperação." />
+  return <><Intro tag="RECUPERAR ACESSO" title="Recuperar senha" text="Informe seu e-mail para solicitar a recuperação." />
     <form className="form-stack" noValidate onSubmit={submit}>
       <FormInput id="email" label="E-mail" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} />
-      {error && <Feedback>{error}</Feedback>}
       <Button type="submit" disabled={busy} className="w-full">{busy ? 'Solicitando…' : 'Enviar link de recuperação'}</Button>
+      <div className="auth-feedback" aria-live="polite">{error && <Feedback>{error}</Feedback>}</div>
     </form><p className="form-footnote"><Link className="text-link" to="/login">Voltar para entrar</Link></p></>;
 }
 
@@ -149,7 +149,7 @@ export function ConfirmationPageV2() {
   }, [client]);
   if (!result) return <Loading>Confirmando seu e-mail…</Loading>;
   if (result.status === 'invalid') return <><Intro tag="VAMOS TENTAR DE NOVO" title="Este link não está disponível." text="Ele pode ter expirado ou já ter sido usado." /><Button asChild><Link to="/login">Voltar para entrar</Link></Button></>;
-  return <><MailCheck className="mb-6 size-10 text-primary" aria-hidden="true" /><Intro tag="TUDO CERTO" title="E-mail confirmado." text="Sua conta está pronta para o próximo passo." /><Button asChild><Link to={result.session ? '/app' : '/login'}>Continuar<ArrowRight aria-hidden="true" /></Link></Button></>;
+  return <><MailCheck className="mb-6 size-10 text-primary" aria-hidden="true" /><Intro tag="TUDO CERTO" title="E-mail confirmado." text="Você já pode acessar sua conta." /><Button asChild><Link to={result.session ? '/app' : '/login'}>Continuar<ArrowRight aria-hidden="true" /></Link></Button></>;
 }
 
 export function RecoveryPageV2() {
@@ -188,11 +188,11 @@ export function RecoveryPageV2() {
     } catch { setError('Não foi possível atualizar a senha. Tente novamente.'); }
     finally { pending.current = false; setBusy(false); }
   }
-  return <><KeyRound className="mb-6 size-9 text-primary" aria-hidden="true" /><Intro tag="RECUPERAR ACESSO" title="Uma nova senha." text="Escolha uma senha forte que você ainda não usou aqui." />
+  return <><KeyRound className="mb-6 size-9 text-primary" aria-hidden="true" /><Intro tag="RECUPERAR ACESSO" title="Nova senha" text="Escolha uma senha forte que você ainda não usou aqui." />
     <form className="form-stack" noValidate onSubmit={submit}>
       <FormInput id="password" label="Nova senha" type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} />
       <FormInput id="confirmPassword" label="Confirmar nova senha" type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
-      {error && <Feedback>{error}</Feedback>}
       <Button type="submit" disabled={busy} className="w-full">{busy ? 'Atualizando…' : 'Salvar nova senha'}</Button>
+      <div className="auth-feedback" aria-live="polite">{error && <Feedback>{error}</Feedback>}</div>
     </form></>;
 }

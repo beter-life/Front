@@ -1,9 +1,11 @@
+import { Input } from '../../components/ui/input';
 import { useId } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '../../components/ui/button';
 import { Feedback } from '../../components/feedback';
+import { FormSection } from '../../components/ui/form-section';
 import { useServices } from '../../hooks/use-services';
 import { useFinanceMutation } from './hooks';
 import { parseMoney } from './money';
@@ -27,9 +29,9 @@ export function NetWorthEditor({item,mode,today,onClose}:{item:NetWorthItem|null
  const props=(key:keyof Values)=>({id:id+key,...register(key),'aria-invalid':!!errors[key],'aria-describedby':errors[key]?id+key+'-error':undefined,className:'finance-select'});
  const busy=mutation.isPending||isSubmitting;
  return <section className="finance-panel" aria-labelledby={id+'heading'}><h2 id={id+'heading'}>{isEdit?'Editar dados':isValuation?'Nova avaliação':'Novo item patrimonial'}</h2><form onSubmit={submit} className="recurrence-form" noValidate>
- {!isValuation&&<>{field('kind','Tipo do item',<select {...props('kind')} disabled={isEdit} onChange={e=>{const k=e.target.value as Values['kind'];setValue('kind',k);setValue('category',netWorthCategories[k][0]);}}><option value="ASSET">Ativo</option><option value="LIABILITY">Passivo</option></select>)}{field('name','Nome',<input {...props('name')} maxLength={100}/>)}{field('category','Categoria do item',<select {...props('category')}>{netWorthCategories[kind].map(c=><option key={c} value={c}>{netWorthLabels[c]}</option>)}</select>)}{field('description','Descrição opcional',<input {...props('description')} maxLength={1000}/>)}</>}
- {!isEdit&&<>{field('currency','Moeda do item',<select {...props('currency')} disabled={isValuation}>{Object.keys(currencyDigits).map(c=><option key={c}>{c}</option>)}</select>)}{field('amount',`Valor em ${currency}`,<input {...props('amount')} inputMode="decimal"/>)}{field('date','Data da avaliação',<input {...props('date')} type="date" max={today} min="1000-01-01"/>)}{field('note','Nota opcional',<input {...props('note')} maxLength={1000}/>)}</>}
+ {!isValuation&&<FormSection title="Identificação do item">{field('kind','Tipo do item',<select {...props('kind')} disabled={isEdit} onChange={e=>{const k=e.target.value as Values['kind'];setValue('kind',k);setValue('category',netWorthCategories[k][0]);}}><option value="ASSET">Ativo</option><option value="LIABILITY">Passivo</option></select>)}{field('name','Nome',<input {...props('name')} maxLength={100}/>)}{field('category','Categoria do item',<select {...props('category')}>{netWorthCategories[kind].map(c=><option key={c} value={c}>{netWorthLabels[c]}</option>)}</select>)}{field('description','Descrição opcional',<input {...props('description')} maxLength={1000}/>)}</FormSection>}
+ {!isEdit&&<FormSection title="Avaliação e referência">{field('currency','Moeda do item',<select {...props('currency')} disabled={isValuation}>{Object.keys(currencyDigits).map(c=><option key={c}>{c}</option>)}</select>)}{field('amount',`Valor em ${currency}`,<input {...props('amount')} inputMode="decimal"/>)}{field('date','Data da avaliação',<Input {...props('date')} type="date" max={today} min="1000-01-01"/>)}{field('note','Nota opcional',<input {...props('note')} maxLength={1000}/>)}</FormSection>}
  <p className="recurrence-form-note">Evite cadastrar novamente valores que já estejam representados em suas contas. Avaliações são manuais; não há câmbio ou valorização automática.</p>
- {mutation.isError&&<Feedback>{(mutation.error as Error).message}</Feedback>}<div className="finance-actions"><Button disabled={busy} type="submit">{busy?'Salvando…':isEdit?'Salvar dados':isValuation?'Salvar avaliação':'Cadastrar item'}</Button><Button variant="outline" type="button" onClick={onClose} disabled={busy}>Cancelar</Button></div>
+ <div className="ui-form-actions"><Button variant="outline" type="button" onClick={onClose} disabled={busy}>Cancelar</Button><Button disabled={busy} type="submit">{busy?'Salvando…':isEdit?'Salvar dados':isValuation?'Salvar avaliação':'Cadastrar item'}</Button></div><div className="ui-form-feedback" aria-live="polite">{mutation.isError&&<Feedback>{(mutation.error as Error).message}</Feedback>}</div>
  </form></section>;
 }
