@@ -13,7 +13,7 @@ import { currencyDigits, type CardInput, type CardView, type Category, type Acco
 function text(data: FormData, key: string) { return String(data.get(key) ?? ''); }
 export function CardField({ label, children, ...props }: ComponentProps<'input'> & { label: string; children?: ReactNode }) {
   const labelId=useId();
-  const control=isValidElement<{ 'aria-labelledby'?: string }>(children)?cloneElement(children,{ 'aria-labelledby':labelId }):children??<Input {...props} aria-labelledby={labelId}/>;
+  const control=isValidElement<{ 'aria-labelledby'?: string }>(children)?cloneElement(children,{ 'aria-labelledby':labelId }):children??<Input {...props} calendarLabel={label} aria-labelledby={labelId}/>;
   return <label className="card-field"><span id={labelId}>{label}</span>{control}</label>;
 }
 export function CardForm({ title, children, submit, button, onClose }: { title: string; children: ReactNode; submit: (data: FormData) => Promise<unknown>; button: string; onClose: () => void }) {

@@ -6,7 +6,7 @@ import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { ConfirmAction } from '../../components/ui/confirm-action';
 import { Feedback } from '../../components/feedback';
-import { PageHeader, SectionHeader } from '../../components/ui/surface';
+import { PageHeader, SectionHeader, FormPanel, FilterPanel, SummaryGrid, DataSection } from '../../components/ui/surface';
 import { FormSection } from '../../components/ui/form-section';
 import { useCreationShortcut } from '../../navigation/use-creation-shortcut';
 import { navigationItems } from '../../navigation/navigation-config';
@@ -19,6 +19,7 @@ import {
   useTransactions,
   useSummary,
 } from './hooks';
+import { CalendarPreferences } from '../../components/ui/calendar-preferences';
 import { Field, FinanceForm } from './forms';
 import { value } from './form-data';
 import {
@@ -53,7 +54,7 @@ function usePresentation() {
     ready: !me.isPending,
   };
 }
-export function FinanceLayout() { return <Outlet />; }
+export function FinanceLayout() { const me = useMe(); return <CalendarPreferences value={{ timeZone: me.data?.profile?.timezone ?? 'UTC', locale: me.data?.profile?.locale ?? 'pt-BR' }}><Outlet /></CalendarPreferences>; }
 export function FinanceDashboard() {
   const { timezone, locale } = usePresentation();
   const now = localDateTime(new Date().toISOString(), timezone);
@@ -67,7 +68,7 @@ export function FinanceDashboard() {
     <>
       <Intro
         title="Visão financeira"
-        description="Consulte os saldos e acompanhe o resultado do período, por moeda."
+        description="Saldos e resultado do período, por moeda."
         actions={<Button asChild><Link to="/finance/transactions?action=create"><Plus />Novo movimento</Link></Button>}
       />
       <div className="finance-toolbar">
@@ -95,14 +96,14 @@ export function FinanceDashboard() {
       ) : !summary.data.currencies.length ? (
         <Card className="finance-empty">
           <Wallet aria-hidden="true" />
-          <h2>Sua primeira conta é o começo.</h2>
+          <h2>Nenhuma conta cadastrada</h2>
           <p>Organize seu dinheiro sem perder de vista o que importa.</p>
           <Button asChild>
-            <Link to="/finance/accounts?action=create">Criar primeira conta</Link>
+            <Link to="/finance/accounts?action=create">Criar conta</Link>
           </Button>
         </Card>
       ) : (
-        <div className="finance-summary">
+        <SummaryGrid className="finance-summary">
           {summary.data.currencies.map((row) => (
             <Card key={row.currency} className="finance-summary-card">
               <p className="eyebrow">{row.currency} · SALDO ATÉ O FIM DO PERÍODO</p>
@@ -131,7 +132,7 @@ export function FinanceDashboard() {
               </dl>
             </Card>
           ))}
-        </div>
+        </SummaryGrid>
       )}
       {!!accounts.data?.length && (
         <section className="finance-overview">
@@ -245,7 +246,7 @@ export function AccountsPage() {
     <>
       <Intro
         title="Contas"
-        description="Consulte seus saldos e gerencie suas contas. Desativar preserva o histórico."
+        description="Consulte saldos e gerencie suas contas."
         actions={<Button onClick={() => setEditing('new')}><Plus />Nova conta</Button>}
       />
       {editing && (
@@ -261,9 +262,9 @@ export function AccountsPage() {
         <Feedback>Não foi possível carregar suas contas.</Feedback>
       ) : !accounts.data.length ? (
         <Card className="finance-empty">
-          <h2>Nenhuma conta ainda.</h2>
-          <p>Comece cadastrando onde seu dinheiro está.</p>
-          <Button onClick={() => setEditing('new')}>Criar primeira conta</Button>
+          <h2>Nenhuma conta cadastrada</h2>
+          <p>Cadastre uma conta para registrar movimentos.</p>
+          {!editing && <Button onClick={() => setEditing('new')}>Criar conta</Button>}
         </Card>
       ) : (
         <div className="finance-account-grid">
@@ -308,7 +309,7 @@ export function CategoriesPage() {
     <>
       <Intro
         title="Categorias"
-        description="Crie categorias de receita e despesa. Desativar mantém seus movimentos anteriores intactos."
+        description="Organize receitas e despesas por categoria."
       />
       <div className="finance-columns">
         <Card>
@@ -394,7 +395,7 @@ function MovementEditor({ done }: { done: () => void }) {
       );
   });
   return (
-    <Card>
+    <FormPanel>
       <h2>Novo movimento</h2>
       <div className="finance-kind" role="group" aria-label="Tipo do movimento">
         {Object.entries(kindLabel).map(([code, label]) => (
@@ -494,7 +495,7 @@ function MovementEditor({ done }: { done: () => void }) {
         </FinanceForm>
       )}
       {(!available.length || !ready) && <Button variant="ghost" onClick={done}>Fechar</Button>}
-    </Card>
+    </FormPanel>
   );
 }
 export function TransactionsPage() {
@@ -516,12 +517,11 @@ export function TransactionsPage() {
     <>
       <Intro
         title="Movimentos"
-        description="Receitas, despesas e transferências, sem perder a história. Cancelar um movimento preserva o registro e remove seu efeito no saldo."
+        description="Consulte e registre receitas, despesas e transferências."
         actions={<Button onClick={() => setEditing(true)}><Plus />Novo movimento</Button>}
       />
       {editing && <MovementEditor done={() => setEditing(false)} />}
-      <form
-        className="finance-filters"
+      <FilterPanel
         onSubmit={(event) => {
           event.preventDefault();
           const data = new FormData(event.currentTarget);
@@ -574,13 +574,13 @@ export function TransactionsPage() {
         </Field>
         <Field label="Data inicial" name="from" type="date" />
         <Field label="Data final" name="to" type="date" />
-        <div className="ui-form-actions"><Button variant="outline" type="submit">
+        <div className="filter-actions"><Button variant="outline" type="submit">
           Aplicar filtros
         </Button>
         <Button variant="ghost" type="reset" onClick={() => setFilters({ limit: '25' })}>
           Limpar
         </Button></div>
-      </form>
+      </FilterPanel>
       {transactions.isPending ? (
         <p role="status">Carregando movimentos…</p>
       ) : transactions.isError ? (
@@ -589,11 +589,11 @@ export function TransactionsPage() {
         </Feedback>
       ) : !transactions.data.items.length ? (
         <Card className="finance-empty">
-          <h2>Nenhum movimento neste filtro.</h2>
-          <p>Registre sua primeira receita ou despesa para acompanhar seu saldo.</p>
+          <h2>Nenhum movimento encontrado</h2>
+          <p>Ajuste os filtros ou registre um movimento.</p>
         </Card>
       ) : (
-        <Card className="finance-movements">
+        <DataSection className="finance-movements">
           <ul className="finance-list">
             {transactions.data.items.map((row) => (
               <li key={row.id} className={'movement-row ' + row.type.toLowerCase() + (row.isCancelled ? ' cancelled' : '')}>
@@ -658,7 +658,7 @@ export function TransactionsPage() {
               Primeira página
             </Button>
           )}
-        </Card>
+        </DataSection>
       )}
       {cancel.isError && <Feedback>Não foi possível cancelar o movimento.</Feedback>}
     </>

@@ -8,7 +8,7 @@ const surfaces = [
   ['safe-spend', '/finance/safe-to-spend'], ['profile', '/profile'], ['login', '/login'],
 ] as const;
 
-test('crimson representative visual audit', async ({ page }, info) => {
+test('blue-green representative visual audit', async ({ page }, info) => {
   test.setTimeout(120_000);
   const state = await uiuxBoundary(page, { movements: true }); await uiuxLogin(page);
   const stage = process.env.UIUX_CAPTURE_STAGE === 'before' ? 'before' : 'after';
@@ -34,7 +34,7 @@ test('crimson representative visual audit', async ({ page }, info) => {
   expect(state.financialWrites).toBe(0); expect(state.errors).toEqual([]);
 });
 
-test('crimson computed identity, uniform fonts and financial semantic distinction', async ({ page }) => {
+test('blue-green computed identity, uniform fonts and financial semantic distinction', async ({ page }) => {
   await uiuxBoundary(page, { movements: true }); await uiuxLogin(page);
   for (const theme of ['light', 'dark']) {
     await page.getByLabel('Tema').selectOption(theme);
@@ -43,7 +43,7 @@ test('crimson computed identity, uniform fonts and financial semantic distinctio
       const style = getComputedStyle(document.documentElement);
       return Object.fromEntries(['primary', 'expense', 'destructive', 'success'].map(key => [key, style.getPropertyValue('--' + key).trim()]));
     });
-    expect(colors.primary).toBe(theme === 'light' ? '#b91c1c' : '#e05d5d');
+    expect(colors.primary).toBe(theme === 'light' ? '#1d4ed8' : '#60a5fa');
     expect(new Set(Object.values(colors)).size).toBe(4);
     await expect(page.locator('.finance-balance')).toHaveCSS('font-family', '"Segoe UI", "Helvetica Neue", Arial, sans-serif');
     await expect(page.locator('.finance-balance')).toHaveCSS('font-variant-numeric', 'tabular-nums');
@@ -53,7 +53,7 @@ test('crimson computed identity, uniform fonts and financial semantic distinctio
   }
 });
 
-test('crimson Home prioritizes four essential tools without invented metrics or writes', async ({ page }) => {
+test('blue-green Home prioritizes four essential tools without invented metrics or writes', async ({ page }) => {
   const state = await uiuxBoundary(page); await uiuxLogin(page);
   const essentials = page.getByRole('navigation', { name: 'Ferramentas essenciais' });
   await expect(essentials.getByRole('link')).toHaveCount(4);
@@ -63,7 +63,7 @@ test('crimson Home prioritizes four essential tools without invented metrics or 
   expect(state.financialWrites).toBe(0);
 });
 
-test('crimson form feedback and action placement remain stable before and after validation', async ({ page }, info) => {
+test('blue-green form feedback and action placement remain stable before and after validation', async ({ page }, info) => {
   const state = await uiuxBoundary(page); await uiuxLogin(page); await page.goto('/profile');
   await page.getByLabel('Como prefere ser chamado?').fill('');
   const submit = page.getByRole('button', { name: 'Salvar perfil' });
@@ -76,7 +76,7 @@ test('crimson form feedback and action placement remain stable before and after 
   expect(state.financialWrites).toBe(0);
 });
 
-test('crimson public login visual audit', async ({ page }, info) => {
+test('blue-green public login visual audit', async ({ page }, info) => {
   const stage = process.env.UIUX_CAPTURE_STAGE === 'before' ? 'before' : 'after';
   await uiuxBoundary(page);
   for (const width of [1440, 768, 390]) {
@@ -88,7 +88,7 @@ test('crimson public login visual audit', async ({ page }, info) => {
   }
 });
 
-test('crimson settings group accounts, reserve and planning without shifting actions or writing finance', async ({ page }, info) => {
+test('blue-green settings group accounts, reserve and planning without shifting actions or writing finance', async ({ page }, info) => {
   const state = await uiuxBoundary(page);
   await page.route('**/api/v1/finance/accounts', route => route.fulfill({ json: [bankAccount, { ...bankAccount, id: '99999999-9999-4999-8999-999999999999', name: 'Reserva', type: 'savings', balanceMinor: '10000' }] }));
   await uiuxLogin(page);
@@ -102,10 +102,11 @@ test('crimson settings group accounts, reserve and planning without shifting act
       await expect(form.locator('.safe-account-option')).toHaveCount(2);
       await expect(form.getByRole('checkbox', { name: bankAccount.name, exact: true })).toBeChecked();
       await expect(form.getByRole('checkbox', { name: 'Reserva', exact: true })).not.toBeChecked();
-      expect(await form.evaluate(e => e.getBoundingClientRect().width)).toBeLessThanOrEqual(840);
+      const alignment = await form.evaluate(e => { const panel=e.closest('.finance-panel')!.getBoundingClientRect(),main=document.getElementById('main')!,rect=main.getBoundingClientRect(),css=getComputedStyle(main);return {left:panel.left-(rect.left+parseFloat(css.paddingLeft)),right:panel.right-(rect.right-parseFloat(css.paddingRight))}; });
+      expect(Math.abs(alignment.left)).toBeLessThanOrEqual(1); expect(Math.abs(alignment.right)).toBeLessThanOrEqual(1);
       expect(await form.locator('.safe-buffer-field').evaluate(e => e.getBoundingClientRect().width)).toBeLessThanOrEqual(360);
       const save = form.getByRole('button', { name: 'Salvar configuração' });
-      await expect(save).toHaveCSS('background-color', 'rgb(185, 28, 28)'); await expect(save).toHaveCSS('color', 'rgb(255, 255, 255)');
+      await expect(save).toHaveCSS('background-color', theme==='light'?'rgb(29, 78, 216)':'rgb(96, 165, 250)'); await expect(save).toHaveCSS('color', theme==='light'?'rgb(255, 255, 255)':'rgb(15, 23, 42)');
       await expect(save).toHaveCSS('border-radius', '10px');
       const gap = await form.evaluate(e => e.querySelector('.safe-settings-actions')!.getBoundingClientRect().top - e.querySelector('.safe-settings-fields')!.getBoundingClientRect().bottom);
       expect(gap).toBeLessThanOrEqual(24);
@@ -125,7 +126,7 @@ test('crimson settings group accounts, reserve and planning without shifting act
   expect(state.financialWrites).toBe(0); expect(state.errors).toEqual([]);
 });
 
-test('crimson simplified sidebar, rail and deep-red actions use readable active text', async ({ page }, info) => {
+test('blue-green simplified sidebar, rail and primary actions use readable active text', async ({ page }, info) => {
   await page.setViewportSize({ width: 1440, height: 960 });
   const state = await uiuxBoundary(page); await uiuxLogin(page);
   for (const theme of ['light', 'dark']) {
@@ -136,10 +137,13 @@ test('crimson simplified sidebar, rail and deep-red actions use readable active 
     const active = nav.locator('a.active');
     expect(await active.evaluate(e => getComputedStyle(e).color)).toBe(await page.locator('body').evaluate(e => getComputedStyle(e).color));
     const action = page.getByRole('link', { name: 'Novo movimento', exact: true });
-    await expect(action).toHaveCSS('background-color', 'rgb(185, 28, 28)'); await expect(action).toHaveCSS('color', 'rgb(255, 255, 255)');
+    await expect(action).toHaveCSS('background-color', theme==='light'?'rgb(29, 78, 216)':'rgb(96, 165, 250)'); await expect(action).toHaveCSS('color', theme==='light'?'rgb(255, 255, 255)':'rgb(15, 23, 42)');
     await page.screenshot({ path: `.harness/tmp/crimson/sidebar-expanded-${info.project.name}-${theme}.png`, fullPage: true, animations: 'disabled' });
     await page.getByRole('button', { name: 'Recolher navegação' }).click();
-    await expect(nav.getByRole('link', { name: 'Cartões' })).toHaveAttribute('title', 'Cartões');
+    const cards = nav.getByRole('link', { name: 'Cartões', exact: true });
+    await cards.focus();
+    await expect(page.getByRole('tooltip')).toHaveText('Cartões');
+    await expect(cards).toHaveAttribute('aria-describedby', await page.getByRole('tooltip').getAttribute('id') as string);
     await page.screenshot({ path: `.harness/tmp/crimson/sidebar-rail-${info.project.name}-${theme}.png`, fullPage: true, animations: 'disabled' });
     await page.getByRole('button', { name: 'Expandir navegação' }).click();
   }

@@ -163,8 +163,9 @@ async function loginBudget(page: Page) {
   await page.getByLabel('Senha', { exact: true }).fill('synthetic-password');
   await page.getByRole('button', { name: 'Entrar na minha conta' }).click();
   await expect(
-    page.getByRole('heading', { name: 'Bom ter você aqui, Conta Teste.' }),
+    page.getByRole('heading', { name: 'Início' }),
   ).toBeVisible();
+  await expect(page.locator('#main .ui-page-header')).toContainText('Conta Teste');
   await page.goto('/finance/budgets?month=2026-10&currency=BRL');
 }
 test('budget empty/create, 500/100/400/20%, edit, reload, removal and navigation', async ({
@@ -172,7 +173,7 @@ test('budget empty/create, 500/100/400/20%, edit, reload, removal and navigation
 }) => {
   const state = await boundary(page);
   await loginBudget(page);
-  await expect(page.getByText('Seu orçamento começa aqui.')).toBeVisible();
+  await expect(page.getByText('Nenhum orçamento cadastrado')).toBeVisible();
   await page.getByRole('button', { name: 'Criar orçamento deste mês' }).click();
   await page.getByRole('button', { name: 'Adicionar categoria' }).click();
   await expect(

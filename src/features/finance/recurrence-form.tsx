@@ -1,3 +1,4 @@
+import { Input } from '../../components/ui/input';
 import { useId } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -45,8 +46,8 @@ export function RecurrenceEditor({row,accounts,categories,onSaved,onCancel}:{row
     </FormSection><FormSection title="Periodicidade e vigência">
     {field('frequency','Frequência',<select {...props('frequency')} className="finance-select">{Object.entries(frequencyLabels).map(([value,label])=><option value={value} key={value}>{label}</option>)}</select>)}
     {field('intervalCount','Intervalo',<input {...props('intervalCount')} className="finance-select" type="number" min={1} max={intervalLimits[frequency]}/>)}
-    {field('startDate','Data inicial',<input {...props('startDate')} className="finance-select" type="date" min="1000-01-01" max="9998-12-31"/>)}
-    {field('endDate','Data final opcional',<input {...props('endDate')} className="finance-select" type="date" min="1000-01-01" max="9998-12-31"/>)}
+    {field('startDate','Data inicial',<Input {...props('startDate')} className="finance-select" type="date" min="1000-01-01" max="9998-12-31"/>)}
+    {field('endDate','Data final opcional',<Input {...props('endDate')} className="finance-select" type="date" min="1000-01-01" max="9998-12-31"/>)}
     </FormSection>
     <p className="recurrence-form-note">Tipo e moeda permanecem fixos após a criação. Editar a regra atualiza suas projeções; lançamentos confirmados permanecem como foram registrados.</p>
     <div className="ui-form-actions"><Button type="button" variant="outline" onClick={onCancel} disabled={mutation.isPending}>Cancelar</Button><Button type="submit" disabled={mutation.isPending}>{mutation.isPending?'Salvando…':row?'Salvar alterações':'Cadastrar recorrência'}</Button></div><div className="ui-form-feedback" aria-live="polite">{mutation.isError&&<Feedback>{(mutation.error as Error).message}</Feedback>}</div>

@@ -3,6 +3,14 @@ import { AlertCircle, Inbox } from 'lucide-react';
 import { Button } from './button';
 import { cn } from '../../lib/utils';
 
+export function PageContainer({ className, ...props }: ComponentProps<'main'>) { return <main {...props} className={cn('app-main ui-page-container', className)} />; }
+export function ContentSection({ className, ...props }: ComponentProps<'section'>) { return <section {...props} className={cn('ui-content-section', className)} />; }
+export function FullWidthPanel({ className, ...props }: ComponentProps<'section'>) { return <ContentSection {...props} className={cn('finance-panel ui-panel', className)} />; }
+export function FormPanel(props: ComponentProps<'section'>) { return <FullWidthPanel {...props} className={cn('ui-form-panel', props.className)} />; }
+export function FilterPanel({ className, ...props }: ComponentProps<'form'>) { return <form {...props} className={cn('finance-filters ui-filter-panel', className)} />; }
+export function SummaryGrid({ className, ...props }: ComponentProps<'div'>) { return <div {...props} className={cn('ui-summary-grid', className)} />; }
+export function DataSection({ className, ...props }: ComponentProps<'section'>) { return <FullWidthPanel {...props} className={cn('ui-data-section', className)} />; }
+
 export function PageHeader({ title, description, actions, status, breadcrumb }: { title: string; description?: string; actions?: ReactNode; status?: ReactNode; breadcrumb?: ReactNode }) {
   return <header className="ui-page-header">{breadcrumb}<div><h1 tabIndex={-1}>{title}</h1>{description && <p>{description}</p>}{status}</div>{actions && <div className="ui-actions">{actions}</div>}</header>;
 }

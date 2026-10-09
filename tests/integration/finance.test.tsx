@@ -66,8 +66,8 @@ describe('finance UI with real services and external transport only', () => {
       return Response.json(options?.method === 'POST' ? account : saved ? [account] : []);
     };
     const app = setup('/finance/accounts', fetcher);
-    expect(await screen.findByText('Nenhuma conta ainda.')).toBeVisible();
-    await app.user.click(screen.getByRole('button', { name: 'Criar primeira conta' }));
+    expect(await screen.findByText('Nenhuma conta cadastrada')).toBeVisible();
+    await app.user.click(screen.getByRole('button', { name: 'Criar conta' }));
     await app.user.type(screen.getByLabelText('Nome da conta'), 'Conta principal');
     await app.user.clear(screen.getByLabelText('Saldo inicial'));
     await app.user.type(screen.getByLabelText('Saldo inicial'), '10,50');
@@ -84,7 +84,7 @@ describe('finance UI with real services and external transport only', () => {
   it('protects Finance with the existing Auth V2 guard', async () => {
     const fetcher = vi.fn<typeof fetch>();
     setup('/finance/accounts', fetcher, false);
-    expect(await screen.findByRole('heading', { name: 'Bom ter você aqui.' })).toBeVisible();
+    expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeVisible();
     expect(fetcher).not.toHaveBeenCalled();
   });
   it('prevents double submit, locks fields and provides sanitized failure/success feedback', async () => {

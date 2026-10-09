@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { ReactNode } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router';
 import { ChevronDown, ChevronRight, LogOut, Menu, MoreHorizontal, PanelLeftClose, PanelLeftOpen, Search, Sprout, UserRound } from 'lucide-react';
@@ -6,7 +7,7 @@ import { expandableNavigationGroups, navigationItems, activeNavigation, mobileNa
 import type { NavigationItem } from './navigation-config';
 import { Button } from '../components/ui/button';
 import { Dialog } from '../components/ui/dialog';
-import { IconButton } from '../components/ui/surface';
+import { IconButton, PageContainer } from '../components/ui/surface';
 import { Feedback } from '../components/feedback';
 import { ThemeControl } from '../theme/theme-control';
 
@@ -14,10 +15,26 @@ const railKey = 'beter-life-sidebar-rail';
 function readRail() { try { return localStorage.getItem(railKey) === 'true'; } catch { return false; } }
 function NavigationLink({ item, rail = false, close }: { item: NavigationItem; rail?: boolean; close?: () => void }) {
   const Icon = item.icon;
-  return <NavLink to={item.path} end={item.exactMatch} aria-label={item.label} title={rail ? item.label : undefined} onClick={close}
+  const anchor = useRef<HTMLAnchorElement>(null);
+  const tooltipId = useId(), [position, setPosition] = useState<{ left: number; top: number } | null>(null);
+  const visible = rail && position !== null;
+  useEffect(() => {
+    if (!visible) return;
+    const reposition = () => {
+      const element = anchor.current;
+      if (!element || !(element.matches(':hover') || document.activeElement === element)) { setPosition(null); return; }
+      const rect = element.getBoundingClientRect();
+      setPosition({ left: rect.right + 12, top: rect.top + rect.height / 2 });
+    };
+    window.addEventListener('scroll', reposition, true); window.addEventListener('resize', reposition);
+    return () => { window.removeEventListener('scroll', reposition, true); window.removeEventListener('resize', reposition); };
+  }, [visible]);
+  const show = (element: HTMLElement) => { if (rail) { const rect = element.getBoundingClientRect(); setPosition({ left: rect.right + 12, top: rect.top + rect.height / 2 }); } };
+  return <><NavLink ref={anchor} to={item.path} end={item.exactMatch} aria-label={item.label} aria-describedby={rail && position ? tooltipId : undefined} onClick={close}
+    onMouseEnter={event => show(event.currentTarget)} onMouseLeave={() => setPosition(null)} onFocus={event => show(event.currentTarget)} onBlur={() => setPosition(null)}
     className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>
-    <Icon aria-hidden="true" /><span className="nav-label">{item.label}</span>{rail && <span className="nav-tooltip" aria-hidden="true">{item.label}</span>}
-  </NavLink>;
+    <Icon aria-hidden="true" /><span className="nav-label">{item.label}</span>
+  </NavLink>{rail && position && createPortal(<span id={tooltipId} role="tooltip" className="nav-tooltip" style={position}>{item.label}</span>, document.body)}</>;
 }
 function NavigationGroups({ rail = false, mobile = false, close }: { rail?: boolean; mobile?: boolean; close?: () => void }) {
   const { pathname } = useLocation(), current = activeNavigation(pathname);
@@ -93,7 +110,7 @@ export function AppShell({ children, busy, error, onLogout }: { children: ReactN
       <IconButton label="Abrir menu completo" className="mobile-menu-trigger" onClick={() => setOverlay('menu')}><Menu /></IconButton>
       <Breadcrumbs /><div className="header-actions"><button type="button" className="header-search" aria-label="Buscar páginas" onClick={() => setOverlay('search')}><Search aria-hidden="true" /><span>Buscar páginas</span><kbd aria-hidden="true">⌘ / Ctrl K</kbd></button><ThemeControl /><IconButton label="Menu da conta" onClick={() => setOverlay('account')}><UserRound /></IconButton></div>
     </header>{error && <div className="shell-feedback"><Feedback>Não foi possível sair. Tente novamente.</Feedback></div>}
-      <main id="main" className="app-main">{children}</main><footer className="app-footer">Beter Life · Clareza para suas escolhas.</footer>
+      <PageContainer id="main">{children}</PageContainer><footer className="app-footer">Beter Life</footer>
     </div>
     <nav aria-label="Navegação mobile" className="mobile-navigation">{mobileNavigation.map(item => {
       const destination = navigationItems.find(value => value.id === item.id)!;

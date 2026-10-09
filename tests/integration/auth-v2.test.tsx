@@ -52,20 +52,20 @@ describe('clean-room routes with independently mocked boundaries', () => {
     await app.user.type(screen.getByLabelText('Senha', { exact: true }), 'safe-password');
     await app.user.click(screen.getByRole('button', { name: 'Entrar na minha conta' }));
     expect(app.auth.signInWithPassword).toHaveBeenCalledExactlyOnceWith({ email: 'test@example.test', password: 'safe-password' });
-    expect(await screen.findByRole('heading', { name: 'Seu espaço começa com você.' })).toBeVisible();
+    expect(await screen.findByRole('heading', { name: 'Início' })).toBeVisible();
     expect(backend).toHaveBeenCalled();
     const [url, options] = backend.mock.calls[0]!;
     expect(url).toBe('http://localhost:3001/api/v1/me');
     expect(new Headers(options?.headers).get('authorization')).toBe(`Bearer ${session.access_token}`);
     await app.user.click(screen.getByRole('button', { name: 'Sair da conta' }));
-    expect(await screen.findByRole('heading', { name: 'Bom ter você aqui.' })).toBeVisible();
+    expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeVisible();
     expect(app.store.getSnapshot().status).toBe('unauthenticated');
     expect(app.auth.onAuthStateChange).toHaveBeenCalledTimes(1);
   });
 
   it('blocks a protected route while unauthenticated', async () => {
     setup('/app');
-    expect(await screen.findByRole('heading', { name: 'Bom ter você aqui.' })).toBeVisible();
+    expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeVisible();
   });
 
   it('keeps signup and recovery requests publicly neutral', async () => {
@@ -93,7 +93,7 @@ describe('clean-room routes with independently mocked boundaries', () => {
     });
     app.auth.updateUser.mockResolvedValue({ data: { user: session.user }, error: null });
     app.auth.signOut.mockImplementation(async () => { app.emit('SIGNED_OUT', null); return { error: null }; });
-    expect(await screen.findByRole('heading', { name: 'Uma nova senha.' })).toBeVisible();
+    expect(await screen.findByRole('heading', { name: 'Nova senha' })).toBeVisible();
     expect(app.auth.verifyOtp).toHaveBeenCalledExactlyOnceWith({ token_hash: 'synthetic-hash', type: 'recovery' });
     await waitFor(() => expect(new URL(window.location.href).searchParams.has('token_hash')).toBe(false));
     await app.user.type(screen.getByLabelText('Nova senha', { exact: true }), 'new-password');
@@ -120,7 +120,7 @@ describe('clean-room routes with independently mocked boundaries', () => {
     const name = await screen.findByLabelText('Como prefere ser chamado?');
     await app.user.clear(name); await app.user.type(name, 'Perfil atualizado');
     await app.user.click(screen.getByRole('button', { name: 'Salvar perfil' }));
-    expect(await screen.findByText('Perfil salvo. Tudo do seu jeito.')).toBeVisible();
+    expect(await screen.findByText('Perfil salvo.')).toBeVisible();
     expect(saved.displayName).toBe('Perfil atualizado');
   });
 

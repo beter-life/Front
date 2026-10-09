@@ -70,5 +70,5 @@ export async function uiuxLogin(page: Page, origin = '') {
   await page.goto(origin + '/login'); await page.getByLabel('E-mail').fill('test@example.test');
   await page.getByLabel('Senha', { exact: true }).fill('synthetic-password');
   await page.getByRole('button', { name: 'Entrar na minha conta' }).click();
-  await expect(page.getByRole('heading', { name: 'Bom ter você aqui, Conta Teste.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Início' })).toBeVisible(); await expect(page.locator('#main .ui-page-header')).toContainText('Conta Teste');
 }

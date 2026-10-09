@@ -5,6 +5,7 @@ import { cardFixture } from '../fixtures/cards';
 import { debtFixture } from '../fixtures/debts';
 import { goalFixture } from '../fixtures/goals';
 
+const captureRoot = process.env.UIUX_CAPTURE_DIR ?? '.harness/tmp/refinement';
 const destinations = [
   ...navigationItems.map(item => [item.id, item.path]),
   ['card-detail', '/finance/cards/' + cardFixture.id],
@@ -39,14 +40,14 @@ test('complete visual inventory of destinations and form families without financ
     for (const [name, path] of destinations) {
       await ready(page, path!);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), path).toBe(true);
-      await page.screenshot({ path: `.harness/tmp/refinement/${stage}-${width}-${theme}-${name}.png`, fullPage: true, animations: 'disabled' });
+      await page.screenshot({ path: `${captureRoot}/${stage}-${width}-${theme}-${name}.png`, fullPage: true, animations: 'disabled' });
     }
     for (const [name, path, action] of formFamilies) {
       await ready(page, path!);
       if (action) await page.getByRole('button', { name: action, exact: true }).click();
       await expect(page.locator('#main form').first()).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), name).toBe(true);
-      await page.screenshot({ path: `.harness/tmp/refinement/${stage}-${width}-${theme}-form-${name}.png`, fullPage: true, animations: 'disabled' });
+      await page.screenshot({ path: `${captureRoot}/${stage}-${width}-${theme}-form-${name}.png`, fullPage: true, animations: 'disabled' });
     }
   }
   expect(state.financialWrites).toBe(0); expect(state.errors).toEqual([]);
@@ -71,6 +72,11 @@ test('form families keep fields and actions inside the page at every supported w
           return rect.height<44||rect.right>parent.right+1||rect.left<parent.left-1?[element.getAttribute('name')??element.id??element.textContent]:[];
         }));
         expect(defects,name+':'+width+':'+theme).toEqual([]);
+        const surface=page.locator('#main form').first().locator('xpath=ancestor::*[contains(concat(" ",normalize-space(@class)," ")," ui-card ") or contains(concat(" ",normalize-space(@class)," ")," finance-panel ")][1]');
+        const bounds=await surface.boundingBox(), main=await page.locator('#main').evaluate(element=>{const rect=element.getBoundingClientRect(),css=getComputedStyle(element);return {left:rect.left+parseFloat(css.paddingLeft),right:rect.right-parseFloat(css.paddingRight)};});
+        expect(bounds,name+': panel').not.toBeNull();
+        expect(Math.abs(bounds!.x-main.left),name+': left edge').toBeLessThanOrEqual(1);
+        expect(Math.abs(bounds!.x+bounds!.width-main.right),name+': right edge').toBeLessThanOrEqual(1);
       }
     }
   }
@@ -85,7 +91,7 @@ test('native select uses themed popup and keyboard selection without a financial
     const currency=page.getByLabel('Moeda',{exact:true});
     await expect(currency).toHaveValue('BRL');await currency.click();
     await expect.poll(()=>currency.evaluate(element=>element.matches(':open'))).toBe(true);
-    await page.screenshot({path:`.harness/tmp/refinement/select-${info.project.name}-${theme}.png`,animations:'disabled'});
+    await page.screenshot({path:`${captureRoot}/select-${info.project.name}-${theme}.png`,animations:'disabled'});
     await page.keyboard.press('Home');await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');
     await expect(currency).toHaveValue('USD');await expect(currency).toBeFocused();
     await currency.click();await page.keyboard.press('Escape');await expect(currency).toBeFocused();
@@ -123,7 +129,7 @@ test('public form inventory uses both themes at desktop and mobile widths', asyn
     for (const theme of ['light', 'dark']) {
       await page.getByLabel('Tema').selectOption(theme);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-      await page.screenshot({ path: `.harness/tmp/refinement/${stage}-${width}-${theme}-${path.slice(1).replaceAll('/', '-')}.png`, fullPage: true, animations: 'disabled' });
+      await page.screenshot({ path: `${captureRoot}/${stage}-${width}-${theme}-${path.slice(1).replaceAll('/', '-')}.png`, fullPage: true, animations: 'disabled' });
     }
   }
 });

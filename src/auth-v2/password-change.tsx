@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import type { FormEvent } from 'react';
+import { FormGrid } from '../components/ui/form-section';
 import { FormInput } from '../components/form-input';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -28,10 +29,10 @@ export function PasswordChangePageV2() {
     } catch { setError('Não foi possível atualizar a senha. Tente novamente.'); }
     finally { pending.current = false; setBusy(false); }
   }
-  return <><div className="page-intro"><p className="eyebrow">SEGURANÇA DA CONTA</p><h1 tabIndex={-1}>Alterar senha.</h1><p>Escolha uma senha forte que você ainda não usou aqui.</p></div>
-    <Card className="max-w-2xl"><form className="form-stack" noValidate onSubmit={submit}>
-      <FormInput id="password" label="Nova senha" type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} />
-      <FormInput id="confirmPassword" label="Confirmar nova senha" type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
+  return <><div className="page-intro"><h1 tabIndex={-1}>Alterar senha</h1><p>Escolha uma senha forte que você ainda não usou aqui.</p></div>
+    <Card className="ui-form-panel"><form className="form-stack" noValidate onSubmit={submit}>
+      <FormGrid><FormInput id="password" label="Nova senha" type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} />
+      <FormInput id="confirmPassword" label="Confirmar nova senha" type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} /></FormGrid>
       <div className="ui-form-actions"><Button type="submit" disabled={busy}>{busy ? 'Atualizando…' : 'Salvar nova senha'}</Button></div><div className="auth-feedback" aria-live="polite">{error && <Feedback>{error}</Feedback>}{success && <Feedback success>Senha atualizada.</Feedback>}</div>
     </form></Card></>;
 }

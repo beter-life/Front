@@ -213,8 +213,9 @@ async function login(page: Page) {
   await page.getByLabel('Senha', { exact: true }).fill('synthetic-password');
   await page.getByRole('button', { name: 'Entrar na minha conta' }).click();
   await expect(
-    page.getByRole('heading', { name: 'Bom ter você aqui, Conta Teste.' }),
+    page.getByRole('heading', { name: 'Início' }),
   ).toBeVisible();
+  await expect(page.locator('#main .ui-page-header')).toContainText('Conta Teste');
 }
 async function createAccount(page: Page, name: string, initial: string) {
   await page.getByRole('button', { name: 'Nova conta', exact: true }).click();
@@ -229,8 +230,8 @@ test('financial empty state → account → categories → income/expense → at
   const fixture = await boundary(page);
   await login(page);
   await navigateFeature(page, 'Visão geral');
-  await expect(page.getByText('Sua primeira conta é o começo.')).toBeVisible();
-  await page.getByRole('link', { name: 'Criar primeira conta' }).click();
+  await expect(page.getByText('Nenhuma conta cadastrada')).toBeVisible();
+  await page.getByRole('link', { name: 'Criar conta' }).click();
   await createAccount(page, 'Principal', '1000');
   await createAccount(page, 'Reserva', '0');
   await navigateFeature(page, 'Categorias');
@@ -308,8 +309,8 @@ test('filters use selected account/type/period and clearing restores the first p
   await navigateFeature(page, 'Movimentos');
   await page.getByLabel('Filtrar conta').selectOption({ label: 'Principal' });
   await page.getByLabel('Filtrar tipo').selectOption('EXPENSE');
-  await page.getByLabel('Data inicial').fill('2026-01-01');
-  await page.getByLabel('Data final').fill('2026-01-31');
+  await page.getByLabel('Data inicial', { exact: true }).fill('2026-01-01');
+  await page.getByLabel('Data final', { exact: true }).fill('2026-01-31');
   await page.getByRole('button', { name: 'Aplicar filtros' }).click();
   await expect.poll(() => fixture.state.filters.at(-1)).toContain('type=EXPENSE');
   const params = new URLSearchParams(fixture.state.filters.at(-1));
@@ -320,7 +321,7 @@ test('filters use selected account/type/period and clearing restores the first p
   // The original unfiltered page may be served from QueryClient's valid cache.
   await expect(page.getByLabel('Filtrar conta')).toHaveValue('');
   await expect(page.getByLabel('Filtrar tipo')).toHaveValue('');
-  await expect(page.getByLabel('Data inicial')).toHaveValue('');
+  await expect(page.getByLabel('Data inicial', { exact: true })).toHaveValue('');
   await page.reload();
   await expect.poll(() => fixture.state.filters.at(-1)).toBe('?limit=25');
 });
@@ -331,7 +332,7 @@ test('Finance loading remains accessible and logout revokes protected UI access'
   await login(page);
   await navigateFeature(page, 'Visão geral');
   await expect(page.getByRole('status')).toBeVisible();
-  await expect(page.getByText('Sua primeira conta é o começo.')).toBeVisible();
+  await expect(page.getByText('Nenhuma conta cadastrada')).toBeVisible();
   await logoutThroughAccount(page);
   await page.goto('/finance/transactions');
   await expect(page).toHaveURL('http://localhost:3103/login');

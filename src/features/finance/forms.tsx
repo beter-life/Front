@@ -26,7 +26,7 @@ export function Field({
           {children}
         </select>
       ) : (
-        <Input id={id} {...props} />
+        <Input id={id} calendarLabel={label} {...props} />
       )}
     </div>
   );

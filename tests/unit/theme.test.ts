@@ -30,8 +30,12 @@ describe('theme preferences without session/financial persistence', () => {
     };
     const blocks = [...css.matchAll(/:root(?:\[data-theme="dark"\])?\s*\{([^}]+)\}/g)];
     expect(blocks).toHaveLength(2);
+    let inherited: Record<string, string> = {};
     for (const block of blocks) {
-      const colors = Object.fromEntries([...block[1]!.matchAll(/--([\w-]+):\s*(#[\da-f]+)/g)].map(match => [match[1], match[2]]));
+      const tokens: Record<string, string> = { ...inherited, ...Object.fromEntries([...block[1]!.matchAll(/--([\w-]+):\s*(#[\da-f]+|var\(--[\w-]+\))/g)].map(match => [match[1], match[2]])) };
+      const resolve = (name: string): string => { const token = tokens[name]!; const alias = token.match(/^var\(--([\w-]+)\)$/); return alias ? resolve(alias[1]!) : token; };
+      const colors = Object.fromEntries(Object.keys(tokens).map(name => [name, resolve(name)]));
+      inherited = tokens;
       for (const [a, b] of [['foreground', 'background'], ['muted-foreground', 'card'], ['muted-foreground', 'background'], ['primary', 'card'], ['primary-foreground', 'primary'], ['action-foreground', 'action-primary'], ['action-foreground', 'action-hover'], ['success', 'success-surface'], ['warning', 'warning-surface'], ['destructive', 'error-surface'], ['expense', 'expense-surface'], ['info', 'info-surface'], ['brand-foreground', 'brand-surface']]) {
         const x = luminance(colors[a!]!), y = luminance(colors[b!]!);
         expect((Math.max(x, y) + .05) / (Math.min(x, y) + .05), a + '/' + b).toBeGreaterThanOrEqual(4.5);

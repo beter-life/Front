@@ -222,7 +222,7 @@ describe('budget UI with real transport, query cache and Auth V2 guard', () => {
     );
     expect(await screen.findByRole('status')).toHaveTextContent('Carregando orçamento…');
     result.resolve(Response.json(emptyBudget()));
-    expect(await screen.findByText('Seu orçamento começa aqui.')).toBeVisible();
+    expect(await screen.findByText('Nenhum orçamento cadastrado')).toBeVisible();
   });
   it('blocks an invalid month before requesting the summary', async () => {
     const other = boundary(() => emptyBudget());
@@ -241,7 +241,7 @@ describe('budget UI with real transport, query cache and Auth V2 guard', () => {
   it('does not request private data while signed out', async () => {
     const fetcher = vi.fn<typeof fetch>();
     setup(fetcher, false);
-    expect(await screen.findByRole('heading', { name: 'Bom ter você aqui.' })).toBeVisible();
+    expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeVisible();
     expect(fetcher).not.toHaveBeenCalled();
   });
   it('deactivates an allocation only after explicit confirmation', async () => {

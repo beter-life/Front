@@ -84,16 +84,16 @@ async function mockServices(page: Page, options: { loginFailure?: boolean; usedT
 test('new SDK login opens the protected /me route and logout blocks it', async ({ page }) => {
   const state = await mockServices(page);
   await page.goto('/app');
-  await expect(page.getByRole('heading', { name: 'Bom ter você aqui.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Entrar' })).toBeVisible();
   await page.getByLabel('E-mail').fill('  TeSt@Example.Test  ');
   await page.getByLabel('Senha', { exact: true }).fill('synthetic-password');
   await page.getByRole('button', { name: 'Entrar na minha conta' }).click();
-  await expect(page.getByRole('heading', { name: 'Seu espaço começa com você.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Início' })).toBeVisible();
   expect(state.logins).toBe(1);
   expect(state.loginEmailCurrent).toBe(true);
   expect(state.meReads).toBeGreaterThan(0);
   await logoutThroughAccount(page);
-  await expect(page.getByRole('heading', { name: 'Bom ter você aqui.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Entrar' })).toBeVisible();
   expect(state.logouts).toBe(1);
   await page.goto('/app');
   await expect(page).toHaveURL('http://localhost:3103/login');
@@ -120,7 +120,7 @@ test('an existing profile appears from GET /me only for its authenticated owner'
   await page.getByLabel('E-mail').fill('test@example.test');
   await page.getByLabel('Senha', { exact: true }).fill('synthetic-password');
   await page.getByRole('button', { name: 'Entrar na minha conta' }).click();
-  await expect(page.getByRole('heading', { name: 'Bom ter você aqui, Conta de Teste.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Início' })).toBeVisible(); await expect(page.locator('#main .ui-page-header')).toContainText('Conta de Teste');
   expect(state.meReads).toBeGreaterThan(0);
 });
 
@@ -174,7 +174,7 @@ test('recovery is single and neutral; the recovered password permits a new login
   expect(state.recoveries).toBe(1);
   expect(state.recoveryRedirect).toBe('http://localhost:3103/auth/recovery');
   await page.goto('/auth/recovery?token_hash=synthetic-hash&type=recovery');
-  await expect(page.getByRole('heading', { name: 'Uma nova senha.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Nova senha' })).toBeVisible();
   expect(state.verifications).toBe(1);
   expect(state.verificationType).toBe('recovery');
   expect(new URL(page.url()).searchParams.has('token_hash')).toBe(false);
@@ -186,7 +186,7 @@ test('recovery is single and neutral; the recovered password permits a new login
   await page.getByLabel('E-mail').fill('test@example.test');
   await page.getByLabel('Senha', { exact: true }).fill('new-synthetic-password');
   await page.getByRole('button', { name: 'Entrar na minha conta' }).click();
-  await expect(page.getByRole('heading', { name: 'Seu espaço começa com você.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Início' })).toBeVisible();
   expect(state.logins).toBe(1);
   expect(messages.join('\n')).not.toMatch(/synthetic-hash|new-synthetic-password|synthetic-refresh|eyJ[\w-]+\.[\w-]+\.[\w-]+/);
 });
@@ -197,7 +197,7 @@ test('invalid recovery token and failed update do not claim success', async ({ p
   await expect(page.getByRole('heading', { name: 'Este link não está disponível.' })).toBeVisible();
   expect(state.verifications).toBe(1);
   await page.goto('/auth/recovery?token_hash=synthetic-hash&type=recovery');
-  await expect(page.getByRole('heading', { name: 'Uma nova senha.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Nova senha' })).toBeVisible();
   await page.getByLabel('Nova senha', { exact: true }).fill('new-synthetic-password');
   await page.getByLabel('Confirmar nova senha').fill('new-synthetic-password');
   await page.getByRole('button', { name: 'Salvar nova senha' }).click();
@@ -214,7 +214,7 @@ test('profile persists through reload and logout removes protected access', asyn
   await navigateFeature(page, 'Meu perfil');
   await page.getByLabel('Como prefere ser chamado?').fill('Perfil persistido');
   await page.getByRole('button',{name:'Salvar perfil'}).click();
-  await expect(page.getByText('Perfil salvo. Tudo do seu jeito.')).toBeVisible();
+  await expect(page.getByText('Perfil salvo.')).toBeVisible();
   expect(state.profileWrites).toBe(1);
   await page.reload();
   await expect(page.getByLabel('Como prefere ser chamado?')).toHaveValue('Perfil persistido');
@@ -244,6 +244,6 @@ test('authenticated password change preserves the session and allows login with 
   await page.getByLabel('E-mail').fill('test@example.test');
   await page.getByLabel('Senha',{exact:true}).fill('authenticated-new-password');
   await page.getByRole('button',{name:'Entrar na minha conta'}).click();
-  await expect(page.getByRole('heading',{name:'Seu espaço começa com você.'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Início'})).toBeVisible();
   expect(state.logins).toBe(2);
 });

@@ -12,6 +12,8 @@ import {
 import type { ReactNode } from 'react';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
+import { FormGrid } from '../../components/ui/form-section';
+import { ContentSection, FormPanel } from '../../components/ui/surface';
 import { Feedback } from '../../components/feedback';
 import { useMe } from '../../profile/hooks';
 import { useServices } from '../../hooks/use-services';
@@ -140,34 +142,36 @@ function AllocationEditor({
         done();
       }}
     >
-      {!existing && (
-        <Field label="Categoria de despesa" name="categoryId" required>
-          <option value="">Escolha uma categoria</option>
-          {available.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
+      <FormGrid className="ui-form-grid-compact">
+        {!existing && (
+          <Field label="Categoria de despesa" name="categoryId" required>
+            <option value="">Escolha uma categoria</option>
+            {available.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </Field>
+        )}
+        <Field
+          label="Limite planejado"
+          name="amount"
+          required
+          inputMode="decimal"
+          autoComplete="off"
+          defaultValue={existing ? budgetAmountInput(existing.baseMinor, currency) : ''}
+          placeholder="0,00"
+        />
+        <Field
+          label="Sobra do mês anterior"
+          name="rolloverPolicy"
+          defaultValue={existing?.rolloverPolicy ?? 'NONE'}
+          required
+        >
+          <option value="NONE">Não carregar</option>
+          <option value="POSITIVE_ONLY">Carregar apenas saldo positivo</option>
         </Field>
-      )}
-      <Field
-        label="Limite planejado"
-        name="amount"
-        required
-        inputMode="decimal"
-        autoComplete="off"
-        defaultValue={existing ? budgetAmountInput(existing.baseMinor, currency) : ''}
-        placeholder="0,00"
-      />
-      <Field
-        label="Sobra do mês anterior"
-        name="rolloverPolicy"
-        defaultValue={existing?.rolloverPolicy ?? 'NONE'}
-        required
-      >
-        <option value="NONE">Não carregar</option>
-        <option value="POSITIVE_ONLY">Carregar apenas saldo positivo</option>
-      </Field>
+      </FormGrid>
       <p className="finance-note">
         Zero é permitido. A sobra considera o mês anterior já encerrado, nesta mesma moeda.
       </p>
@@ -300,7 +304,6 @@ export function BudgetPage() {
   return (
     <>
       <div className="page-intro">
-        <p className="eyebrow">CLAREZA FINANCEIRA</p>
         <h1 tabIndex={-1}>Orçamento mensal</h1>
         <p>Planeje por categoria e acompanhe o que já foi gasto.</p>
       </div>
@@ -405,7 +408,7 @@ export function BudgetPage() {
             </div>
             {!s.periodId ? (
               <Card className="budget-empty">
-                <h2>Seu orçamento começa aqui.</h2>
+                <h2>Nenhum orçamento cadastrado</h2>
                 <p>
                   Defina limites para as categorias de despesa deste mês. Os gastos existentes
                   continuam visíveis.
@@ -459,7 +462,7 @@ export function BudgetPage() {
                     </BudgetAction>
                   )}
                 </Card>
-                <section className="budget-planning">
+                <ContentSection className="budget-planning ui-content-stack">
                   <div className="budget-section-head">
                     <div>
                       <h2>Planejado por categoria</h2>
@@ -476,7 +479,7 @@ export function BudgetPage() {
                     <Feedback>Não foi possível carregar as categorias para novos limites.</Feedback>
                   )}
                   {adding && (
-                    <Card>
+                    <FormPanel>
                       <h3>Novo limite</h3>
                       <AllocationEditor
                         key={month + currency}
@@ -485,7 +488,7 @@ export function BudgetPage() {
                         available={available}
                         done={() => setAdding(false)}
                       />
-                    </Card>
+                    </FormPanel>
                   )}
                   {!s.categories.length && (
                     <div className="finance-empty">
@@ -508,7 +511,7 @@ export function BudgetPage() {
                       />
                     ))}
                   </div>
-                </section>
+                </ContentSection>
               </>
             )}
             <section className="budget-unplanned">

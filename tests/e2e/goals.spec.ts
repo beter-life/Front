@@ -47,12 +47,12 @@ async function boundary(page: Page, initial: Goal[] = [], options = { fail: fals
   });
   return state;
 }
-async function login(page: Page, path = '/finance/goals') { await page.goto('/login'); await page.getByLabel('E-mail').fill('test@example.test'); await page.getByLabel('Senha', { exact: true }).fill('synthetic-password'); await page.getByRole('button', { name: 'Entrar na minha conta' }).click(); await expect(page.getByRole('heading', { name: 'Bom ter você aqui, Conta Teste.' })).toBeVisible(); await page.goto(path); }
+async function login(page: Page, path = '/finance/goals') { await page.goto('/login'); await page.getByLabel('E-mail').fill('test@example.test'); await page.getByLabel('Senha', { exact: true }).fill('synthetic-password'); await page.getByRole('button', { name: 'Entrar na minha conta' }).click(); await expect(page.getByRole('heading', { name: 'Início' })).toBeVisible(); await expect(page.locator('#main .ui-page-header')).toContainText('Conta Teste'); await page.goto(path); }
 test('empty → create → contribution → reload → withdrawal → edit → pause/resume → archive preserves history', async ({ page }) => {
   const state = await boundary(page); await login(page);
-  await expect(page.getByRole('heading', { name: 'Crie sua primeira meta financeira' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Nenhuma meta cadastrada' })).toBeVisible();
   await expect(page.getByText(/não movimenta suas contas/)).toBeVisible(); await page.getByRole('button', { name: 'Nova meta' }).click();
-  await page.getByLabel('Nome', { exact: true }).fill('Reserva teste'); await page.getByLabel('Valor alvo', { exact: true }).fill('10000'); await page.getByLabel('Prazo opcional').fill('2026-12'); await page.getByLabel('Contribuição mensal planejada opcional').fill('1000'); await page.getByLabel('Prioridade').selectOption('HIGH'); await page.getByRole('button', { name: 'Criar meta', exact: true }).click();
+  await page.getByLabel('Nome', { exact: true }).fill('Reserva teste'); await page.getByLabel('Valor alvo', { exact: true }).fill('10000'); await page.getByLabel('Prazo opcional', { exact: true }).fill('2026-12'); await page.getByLabel('Contribuição mensal planejada opcional').fill('1000'); await page.getByLabel('Prioridade').selectOption('HIGH'); await page.getByRole('button', { name: 'Criar meta', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Reserva teste', exact: true })).toBeVisible(); await expect(page.getByText('0% do valor alvo')).toBeVisible(); expect(state.writes[0]!.body).toMatchObject({ targetAmountMinor: '1000000', plannedMonthlyMinor: '100000', currency: 'BRL' });
   await page.getByRole('button', { name: 'Adicionar valor', exact: true }).click(); await page.getByLabel('Valor em BRL').fill('2500'); await page.getByRole('button', { name: 'Registrar contribuição' }).click(); await expect(page.getByText('25% do valor alvo')).toBeVisible();
   await page.reload(); await expect(page.getByText('25% do valor alvo')).toBeVisible(); await expect(page.getByRole('heading', { name: 'Histórico da meta' })).toBeVisible();

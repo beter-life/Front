@@ -45,7 +45,9 @@ describe('navigation presentation only', () => {
   it('ignores Ctrl+K while editing, has empty results and exposes rail labels', async () => {
     const user = setup(); await user.click(screen.getByLabelText('Campo de edição')); await user.keyboard('{Control>}k{/Control}'); expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Recolher navegação' })); expect(localStorage.getItem('beter-life-sidebar-rail')).toBe('true');
-    expect(within(screen.getByRole('navigation', { name: 'Navegação principal' })).getByRole('link', { name: 'Dívidas' })).toHaveAttribute('title', 'Dívidas');
+    const debt = within(screen.getByRole('navigation', { name: 'Navegação principal' })).getByRole('link', { name: 'Dívidas' });
+    await user.hover(debt); expect(screen.getByRole('tooltip')).toHaveTextContent('Dívidas');
+    expect(debt).toHaveAttribute('aria-describedby', screen.getByRole('tooltip').id);
     await user.click(screen.getByRole('button', { name: 'Buscar páginas' })); await user.type(screen.getByLabelText('Para onde você quer ir?'), 'no-such-page'); expect(screen.getByRole('status')).toHaveTextContent('Nenhuma página encontrada');
   });
   it('keeps the logout callback and pending behavior at the existing boundary', async () => {

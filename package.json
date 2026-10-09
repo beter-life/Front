@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=24 <25" },
+  "engines": {
+    "node": ">=24 <25"
+  },
   "packageManager": "pnpm@11.19.0",
   "scripts": {
     "dev": "vite --host localhost --port 3101 --strictPort",
@@ -18,6 +20,7 @@
     "harness": "node .codex/scripts/test-harness.mjs"
   },
   "dependencies": {
+    "@daypicker/react": "10.0.2",
     "@hookform/resolvers": "5.9.1",
     "@radix-ui/react-slot": "1.3.3",
     "@supabase/supabase-js": "2.117.2",
