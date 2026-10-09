@@ -44,15 +44,21 @@ Unit129/integration88/browser175 passed; lint/typecheck/build/security scan/harn
 
 Opened and inspected actual contact sheets/full representative PNGs in Light/Dark desktop/mobile: Home/overview, Movements/filter/editor, Accounts, Budget, Goals/details/editors, Recurrences/Calendar, Net Worth/Yield, Cards/Debts/details/editors, Safe results/settings, Profile/security, Categories and public auth. Review informed rail/focus/filter corrections. Selected comparisons: `compare-form-movements-dark.png`, `compare-home-dark.png`, `compare-form-safe-settings-dark.png`, `compare-forgot-password-dark.png`. Historical recovery is separately labeled; composition restoration, not legacy Auth rollback.
 
+## Final profile/security integration
+
+The closure request records human approval of the visual experience on 2026-10-09: “O UX já ficou bem legal para fechar.” Security now belongs to Meu perfil, with URL-addressable personal-data/security tabs and keyboard/focus semantics. The sidebar, mobile drawer and account menu contain only Meu perfil. Search aliases still open Security directly. `/account/password` remains protected and redirects to `/profile?tab=security`; Forgot Password is independent and unchanged.
+
+The original password submission handler is reused, including schema, SDK call, duplicate submission guard, session preservation, sanitized failures and clearing both fields after success. No hosted password or data mutation was used for validation. Automated boundaries cover success/error/validation/concurrent submit, personal profile persistence, legacy/direct URLs, reload, keyboard, search, navigation and logout on desktop/mobile. New profile Security captures: ignored `.harness/tmp/profile-security-{desktop,mobile}-{light,dark}.png`, with transitions settled. Closure regression: 131 unit, 91 integration and 179 browser PASS; lint/typecheck/build/secret scan/harness PASS. Exact commit/CI/PR/main evidence is recorded in PROJECT_STATE; previous financial assertions and the three existing exclusions are retained.
+
 ## Handoff and limits
 
 Front3101/Back3001 remain available for real human review. Back is published MDL10 main; user previously confirmed Safe to Spend opens after synchronization. Automation uses isolated Auth/API fixtures, never the live financial session.
 
-Automated accessibility covers names/roles, keyboard/focus, text/control contrast, forced colors, reduced motion and six-width reflow. No full screen-reader/WCAG/physical-device/Firefox/Safari certification. Month popups/standard scrollbars follow browser/OS; small calendar cells36px. Existing main-bundle warning remains. Exact commit/checkpoint/CI/publication in current snapshot. Human aesthetics pending; no final PR/merge/MDL11.
+Automated accessibility covers names/roles, keyboard/focus, text/control contrast, forced colors, reduced motion and six-width reflow. No full screen-reader/WCAG/physical-device/Firefox/Safari certification. Month popups/standard scrollbars follow browser/OS; small calendar cells36px. Existing main-bundle warning remains. Exact commit/checkpoint/CI/publication in current snapshot. Human visual gate PASS; promotion requires exact branch, PR and main CI. MDL11 starts only after that barrier.
 
 ```text
-UIUX_V2_STATUS=AWAITING_REAL_GATE
-REAL_GATE=PENDING
+UIUX_HUMAN_VISUAL_GATE=PASS
+REAL_GATE=PASS
 MERGED_TO_MAIN=false
 MDL11_STATUS=NOT_STARTED
 ```

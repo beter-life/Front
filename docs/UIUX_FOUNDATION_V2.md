@@ -2,7 +2,7 @@
 
 ## Scope
 
-Continue `codex/uiux-v2-navigation-foundation` from local `cca341754e6177ea8b76a75b96cb43337b07f143`, preserving existing V2.2 work and checkpoints. Published branch HEAD observed through GitHub is `e911ac936571d2797f5d27b7f88332775becb4ac`. MDL0–10 remain integrated; Back main is `ca6746c83483d70c69bdfaf31137db6c74546d04`.
+UI/UX V2 consolidates the approved blue/green identity on `codex/uiux-v2-navigation-foundation`, preserving the V2.2/V2.3 commits and DEV checkpoints. Published V2.3 `b992fcb` passed complete CI. MDL0–10 remain integrated; Back main is `ca6746c83483d70c69bdfaf31137db6c74546d04`. Current closure, PR and main CI evidence is in [PROJECT_STATE](PROJECT_STATE.md).
 
 Presentation, navigation tooltips and calendar interaction only. Auth V2 SDK/session/provider/guards/cache, services, generated contracts, financial handlers/calculations, backend, Supabase, migrations and real data are preserved. The production dependency addition is the pinned calendar library below. Evidence: [refinement audit](UIUX_REFINEMENT_AUDIT.md).
 
@@ -47,7 +47,11 @@ Movements uses sectioned two-column fields and a three-column filter grid; dates
 
 Seven everyday destinations remain direct; Planning and Patrimony remain secondary accordions. Routes, details, breadcrumbs, finder, shortcuts, account actions, mobile drawer/bottom navigation remain available. Ctrl/Cmd+K excludes editing fields and searches page names only.
 
-The rail is 96px so 44px targets fit beside normal classic scrollbar gutters. Brand/collapse/navigation/profile/security/logout icons share an axis. Internal navigation scroll remains separate from the page. Labeled tooltips use a portal outside its clip, expose `aria-describedby` and reposition during focus-induced scrolling.
+The rail is 96px so 44px targets fit beside normal classic scrollbar gutters. Brand/collapse/navigation/profile/logout icons share an axis. Internal navigation scroll remains separate from the page. Labeled tooltips use a portal outside its clip, expose `aria-describedby` and reposition during focus-induced scrolling.
+
+Account settings have one navigation entry: **Meu perfil** (`/profile`). Accessible **Dados pessoais** and **Segurança** tabs show one form at a time. Arrow keys wrap, Home/End choose a tab, selection/focus are explicit, and URLs retain the chosen tab across reload. `/profile?tab=security` opens Security; authenticated `/account/password` redirects there with replacement. Search aliases “segurança”, “senha” and “alterar senha” open that tab without adding a second sidebar/mobile/account-menu entry. Breadcrumbs keep Meu perfil active and identify Segurança.
+
+`PasswordChangeFormV2` reuses the existing `newPasswordSchema`, `client.auth.updateUser`, pending guard, sanitized feedback, success reset and authenticated session. Personal-data mutations remain `PUT /me/profile`. Security does not depend on loading the profile from the Back. No Auth SDK/session/provider/guards/recovery changes, new security features or real personal password change are part of this UI adjustment.
 
 Use standard `scrollbar-color`, normal `scrollbar-width:auto`, stable gutters. Standard-capable browsers use this path exclusively; a rounded 12px WebKit fallback is isolated by `@supports not`. Root/navigation/dialogs/finder/tables/menus inherit theme colors. Forced colors restores system colors. Never hide scrollbars; OS overlay preferences remain authoritative. Browser snapshots retain scrollbar rendering.
 
@@ -75,11 +79,13 @@ Run all official lint/typecheck/unit/integration/browser/build/security/harness 
 
 Ignored `.harness/tmp/blue-green/review.html` holds 128 real V2.2/V2.3 pairs, plus six-width movement/calendar screenshots, expanded/collapsed sidebar, scrollbars and historical V2.1 recovery. Fixtures only. Exact final results/commit/checkpoint: [PROJECT_STATE](PROJECT_STATE.md).
 
-Limits: Chromium desktop/mobile emulation; no Safari/Firefox/physical-device or screen-reader certification. Native month popups/scrollbars follow browser/OS. Existing main-bundle warning remains. Front3101/Back3001 stay available for the human gate. No final PR/merge/MDL11.
+The user approved the evaluated visual experience (“O UX já ficou bem legal para fechar.”), recorded as `UIUX_HUMAN_VISUAL_GATE=PASS`. The final profile/security adjustment requires automated functional/navigation regression before promotion. Password tests operate at synthetic boundaries; no real password change is claimed. Forgot Password keeps its approved independent composition and email recovery flow.
+
+Limits: Chromium desktop/mobile emulation; no Safari/Firefox/physical-device or screen-reader certification. Native month popups/scrollbars follow browser/OS. Existing main-bundle warning remains. Front3101/Back3001 stay available. Complete checkpoint follows exact branch CI; PR/main must pass before MDL11 begins. Exact promotion state is in PROJECT_STATE.
 
 ```text
-UIUX_V2_STATUS=AWAITING_REAL_GATE
-REAL_GATE=PENDING
+UIUX_HUMAN_VISUAL_GATE=PASS
+REAL_GATE=PASS
 MERGED_TO_MAIN=false
 MDL11_STATUS=NOT_STARTED
 ```
