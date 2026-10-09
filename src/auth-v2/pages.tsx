@@ -65,8 +65,8 @@ export function LoginPageV2() {
     <form className="form-stack" noValidate onSubmit={submit}>
       <FormInput id="email" label="E-mail" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} />
       <div className="space-y-2"><FormInput id="password" label="Senha" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} /><Link className="text-link block text-right text-sm" to="/forgot-password">Esqueceu sua senha?</Link></div>
-      {error && <Feedback>{error}</Feedback>}
       <Button type="submit" disabled={busy} className="w-full">{busy ? 'Entrando…' : 'Entrar na minha conta'}<ArrowRight aria-hidden="true" /></Button>
+      <div className="auth-feedback" aria-live="polite">{error && <Feedback>{error}</Feedback>}</div>
     </form><p className="form-footnote">Ainda não tem uma conta? <Link className="text-link" to="/signup">Comece por aqui</Link></p></>;
 }
 
@@ -99,8 +99,8 @@ export function SignupPageV2() {
       <FormInput id="email" label="E-mail" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} />
       <FormInput id="password" label="Senha" type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} />
       <FormInput id="confirmPassword" label="Confirmar senha" type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
-      {error && <Feedback>{error}</Feedback>}
       <Button type="submit" disabled={busy} className="w-full">{busy ? 'Solicitando…' : 'Criar minha conta'}<ArrowRight aria-hidden="true" /></Button>
+      <div className="auth-feedback" aria-live="polite">{error && <Feedback>{error}</Feedback>}</div>
     </form><p className="form-footnote">Já tem uma conta? <Link className="text-link" to="/login">Entrar</Link></p></>;
 }
 
@@ -127,8 +127,8 @@ export function ForgotPasswordPageV2() {
   return <><Intro tag="RECUPERAR ACESSO" title="Acontece. Vamos resolver." text="Informe seu e-mail para solicitar a recuperação." />
     <form className="form-stack" noValidate onSubmit={submit}>
       <FormInput id="email" label="E-mail" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} />
-      {error && <Feedback>{error}</Feedback>}
       <Button type="submit" disabled={busy} className="w-full">{busy ? 'Solicitando…' : 'Enviar link de recuperação'}</Button>
+      <div className="auth-feedback" aria-live="polite">{error && <Feedback>{error}</Feedback>}</div>
     </form><p className="form-footnote"><Link className="text-link" to="/login">Voltar para entrar</Link></p></>;
 }
 
@@ -192,7 +192,7 @@ export function RecoveryPageV2() {
     <form className="form-stack" noValidate onSubmit={submit}>
       <FormInput id="password" label="Nova senha" type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} />
       <FormInput id="confirmPassword" label="Confirmar nova senha" type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
-      {error && <Feedback>{error}</Feedback>}
       <Button type="submit" disabled={busy} className="w-full">{busy ? 'Atualizando…' : 'Salvar nova senha'}</Button>
+      <div className="auth-feedback" aria-live="polite">{error && <Feedback>{error}</Feedback>}</div>
     </form></>;
 }

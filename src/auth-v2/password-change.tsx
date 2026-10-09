@@ -32,7 +32,6 @@ export function PasswordChangePageV2() {
     <Card className="max-w-2xl"><form className="form-stack" noValidate onSubmit={submit}>
       <FormInput id="password" label="Nova senha" type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} />
       <FormInput id="confirmPassword" label="Confirmar nova senha" type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
-      {error && <Feedback>{error}</Feedback>}{success && <Feedback success>Senha atualizada.</Feedback>}
-      <Button type="submit" disabled={busy}>{busy ? 'Atualizando…' : 'Salvar nova senha'}</Button>
+      <div className="ui-form-actions"><Button type="submit" disabled={busy}>{busy ? 'Atualizando…' : 'Salvar nova senha'}</Button></div><div className="auth-feedback" aria-live="polite">{error && <Feedback>{error}</Feedback>}{success && <Feedback success>Senha atualizada.</Feedback>}</div>
     </form></Card></>;
 }

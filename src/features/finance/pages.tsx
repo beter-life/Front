@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { Link, Outlet } from 'react-router';
 import { ArrowDownLeft, ArrowUpRight, ArrowLeftRight, Plus, Wallet } from 'lucide-react';
 import { Card } from '../../components/ui/card';
@@ -6,6 +7,7 @@ import { Button } from '../../components/ui/button';
 import { ConfirmAction } from '../../components/ui/confirm-action';
 import { Feedback } from '../../components/feedback';
 import { PageHeader, SectionHeader } from '../../components/ui/surface';
+import { FormSection } from '../../components/ui/form-section';
 import { useCreationShortcut } from '../../navigation/use-creation-shortcut';
 import { navigationItems } from '../../navigation/navigation-config';
 import { useServices } from '../../hooks/use-services';
@@ -40,8 +42,8 @@ const accountTypes = {
   debt: 'Dívida',
 };
 const kindLabel = { INCOME: 'Receita', EXPENSE: 'Despesa', TRANSFER: 'Transferência' };
-function Intro({ title, description }: { title: string; description: string }) {
-  return <PageHeader title={title} description={description} />;
+function Intro({ title, description, actions }: { title: string; description: string; actions?: ReactNode }) {
+  return <PageHeader title={title} description={description} actions={actions} />;
 }
 function usePresentation() {
   const me = useMe();
@@ -66,6 +68,7 @@ export function FinanceDashboard() {
       <Intro
         title="Visão financeira"
         description="Consulte os saldos e acompanhe o resultado do período, por moeda."
+        actions={<Button asChild><Link to="/finance/transactions?action=create"><Plus />Novo movimento</Link></Button>}
       />
       <div className="finance-toolbar">
         <div className="finance-period">
@@ -84,12 +87,6 @@ export function FinanceDashboard() {
             onChange={(event) => setPeriod({ ...period, to: event.target.value || period.to })}
           />
         </div>
-        <Button asChild>
-          <Link to="/finance/transactions?action=create">
-            <Plus />
-            Novo movimento
-          </Link>
-        </Button>
       </div>
       {summary.isPending ? (
         <p role="status">Carregando sua visão financeira…</p>
@@ -187,13 +184,14 @@ function AccountEditor({ account, done }: { account?: Account; done: () => void 
       <h2>{account ? 'Editar conta' : 'Nova conta'}</h2>
       <FinanceForm
         reset={false}
+        onCancel={done}
         button={account ? 'Salvar conta' : 'Criar conta'}
         submit={async (data) => {
           await mutation.mutateAsync(data);
           done();
         }}
       >
-        <Field
+        <FormSection title="Identificação"><Field
           label="Nome da conta"
           name="name"
           required
@@ -207,8 +205,9 @@ function AccountEditor({ account, done }: { account?: Account; done: () => void 
             </option>
           ))}
         </Field>
+        </FormSection>
         {!account && (
-          <>
+          <FormSection title="Moeda e saldo inicial">
             <Field label="Moeda" name="currency" defaultValue="BRL">
               {Object.keys(currencyDigits).map((code) => (
                 <option key={code}>{code}</option>
@@ -225,12 +224,9 @@ function AccountEditor({ account, done }: { account?: Account; done: () => void 
               Saldo inicial e moeda ficam preservados após a criação. Use vírgula ou ponto decimal,
               sem milhar.
             </p>
-          </>
+          </FormSection>
         )}
       </FinanceForm>
-      <Button variant="ghost" onClick={done}>
-        Fechar
-      </Button>
     </Card>
   );
 }
@@ -250,14 +246,8 @@ export function AccountsPage() {
       <Intro
         title="Contas"
         description="Consulte seus saldos e gerencie suas contas. Desativar preserva o histórico."
+        actions={<Button onClick={() => setEditing('new')}><Plus />Nova conta</Button>}
       />
-      <div className="finance-toolbar">
-        <h2>Contas financeiras</h2>
-        <Button onClick={() => setEditing('new')}>
-          <Plus />
-          Nova conta
-        </Button>
-      </div>
       {editing && (
         <AccountEditor
           key={editing === 'new' ? 'new' : editing.id}
@@ -425,6 +415,7 @@ function MovementEditor({ done }: { done: () => void }) {
       ) : (
         <FinanceForm
           reset={false}
+          onCancel={done}
           button={
             kind === 'TRANSFER'
               ? 'Registrar transferência'
@@ -437,7 +428,7 @@ function MovementEditor({ done }: { done: () => void }) {
             done();
           }}
         >
-          <div className="finance-field">
+          <FormSection title="Contas e classificação"><div className="finance-field">
             <label htmlFor="movement-account">
               {kind === 'TRANSFER' ? 'Conta de origem' : 'Conta'}
             </label>
@@ -481,6 +472,7 @@ function MovementEditor({ done }: { done: () => void }) {
                 ))}
             </Field>
           )}
+          </FormSection><FormSection title="Valor e registro">
           <Field
             label={`Valor (${selected?.currency ?? 'BRL'})`}
             name="amount"
@@ -498,11 +490,10 @@ function MovementEditor({ done }: { done: () => void }) {
           <p className="finance-note">
             Fuso: {timezone}. Não use separador de milhar. Transferências exigem a mesma moeda.
           </p>
+          </FormSection>
         </FinanceForm>
       )}
-      <Button variant="ghost" onClick={done}>
-        Fechar
-      </Button>
+      {(!available.length || !ready) && <Button variant="ghost" onClick={done}>Fechar</Button>}
     </Card>
   );
 }
@@ -526,14 +517,8 @@ export function TransactionsPage() {
       <Intro
         title="Movimentos"
         description="Receitas, despesas e transferências, sem perder a história. Cancelar um movimento preserva o registro e remove seu efeito no saldo."
+        actions={<Button onClick={() => setEditing(true)}><Plus />Novo movimento</Button>}
       />
-      <div className="finance-toolbar">
-        <h2>Movimentos</h2>
-        <Button onClick={() => setEditing(true)}>
-          <Plus />
-          Novo movimento
-        </Button>
-      </div>
       {editing && <MovementEditor done={() => setEditing(false)} />}
       <form
         className="finance-filters"
@@ -589,12 +574,12 @@ export function TransactionsPage() {
         </Field>
         <Field label="Data inicial" name="from" type="date" />
         <Field label="Data final" name="to" type="date" />
-        <Button variant="outline" type="submit">
+        <div className="ui-form-actions"><Button variant="outline" type="submit">
           Aplicar filtros
         </Button>
         <Button variant="ghost" type="reset" onClick={() => setFilters({ limit: '25' })}>
           Limpar
-        </Button>
+        </Button></div>
       </form>
       {transactions.isPending ? (
         <p role="status">Carregando movimentos…</p>

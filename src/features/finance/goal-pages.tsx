@@ -7,6 +7,7 @@ import { ConfirmAction } from '../../components/ui/confirm-action';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Feedback } from '../../components/feedback';
+import { FormSection } from '../../components/ui/form-section';
 import { useServices } from '../../hooks/use-services';
 import { useMe } from '../../profile/hooks';
 import { useFinanceMutation } from './hooks';
@@ -38,24 +39,26 @@ function GoalNumbers({ goal, locale }: { goal: Goal; locale: string }) {
     </dl>
   </>;
 }
-function GoalEditor({ existing, done }: { existing?: Goal; done: (goal: Goal) => void }) {
+function GoalEditor({ existing, done, onCancel }: { existing?: Goal; done: (goal: Goal) => void; onCancel: () => void }) {
   const { finance } = useServices();
   const mutation = useFinanceMutation((input: GoalInput | GoalPatch) => existing ? finance.patchGoal(existing.id, GoalPatchSchema.parse(input)) : finance.createGoal(GoalInputSchema.parse(input)));
-  return <FinanceForm reset={false} button={existing ? 'Salvar meta' : 'Criar meta'} submit={async data => {
+  return <FinanceForm reset={false} onCancel={onCancel} button={existing ? 'Salvar meta' : 'Criar meta'} submit={async data => {
     const currency = existing?.currency ?? GoalInputSchema.shape.currency.parse(value(data, 'currency'));
     const planned = value(data, 'planned');
     const input = { name: value(data, 'name'), description: value(data, 'description') || null, targetAmountMinor: parseMoney(value(data, 'target'), currency), targetMonth: value(data, 'targetMonth') || null, plannedMonthlyMinor: planned ? parseMoney(planned, currency, false) : null, priority: value(data, 'priority') };
     const payload = existing ? GoalPatchSchema.parse(input) : GoalInputSchema.parse({ ...input, currency });
     done(GoalSchema.parse(await mutation.mutateAsync(payload)));
   }}>
-    <Field label="Nome" name="name" required maxLength={100} defaultValue={existing?.name} placeholder="Ex.: Reserva, viagem ou estudos" />
+    <FormSection title="Seu objetivo"><Field label="Nome" name="name" required maxLength={100} defaultValue={existing?.name} placeholder="Ex.: Reserva, viagem ou estudos" />
     <Field label="Descrição opcional" name="description" maxLength={1000} defaultValue={existing?.description ?? ''} />
+    </FormSection><FormSection title="Valor e planejamento">
     <Field label="Moeda" name="currency" required disabled={!!existing} defaultValue={existing?.currency ?? 'BRL'}>{Object.keys(currencyDigits).map(c => <option key={c} value={c}>{c}</option>)}</Field>
     {existing && <p className="form-hint">A moeda é fixa para preservar o histórico da meta.</p>}
     <Field label="Valor alvo" name="target" inputMode="decimal" required defaultValue={existing ? budgetAmountInput(existing.targetAmountMinor, existing.currency) : ''} placeholder="10000,00" />
     <Field label="Prazo opcional" name="targetMonth" type="month" min="1000-01" max="9998-12" defaultValue={existing?.targetMonth ?? ''} />
     <Field label="Contribuição mensal planejada opcional" name="planned" inputMode="decimal" defaultValue={existing?.plannedMonthlyMinor != null ? budgetAmountInput(existing.plannedMonthlyMinor, existing.currency) : ''} placeholder="1000,00" />
     <Field label="Prioridade" name="priority" required defaultValue={existing?.priority ?? 'MEDIUM'}>{Object.entries(goalPriorityLabels).map(([v, label]) => <option key={v} value={v}>{label}</option>)}</Field>
+    </FormSection>
   </FinanceForm>;
 }
 export function GoalsPage() {
@@ -69,12 +72,12 @@ export function GoalsPage() {
   const filter = (key: string, v: string) => { const next = new URLSearchParams(params); if (v) next.set(key, v); else next.delete(key); setParams(next); };
   return <>
     <div className="page-intro"><p className="eyebrow">UM PLANO PARA O QUE IMPORTA</p><h1 tabIndex={-1}>Metas financeiras</h1><p>Defina seu próximo objetivo e acompanhe cada passo.</p></div><PlanningNote />
-    <div className="goal-toolbar"><div className="goal-filters"><label>Status<select aria-label="Status" className="finance-select" value={parsed.success ? parsed.data.status ?? '' : ''} onChange={e => filter('status', e.target.value)}><option value="">Todos os status</option>{Object.entries(goalStatusLabels).map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select></label><label>Filtrar moeda<select aria-label="Filtrar moeda" className="finance-select" value={parsed.success ? parsed.data.currency ?? '' : ''} onChange={e => filter('currency', e.target.value)}><option value="">Todas as moedas</option>{Object.keys(currencyDigits).map(c => <option key={c}>{c}</option>)}</select></label></div><Button onClick={() => setEditing(!editing)}>{editing ? 'Cancelar criação' : 'Nova meta'}</Button></div>
+    <div className="goal-toolbar"><div className="goal-filters"><label>Status<select aria-label="Status" className="finance-select" value={parsed.success ? parsed.data.status ?? '' : ''} onChange={e => filter('status', e.target.value)}><option value="">Todos os status</option>{Object.entries(goalStatusLabels).map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select></label><label>Filtrar moeda<select aria-label="Filtrar moeda" className="finance-select" value={parsed.success ? parsed.data.currency ?? '' : ''} onChange={e => filter('currency', e.target.value)}><option value="">Todas as moedas</option>{Object.keys(currencyDigits).map(c => <option key={c}>{c}</option>)}</select></label></div><Button variant={editing ? "outline" : "default"} onClick={() => setEditing(!editing)}>{editing ? 'Cancelar criação' : 'Nova meta'}</Button></div>
     {!parsed.success && <Feedback>Os filtros informados são inválidos.</Feedback>}
-    {editing && <Card><h2>Nova meta financeira</h2><GoalEditor done={goal => { setEditing(false); navigate('/finance/goals/' + goal.id); }} /></Card>}
+    {editing && <Card><h2>Nova meta financeira</h2><GoalEditor onCancel={() => setEditing(false)} done={goal => { setEditing(false); navigate('/finance/goals/' + goal.id); }} /></Card>}
     {goals.isPending ? <p role="status">Carregando metas…</p> : goals.isError ? <Feedback>Não foi possível carregar suas metas. Tente novamente.</Feedback> : !goals.data.length ? <Card className="finance-empty"><Target aria-hidden="true" /><h2>{params.size ? 'Nenhuma meta nesses filtros' : 'Crie sua primeira meta financeira'}</h2><p>Reserva, viagem, casa ou estudos: escolha um objetivo que faça sentido para você.</p></Card> : <>
       <div className="finance-summary">{goalTotals(goals.data).map(total => <Card key={total.currency}><p className="eyebrow">{total.currency} · METAS EXIBIDAS</p><dl><div><dt>Acumulado declarado</dt><dd>{formatMoney(String(total.current), total.currency, locale)}</dd></div><div><dt>Valor alvo total</dt><dd>{formatMoney(String(total.target), total.currency, locale)}</dd></div><div><dt>Falta alcançar</dt><dd>{formatMoney(String(total.remaining), total.currency, locale)}</dd></div></dl></Card>)}</div>
-      <div className="goal-grid">{goals.data.map(goal => <Card key={goal.id} className="goal-card"><div className="goal-card-head"><h2><Link to={'/finance/goals/' + goal.id}>{goal.name}</Link></h2><span>{goalStatusLabels[goal.status]}</span></div><p>Prioridade {goalPriorityLabels[goal.priority].toLowerCase()} · {goal.currency}</p><PlanLabel goal={goal} /><GoalNumbers goal={goal} locale={locale} /><Button asChild><Link to={'/finance/goals/' + goal.id}>Ver meta e histórico</Link></Button></Card>)}</div>
+      <div className="goal-grid">{goals.data.map(goal => <Card key={goal.id} className="goal-card"><div className="goal-card-head"><h2><Link to={'/finance/goals/' + goal.id}>{goal.name}</Link></h2><span>{goalStatusLabels[goal.status]}</span></div><p>Prioridade {goalPriorityLabels[goal.priority].toLowerCase()} · {goal.currency}</p><PlanLabel goal={goal} /><GoalNumbers goal={goal} locale={locale} /><Button asChild variant="outline"><Link to={'/finance/goals/' + goal.id}>Ver meta e histórico</Link></Button></Card>)}</div>
     </>}
   </>;
 }
@@ -83,7 +86,7 @@ function GoalAction({ goal, status, label }: { goal: Goal; status: Goal['status'
   const mutation = useFinanceMutation(() => finance.patchGoal(goal.id, { status }));
   const locked = useRef(false);
   if (status === 'ARCHIVED') return <ConfirmAction label={label} title="Arquivar meta" impact="O histórico permanece disponível. A meta sai do planejamento ativo e não poderá receber novos eventos." confirmLabel="Confirmar arquivamento" pending={mutation.isPending} onConfirm={() => mutation.mutateAsync(undefined)} />;
-  return <div><Button disabled={mutation.isPending} onClick={async () => { if (locked.current) return; locked.current = true; try { await mutation.mutateAsync(undefined); } catch { /* mutation exposes safe feedback */ } finally { locked.current = false; } }}>{label}</Button>{mutation.isError && <Feedback>{mutation.error.message}</Feedback>}</div>;
+  return <div><Button variant="outline" disabled={mutation.isPending} onClick={async () => { if (locked.current) return; locked.current = true; try { await mutation.mutateAsync(undefined); } catch { /* mutation exposes safe feedback */ } finally { locked.current = false; } }}>{label}</Button>{mutation.isError && <Feedback>{mutation.error.message}</Feedback>}</div>;
 }
 function GoalEventForm({ goal, type, done }: { goal: Goal; type: GoalEventInput['type']; done: () => void }) {
   const { finance } = useServices();
@@ -111,8 +114,8 @@ function GoalDetail({ id }: { id: string }) {
   if (result.isError) return <Feedback>{result.error.message}</Feedback>;
   const goal = result.data;
   return <><div className="page-intro"><p className="eyebrow">SEU OBJETIVO</p><h1 tabIndex={-1}>{goal.name}</h1>{goal.description && <p>{goal.description}</p>}</div><PlanningNote /><Card><div className="goal-card-head"><p>{goalStatusLabels[goal.status]} · Prioridade {goalPriorityLabels[goal.priority].toLowerCase()} · {goal.currency}</p><PlanLabel goal={goal} /></div><GoalNumbers goal={goal} locale={locale} /></Card>
-    {goal.status !== 'ARCHIVED' ? <><div className="goal-actions">{goal.status === 'ACTIVE' && <><Button onClick={() => setPanel('CONTRIBUTION')}>Adicionar valor</Button><Button onClick={() => setPanel('WITHDRAWAL')}>Retirar valor</Button></>}<Button onClick={() => setPanel('edit')}>Editar meta</Button><GoalAction goal={goal} status={goal.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE'} label={goal.status === 'ACTIVE' ? 'Pausar meta' : 'Retomar meta'} /><GoalAction goal={goal} status="ARCHIVED" label="Arquivar meta" /></div>{goal.status === 'PAUSED' && <p>Meta pausada: retome para registrar contribuições ou retiradas.</p>}
-      {panel && (panel === 'edit' || goal.status === 'ACTIVE') && <Card className="goal-editor"><div className="goal-card-head"><h2>{panel === 'edit' ? 'Editar meta' : panel === 'CONTRIBUTION' ? 'Adicionar valor à meta' : 'Retirar valor da meta'}</h2><Button onClick={() => setPanel(null)}>Cancelar</Button></div>{panel === 'edit' ? <GoalEditor existing={goal} done={() => setPanel(null)} /> : <GoalEventForm key={panel} goal={goal} type={panel} done={() => setPanel(null)} />}</Card>}
+    {goal.status !== 'ARCHIVED' ? <><div className="goal-actions">{goal.status === 'ACTIVE' && <><Button onClick={() => setPanel('CONTRIBUTION')}>Adicionar valor</Button><Button variant="outline" onClick={() => setPanel('WITHDRAWAL')}>Retirar valor</Button></>}<Button variant="outline" onClick={() => setPanel('edit')}>Editar meta</Button><GoalAction goal={goal} status={goal.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE'} label={goal.status === 'ACTIVE' ? 'Pausar meta' : 'Retomar meta'} /><GoalAction goal={goal} status="ARCHIVED" label="Arquivar meta" /></div>{goal.status === 'PAUSED' && <p>Meta pausada: retome para registrar contribuições ou retiradas.</p>}
+      {panel && (panel === 'edit' || goal.status === 'ACTIVE') && <Card className="goal-editor"><div className="goal-card-head"><h2>{panel === 'edit' ? 'Editar meta' : panel === 'CONTRIBUTION' ? 'Adicionar valor à meta' : 'Retirar valor da meta'}</h2><Button variant="ghost" onClick={() => setPanel(null)}>Cancelar</Button></div>{panel === 'edit' ? <GoalEditor existing={goal} onCancel={() => setPanel(null)} done={() => setPanel(null)} /> : <GoalEventForm key={panel} goal={goal} type={panel} done={() => setPanel(null)} />}</Card>}
     </> : <p>Meta arquivada. Seu progresso e histórico continuam disponíveis; novos eventos estão bloqueados.</p>}
     <GoalHistory goal={goal} locale={locale} />
   </>;

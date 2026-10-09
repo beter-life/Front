@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { activeNavigation, expandableNavigationGroups, mobileNavigation, navigationGroups, navigationItems, pageBreadcrumbs, searchNavigation } from '../../src/navigation/navigation-config';
 
 describe('single-source navigation', () => {
-  it('prioritizes five everyday destinations and only three secondary accordions', () => {
-    expect(navigationItems.filter(item => item.group === 'Principal').map(item => item.id)).toEqual(['home', 'overview', 'movements', 'safe-spend', 'budget']);
-    expect(expandableNavigationGroups).toHaveLength(3);
+  it('prioritizes seven everyday destinations and only two secondary accordions', () => {
+    expect(navigationItems.filter(item => item.group === 'Principal').map(item => item.id)).toEqual(['home', 'overview', 'movements', 'accounts', 'cards', 'budget', 'safe-spend']);
+    expect(expandableNavigationGroups).toHaveLength(2);
     for (const group of expandableNavigationGroups) expect(navigationItems.filter(item => item.group === group).length).toBeGreaterThan(1);
     expect(navigationItems.find(item => item.id === 'categories')?.group).toBe('Mais');
   });

@@ -36,11 +36,15 @@ export function FinanceForm({
   children,
   button = 'Salvar',
   reset = true,
+  onCancel,
+  cancelLabel = 'Cancelar',
 }: {
   submit: (data: FormData) => Promise<unknown>;
   children: ReactNode;
   button?: string;
   reset?: boolean;
+  onCancel?: () => void;
+  cancelLabel?: string;
 }) {
   const inFlight = useRef(false);
   const [busy, setBusy] = useState(false);
@@ -79,11 +83,8 @@ export function FinanceForm({
       <fieldset disabled={busy} className="finance-fields">
         {children}
       </fieldset>
-      <div className="ui-form-feedback">{error && <Feedback>{error}</Feedback>}
-      {message && <Feedback success>{message}</Feedback>}</div>
-      <Button disabled={busy} type="submit">
-        {busy ? 'Salvando…' : button}
-      </Button>
+      <div className="ui-form-actions">{onCancel && <Button variant="outline" type="button" disabled={busy} onClick={onCancel}>{cancelLabel}</Button>}<Button disabled={busy} type="submit">{busy ? 'Salvando…' : button}</Button></div>
+      <div className="ui-form-feedback" aria-live="polite">{error && <Feedback>{error}</Feedback>}{message && <Feedback success>{message}</Feedback>}</div>
     </form>
   );
 }

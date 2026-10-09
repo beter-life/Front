@@ -4,10 +4,13 @@ import { cva } from 'class-variance-authority';
 import type { VariantProps } from 'class-variance-authority';
 import { cn } from '../../lib/utils';
 
-const variants = cva('inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] px-5 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-55 [&_svg]:size-4', {
-  variants: { variant: { default: 'ui-primary', outline: 'border border-border bg-card text-foreground hover:bg-muted', ghost: 'text-foreground hover:bg-muted', destructive: 'ui-destructive' } }, defaultVariants: { variant: 'default' },
+const variants = cva('ui-button', {
+  variants: {
+    variant: { default: 'ui-primary', outline: 'ui-secondary', secondary: 'ui-secondary', ghost: 'ui-ghost', destructive: 'ui-destructive' },
+    size: { default: '', compact: 'ui-button-compact', large: 'ui-button-large' },
+  }, defaultVariants: { variant: 'default', size: 'default' },
 });
-export function Button({ className, variant, asChild = false, ...props }: ComponentProps<'button'> & VariantProps<typeof variants> & { asChild?: boolean }) {
+export function Button({ className, variant, size, asChild = false, ...props }: ComponentProps<'button'> & VariantProps<typeof variants> & { asChild?: boolean }) {
   const Component = asChild ? Slot : 'button';
-  return <Component data-slot="button" className={cn(variants({ variant, className }))} {...props} />;
+  return <Component data-slot="button" className={cn(variants({ variant, size, className }))} {...props} />;
 }

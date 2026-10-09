@@ -128,6 +128,8 @@ function AllocationEditor({
   return (
     <FinanceForm
       reset={false}
+      onCancel={done}
+      cancelLabel={existing ? 'Cancelar edição' : 'Cancelar'}
       button={existing ? 'Salvar limite' : 'Adicionar limite'}
       submit={async (data) => {
         await mutation.mutateAsync({
@@ -243,9 +245,6 @@ function CategoryBudget({
             available={[]}
             done={() => setEditing(false)}
           />
-          <Button type="button" variant="ghost" onClick={() => setEditing(false)}>
-            Cancelar edição
-          </Button>
         </>
       ) : (
         <div className="budget-row-actions">
