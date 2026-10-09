@@ -1,41 +1,81 @@
-# UI/UX Foundation V2.2 — comprehensive refinement
+# UI/UX Foundation V2.3 — Blue and green
 
-## Entry gate and scope
+## Scope
 
-MDL10 human gate PASS. Back main `ca6746c83483d70c69bdfaf31137db6c74546d04` ([CI](https://github.com/beter-life/Back/actions/runs/37790612267)); Front merged baseline `38d32a35f69ac79367ccf9f94fc65523ba669bb5` ([CI](https://github.com/beter-life/Front/actions/runs/37790545926)). This refinement starts from clean UI branch HEAD `74158e155843bca3529899337083c16e8859e6b2`, preserving earlier commits/checkpoints.
+Continue `codex/uiux-v2-navigation-foundation` from local `cca341754e6177ea8b76a75b96cb43337b07f143`, preserving existing V2.2 work and checkpoints. Published branch HEAD observed through GitHub is `e911ac936571d2797f5d27b7f88332775becb4ac`. MDL0–10 remain integrated; Back main is `ca6746c83483d70c69bdfaf31137db6c74546d04`.
 
-Presentation and navigation only. Auth V2 SDK/session/provider/guards, isolated cache, clients/contracts/hooks, financial request/calculation handlers, Back, Supabase/RLS, migrations, real data and dependencies are preserved. No MDL11. Detailed inventory, research, decisions and evidence: [refinement audit](UIUX_REFINEMENT_AUDIT.md).
+Presentation, navigation tooltips and calendar interaction only. Auth V2 SDK/session/provider/guards/cache, services, generated contracts, financial handlers/calculations, backend, Supabase, migrations and real data are preserved. The production dependency addition is the pinned calendar library below. Evidence: [refinement audit](UIUX_REFINEMENT_AUDIT.md).
 
-## Navigation
+## Color and components
 
-Seven direct everyday destinations: Home, overview, movements, accounts, cards, budget, Safe to Spend. Two secondary accordions: Planning (calendar, recurrences, goals), Patrimony (net worth, yield). More exposes debts/categories directly; profile/security/logout remain at the bottom. The active secondary group opens automatically. Rail retains accessible names and local preference.
+`styles.css` owns shared tokens, controls, surfaces, focus and scrollbar/calendar styling; `uiux-v2.css` owns shell/public/Home composition; `finance.css` owns financial layouts. Modify these sources instead of adding competing overrides.
 
-Mobile keeps Home/Finance/Movements/Planning/More and the complete modal drawer. Local page finder matches route labels/aliases, never private financial data; Ctrl/Cmd+K excludes field editing. Breadcrumbs omit UUIDs. All 16 base destinations and three detail routes remain available through direct links, reload and existing history navigation. Create shortcuts open existing editors and do not submit requests.
+| Role | Light | Dark |
+| --- | --- | --- |
+| Background / text | `#f7f9fc` / `#1e293b` | `#0f172a` / `#f1f5f9` |
+| Card / field | white / white | `#192334` / `#141f30` |
+| Primary / text | `#1d4ed8` / white | `#60a5fa` / `#0f172a` |
+| Brand green | `#0f766e` | `#2dd4bf` |
+| Decorative border / field boundary | `#e2e8f0` / `#7a8798` | `#334155` / `#8191a7` |
+| Secondary text | `#596b80` | `#cbd5e1` |
 
-## Design system and layouts
+Blue identifies actions, links, focus and selection. Green supports brand/today. Neutrals occupy most surfaces. Income/success, expense, warning, error/destructive and information retain separate semantic tokens, text and icons. Action aliases resolve to primary tokens; dark actions require dark text. Light/Dark/System remain local preferences; System follows OS updates.
 
-`styles.css` is the sole palette/geometry and shared component source; `uiux-v2.css` owns shell/home; `finance.css` owns financial layouts. Legacy overlapping selectors were removed. Red identity is restrained; income/expense/warning/info/error keep their distinct meanings. Light/Dark/System preference remains local and follows OS updates.
+Use spacing 4/8/12/16/24/32/48px, 12px card and 10px control radii, 48px fields, buttons at least 44px, visible 2px focus and reduced motion. Tables retain exact accessible values and contained horizontal scrolling.
 
-- Neutral light/dark surfaces; dark `#141518` background, `#1d1f23` card, `#30343a` decorative border and `#707780` field boundary. Primary white-on-deep-red actions use `#b91c1c`; dark links/focus use `#e05d5d`.
-- Spacing 4/8/12/16/24/32/48px; 12px card and 10px control radii; shared 1px boundaries and 2px focus. Controls 48px, buttons at least 44px; explicit primary/secondary/ghost/destructive variants.
-- Bounded editors (usually 800px; Safe settings 840px); two-column semantic fieldsets become one column on mobile. Cancel/save sit beside final fields. General feedback appears below actions without empty 64–96px blocks. Only inline profile validation and the existing stable Safe settings feedback reserve space; validation does not move actions.
-- Shared labels/help text, aligned native/shared fields, themed progressive native pickers with classic fallback. CardField has explicit label IDs and retains native inputs/FormData.
-- Compact Home essentials/tool groups; structured per-currency summaries; three-column metrics becoming two/one on small screens; exact monetary values with tabular numerals. Charts, status meaning and table data remain intact; tables use contained horizontal scrolling.
-- Native modal confirmations retain inertness/focus restoration; destructive actions have explicit styling. Mobile scroll padding reserves sticky header/footer space. Loading/error/empty states preserve status/alert semantics.
+## Layout patterns
 
-Shared page/section spacing is 16/24px, with 32px for structural separation. Home essentials are 112px minimum instead of oversized 132px cells. Movement type selectors share height and distribute width while retaining enough room for their labels at 320px. Mobile action footers wrap entire buttons when needed rather than breaking their labels into uneven button heights. Public forms start at a stable top offset, so adding feedback does not shift a vertically centered form.
+| Pattern | Purpose |
+| --- | --- |
+| `PageContainer` | Main landmark, shared gutters, centered maximum 1280px |
+| `PageHeader` | Functional title, necessary description, contextual actions |
+| `ContentSection` | Full-width section that can shrink within a grid |
+| `FullWidthPanel` | Shared financial surface/padding/border/radius |
+| `FormPanel` | Full outer surface; internal fields control their widths |
+| `FormGrid` / `FormSection` | Two-column semantic groups; one below 720px |
+| `FilterPanel` | Shared filter surface and responsive grid |
+| `SummaryGrid` | Responsive metrics or currency summaries |
+| `DataSection` | Full-width records/listing surface |
 
-Every finance module and its existing editors, profile/security and public auth forms use the shared hierarchy. Safe results are temporarily hidden during configuration editing and restored on cancel/save; account eligibility, reserve and planning handlers are unchanged. Labels describe existing values; no new aggregation or financial formula.
+Consecutive creation, filter and record panels share outer edges. Removed the `:has(form)` 800px cap and Safe settings 840px cap. Existing Card/native section adapters use shared surface tokens. Collections may intentionally use multiple columns; Categories intentionally presents editor/records side by side. Do not limit an outer surface because it contains fewer fields.
 
-## Validation and delivery
+Use `ContentSection` with `ui-content-stack` for consecutive header/editor/records: 24px gaps, without adding panel margins to the grid gap. `FormGrid` with `ui-form-grid-compact` bounds controls at 320px (decimal amount280px), fits three fields on a wide desktop and wraps as space permits. Budget allocations reuse these patterns; a single category fills the records area, while multiple categories share an adaptive grid. Creation, editing and cancellation keep the same financial inputs and handlers.
 
-Official local gates PASS: lint, typecheck, unit (117), integration (84), full browser (161), build, heuristic secret scan plus manual scope review, harness. Browser contains three unchanged pre-existing optional/duplicate exclusions; new tests add no skips and retain financial assertions. Tests cover widths 320/375/390/768/1024/1440, light/dark, keyboard/focus, native-picker selection, stable feedback, reload, modal/rail/drawer, theme persistence, zoom/reduced motion and financial/auth regressions.
+Movements uses sectioned two-column fields and a three-column filter grid; dates/actions complete its second row. Numeric fields remain bounded. Profile uses three balanced desktop columns/one mobile; passwords use two/one. Accounts, Budget, Goals, Recurrences, Net Worth, Yield, Cards, Debts and Safe to Spend retain names/validation/actions. Keep compact error/feedback reservations where tested flows require stable controls; general empty feedback collapses.
 
-The isolated Auth/API boundary produces 128 before and 128 after screenshots without real mutations. Actual images were inspected and used to correct remaining details. Local gallery: `.harness/tmp/refinement/review.html`; selected real pairs: `compare-home-dark.png`, `compare-form-cards-dark.png`, `compare-form-safe-settings-dark.png`. Images/logs are ignored; after-images are reproducible through `tests/e2e/refinement.spec.ts`.
+## Navigation and scrolling
 
-Front runs on localhost:3101. The local Back checkout was still on MDL9 `6e8b8bd` and lacked Safe to Spend routes; after the user's report it was fast-forwarded to the already published MDL10 main `ca6746c`, with no local backend edits, dependencies changed, migrations executed or env changes. The restarted Back on 3001 returns 200 for `/api/v1/health/live` and `/api/v1/health/ready`; MDL10 routes require authentication (401, replacing missing routes). A catalog-only query confirmed both Safe tables exist with RLS. The user confirmed the page opens after reload. Live authenticated aesthetics remain the user's next gate, distinct from isolated browser regression. Exact implementation commit and delivery status: [PROJECT_STATE](PROJECT_STATE.md). Branch [CI](https://github.com/beter-life/Front/actions?query=branch%3Acodex%2Fuiux-v2-navigation-foundation) must pass on the delivered HEAD.
+Seven everyday destinations remain direct; Planning and Patrimony remain secondary accordions. Routes, details, breadcrumbs, finder, shortcuts, account actions, mobile drawer/bottom navigation remain available. Ctrl/Cmd+K excludes editing fields and searches page names only.
 
-Limits: Chromium desktop/mobile emulation, not full browser/device or screen-reader certification. Native fallback depends on browser/OS; existing single-bundle size warning retained. Visual approval is pending.
+The rail is 96px so 44px targets fit beside normal classic scrollbar gutters. Brand/collapse/navigation/profile/security/logout icons share an axis. Internal navigation scroll remains separate from the page. Labeled tooltips use a portal outside its clip, expose `aria-describedby` and reposition during focus-induced scrolling.
+
+Use standard `scrollbar-color`, normal `scrollbar-width:auto`, stable gutters. Standard-capable browsers use this path exclusively; a rounded 12px WebKit fallback is isolated by `@supports not`. Root/navigation/dialogs/finder/tables/menus inherit theme colors. Forced colors restores system colors. Never hide scrollbars; OS overlay preferences remain authoritative. Browser snapshots retain scrollbar rendering.
+
+## Date controls
+
+Use shared `Input` for `date`/`datetime-local`; it selects `DateInput` automatically. Supply meaningful `calendarLabel` for raw/wrapped fields when their label cannot be inferred. Other input types remain native.
+
+`@daypicker/react` **10.0.2** supplies the mature localized keyboard grid, selected/today/disabled states and month navigation. Chosen over a larger date-field framework to retain existing native fields and financial conversions. MIT, compatible React peer range, pinned manifest/lock integrity. Lazy build cost: JS **80.45kB /23.02kB gzip**, CSS **7.96kB /1.63kB gzip**.
+
+Modal dialog with accessible title/format description. Arrows navigate; Enter/Space selects; Escape closes; focus returns to the field. Cold/warm calendars receive the same initial day focus. Month bounds/unavailable days honor min/max. At 320/375px day cells are 36px; larger widths use 44px. Locale selects pt-BR/en-US/es; today uses the profile timezone.
+
+Native ref/name/required/min/max, controlled/uncontrolled value, React Hook Form, FormData/reset and mobile hour entry remain. Values are civil strings, without UTC parsing. `datetime-local` preserves the hour/minute/second suffix; blank values start at 00:00. Selection emits native events once and never submits. API timestamps, timezone conversion, financial DST helpers and inclusive/exclusive intervals are unchanged. `month` inputs retain functional native fallback; OS popups cannot be themed uniformly.
+
+Financial Calendar retains server projections, filters, currencies, civil month boundaries and the warning that projected net is not available cash. Calendar interaction creates no transactions.
+
+## Recovery and content
+
+User chose **V2.1 compact centered** after comparing two historical compositions. Only `/forgot-password` restores vertical centering, maximum 420px and compact 44px desktop/36px mobile padding in the new colors. Feedback reservation preserves validation stability. Auth V2 request/neutral response/callback/token/session/password update/error handlers are unchanged. Composition restoration, not pixel-identical legacy code.
+
+Titles name functions; subtitles explain necessary tasks. Home is “Início”; auth headings are “Entrar”, “Criar conta”, “Recuperar senha”, “Nova senha”. Accounts/Movements/Goals/Recurrences empty states name what is missing and point to a contextual action. Decorative module/auth slogans are removed. Yield history uses Portuguese while retaining estimated-versus-confirmed, composition, minimum savings balance, no reinvestment and bank-payment limitations. Critical warnings/confirmations remain, including Safe to Spend, projections, eligibility, cancellation and terminal archival.
+
+## Validation and handoff
+
+Run all official lint/typecheck/unit/integration/browser/build/security/harness scripts. Geometry checks measure outer edges, grid reflow and rail icon centers; other tests cover keyboard/focus/tooltips/scrolling, theme/contrast/forced colors, native form contracts, timezone/month/DST and neutral recovery. No new skips; financial assertions retained. Obsolete palette/copy/width assertions now verify requested UI and actual alignment.
+
+Ignored `.harness/tmp/blue-green/review.html` holds 128 real V2.2/V2.3 pairs, plus six-width movement/calendar screenshots, expanded/collapsed sidebar, scrollbars and historical V2.1 recovery. Fixtures only. Exact final results/commit/checkpoint: [PROJECT_STATE](PROJECT_STATE.md).
+
+Limits: Chromium desktop/mobile emulation; no Safari/Firefox/physical-device or screen-reader certification. Native month popups/scrollbars follow browser/OS. Existing main-bundle warning remains. Front3101/Back3001 stay available for the human gate. No final PR/merge/MDL11.
 
 ```text
 UIUX_V2_STATUS=AWAITING_REAL_GATE
@@ -43,5 +83,3 @@ REAL_GATE=PENDING
 MERGED_TO_MAIN=false
 MDL11_STATUS=NOT_STARTED
 ```
-
-No final PR/merge before user visual approval.
