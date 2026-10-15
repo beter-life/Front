@@ -107,8 +107,23 @@ uma configuração e uma seleção do gate humano. PostgreSQL 17, RLS, policies 
 FKs compostas e ausência de grants públicos PASS. Nenhum movimento financeiro foi criado.
 Os advisors mantêm somente avisos preexistentes documentados acima.
 
-Estado de entrega: REAL_GATE_PASS_PENDING_MERGE; PR/merge/CI final pendentes;
-READY_FOR_MDL11=false. MDL11 não iniciado.
+Estado de entrega: MDL10_STATUS=COMPLETE; REAL_GATE=PASS; MERGED_TO_MAIN=true;
+READY_FOR_MDL11=true. Front PR #8 (MDL10) e PR #10 (UI/UX V2.3) estão
+integrados em main; o merge commit atual de UI/UX é
+`7db56d9462d4ff1ef426bcda1a3f02889b7676db`. A [CI final de main](https://github.com/beter-life/Front/actions/runs/37969695320)
+PASS. Os checkpoints COMPLETE de MDL10 e UI/UX foram confirmados no remoto.
+MDL11 ainda não foi iniciado.
+
+Na retomada local de 2026-10-15, Front e Back estavam sincronizados com main;
+Supabase DEV permaneceu ACTIVE_HEALTHY com 11 migrations. Front: 131/131 unit,
+91/91 integration após repetição completa, 179 browser PASS com 3 skips
+existentes, lint/typecheck/build/secret scan/harness PASS. A primeira execução
+da integração teve uma falha transitória no teste de calendário, que passou na
+repetição; não se afirma causa raiz nem correção definitiva. No Back, 254/254
+unit e os gates locais lint/typecheck/OpenAPI/build/secret scan/harness passaram;
+PostgreSQL17 descartável ficou NOT_RUN por indisponibilidade do daemon Docker.
+Esses resultados locais são separados dos gates históricos. Esta reconciliação
+foi documental; nenhum dado, migration ou configuração Supabase foi alterado.
 
 Advisors pós-DDL: nenhuma falha de segurança nas tabelas novas. O INFO de RLS sem policy
 em financial_market_rates é o cache privado/backend-only preexistente; o WARN de
