@@ -98,3 +98,13 @@ Validação humana complementar, sem execução automática ou novas escritas DE
 
 A promoção final ainda requer validação da correção de UX e liberação explícita
 do usuário. Não criar checkpoint COMPLETE, PR final, merge ou MDL12 nesta etapa.
+
+### Sincronização da regressão visual
+
+A [CI inicial do ajuste](https://github.com/beter-life/Front/actions/runs/38771256358)
+passou193 cenários de browser e teve4 skips, mas um teste de alinhamento mediu o
+DOM antes de o terceiro painel assíncrono aparecer. A correção é exclusivamente
+no teste: aguardar os3 painéis e o formulário visível antes de medir. Permanecem
+as mesmas asserções de quantidade/largura/alinhamento, sem retries, sleeps ou
+aumento de timeout. A suíte V2.3 completa foi repetida:17 PASS+1 skip touch.
+Nenhum código financeiro foi alterado para corrigir essa condição de corrida.

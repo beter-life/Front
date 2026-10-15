@@ -59,7 +59,10 @@ test('V2.3 outer panels align and form grids reflow at every supported width',as
     await page.setViewportSize({width,height:960});
     for(const theme of ['light','dark']) {
       await page.goto('/finance/transactions?action=create'); await page.getByLabel('Tema').selectOption(theme);
-      const boxes=await page.locator('#main .ui-form-panel, #main .ui-filter-panel, #main .finance-movements').evaluateAll(elements=>elements.map(element=>{
+      const panels=page.locator('#main .ui-form-panel, #main .ui-filter-panel, #main .finance-movements');
+      await expect(panels).toHaveCount(3);
+      await expect(page.locator('.ui-form-panel .ui-form-grid').first()).toBeVisible();
+      const boxes=await panels.evaluateAll(elements=>elements.map(element=>{
         const rect=element.getBoundingClientRect();return {left:rect.left,right:rect.right,width:rect.width};
       }));
       expect(boxes).toHaveLength(3);
