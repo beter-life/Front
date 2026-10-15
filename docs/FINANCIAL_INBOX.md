@@ -88,7 +88,8 @@ ao conteúdo, sem trilho/gutter, contraste Light/Dark maior, aproximação anima
 arraste/teclado, fallback nativo para touch/alto contraste e respeito à
 preferência por movimento reduzido.
 
-Validação humana complementar, sem execução automática ou novas escritas DEV:
+Validação humana complementar aprovada pelo usuário, sem execução automática
+ou novas escritas DEV nesta finalização:
 
 1. Em Contas, conferir marcador/nome/link de um cartão e seu status arquivado,
    preservando saldo e nome originais; conta comum continua sem o marcador.
@@ -96,8 +97,17 @@ Validação humana complementar, sem execução automática ou novas escritas DE
    proposta antiga e a possibilidade de escolher outra conta, sem descarte automático.
 3. Conferir Light/Dark, mobile e os indicadores sobrepostos da página/sidebar.
 
-A promoção final ainda requer validação da correção de UX e liberação explícita
-do usuário. Não criar checkpoint COMPLETE, PR final, merge ou MDL12 nesta etapa.
+`MDL11_HUMAN_GATE=PASS`, `MDL11_HUMAN_TESTS=7/7`,
+`CARD_ACCOUNT_UX_FIX=PASS`, `FINANCIAL_BEHAVIOR_UNCHANGED=PASS` e
+`SCROLLBARS=INCLUDED`: identificação de cartões, UX e indicadores validados.
+Finance Core preservado; migration0012 DEV e ledger12/12 permanecem como
+registrados no snapshot de implantação, sem nova migration ou alteração hospedada.
+
+Estado de promoção: `REAL_GATE_PASS_PENDING_MERGE` e `READY_FOR_MDL12=false`.
+Commits documentais e PRs separados para main estão autorizados; os checks dos
+novos HEADs/PRs e conflitos devem ser verificados. Merge depende de liberação
+explícita do usuário. Não registrar integração antecipada, criar checkpoint
+COMPLETE ou iniciar MDL12. A marca Beter Life permanece inalterada.
 
 ### Sincronização da regressão visual
 
@@ -108,3 +118,7 @@ no teste: aguardar os3 painéis e o formulário visível antes de medir. Permane
 as mesmas asserções de quantidade/largura/alinhamento, sem retries, sleeps ou
 aumento de timeout. A suíte V2.3 completa foi repetida:17 PASS+1 skip touch.
 Nenhum código financeiro foi alterado para corrigir essa condição de corrida.
+A [CI final do HEAD b9a03fc](https://github.com/beter-life/Front/actions/runs/38773621856)
+passou:249 testes unit/integration e194 browser, com4 skips documentados.
+Os skips e a cobertura Chromium/mobile emulado não equivalem a certificação
+completa de dispositivos, Safari/Firefox ou leitores de tela.
