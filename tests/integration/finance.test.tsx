@@ -42,6 +42,7 @@ describe('finance UI with real services and external transport only', () => {
     const fetcher: typeof fetch = async (url, options) => {
       const path = new URL(String(url)).pathname;
       if (path.endsWith('/me')) return Response.json(me);
+      if (path.endsWith('/cards')) return Response.json([]);
       if (options?.method === 'POST') {
         writes++;
         saved = true;

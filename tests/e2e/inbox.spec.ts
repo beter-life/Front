@@ -1,19 +1,22 @@
 import { test,expect,type Page } from '@playwright/test';
 import { inboxItem } from '../fixtures/inbox';
-import { bankAccount,expenseCategory } from '../fixtures/cards';
-import type { InboxItem,InboxReview } from '../../src/features/finance/contracts.generated';
+import { bankAccount,cardAccount,cardFixture,cardViewFixture,cardsSummaryFixture,expenseCategory } from '../fixtures/cards';
+import type { Card,InboxItem,InboxReview } from '../../src/features/finance/contracts.generated';
 const owner='11111111-1111-4111-8111-111111111111',user={id:owner,aud:'authenticated',role:'authenticated',email:'test@example.test',created_at:'2026-01-01T00:00:00Z',app_metadata:{},user_metadata:{}};
 const token=[Buffer.from('{"alg":"ES256","kid":"synthetic"}').toString('base64url'),Buffer.from(JSON.stringify({sub:owner,exp:Math.floor(Date.now()/1000)+3600})).toString('base64url'),'synthetic-signature'].join('.');
 const session={access_token:token,refresh_token:'synthetic-refresh',expires_in:3600,token_type:'bearer',user};
-async function boundary(page:Page,options:{empty?:boolean;duplicate?:boolean}={}){
-  const state={rows:options.empty?[]:[{...inboxItem}] as InboxItem[],writes:[] as {path:string;body:Record<string,unknown>}[],fail:false,stale:false};
+async function boundary(page:Page,options:{empty?:boolean;duplicate?:boolean;linkedCard?:Card;managed?:boolean}={}){
+  const state={rows:options.empty?[]:[{...inboxItem,...(options.managed?{accountId:cardAccount.id}:{})}] as InboxItem[],writes:[] as {path:string;body:Record<string,unknown>}[],fail:false,cardsFail:false,stale:false};
   const headers={'access-control-allow-origin':'http://localhost:3103','access-control-allow-headers':'*','access-control-allow-methods':'GET,POST,PATCH,OPTIONS'};
   await page.route('**/auth/v1/**',route=>route.request().method()==='OPTIONS'?route.fulfill({status:204,headers}):route.fulfill({headers,json:new URL(route.request().url()).pathname.endsWith('/token')?session:user}));
   await page.route('**/api/v1/**',route=>{
     const request=route.request(),url=new URL(request.url()),path=url.pathname,reply=(json:unknown,status=200)=>route.fulfill({headers,json,status});
     if(request.method()==='OPTIONS')return route.fulfill({status:204,headers});
     if(path.endsWith('/me'))return reply({identity:{authUserId:owner},profile:{id:owner,displayName:'Teste sintético',locale:'pt-BR',timezone:'America/Sao_Paulo',createdAt:user.created_at,updatedAt:user.created_at}});
-    if(path.endsWith('/accounts'))return reply([bankAccount]);if(path.endsWith('/categories'))return reply([expenseCategory]);
+    if(path.endsWith('/accounts'))return reply([bankAccount,cardAccount]);if(path.endsWith('/categories'))return reply([expenseCategory]);
+    if(path.endsWith('/cards'))return reply(state.cardsFail?{}:options.linkedCard?[options.linkedCard]:[],state.cardsFail?503:200);
+    if(path.endsWith('/cards/summary'))return reply(cardsSummaryFixture);
+    if(path.includes('/cards/'))return reply(cardViewFixture({card:options.linkedCard??cardFixture}));
     expect(path).toMatch(/^\/api\/v1\/finance\/inbox(?:\/|$)/);
     if(state.fail)return reply({},503);
     if(request.method()!=='GET'){
@@ -26,7 +29,7 @@ async function boundary(page:Page,options:{empty?:boolean;duplicate?:boolean}={}
       return reply(row);
     }
     if(path.endsWith('/inbox'))return reply({items:state.rows.filter(r=>!url.searchParams.get('status')||r.status===url.searchParams.get('status')),nextCursor:null});
-    const row=state.rows.find(r=>path.includes(r.id))!;const review:InboxReview={candidate:row,canConfirm:!!row.accountId&&!!row.amountMinor&&row.status==='PENDING',issues:row.accountId?[]:['ACCOUNT_REQUIRED'],duplicates:options.duplicate?[{id:bankAccount.id,source:'TRANSACTION',description:'Possível anterior',amountMinor:'1200',currency:'BRL',occurredAt:inboxItem.occurredAt!}]:[],duplicatesTruncated:false};return reply(review);
+    const row=state.rows.find(r=>path.includes(r.id))!,managed=options.managed&&row.accountId===cardAccount.id;const review:InboxReview={candidate:row,canConfirm:!managed&&!!row.accountId&&!!row.amountMinor&&row.status==='PENDING',issues:managed?['MANAGED_ACCOUNT']:row.accountId?[]:['ACCOUNT_REQUIRED'],duplicates:options.duplicate?[{id:bankAccount.id,source:'TRANSACTION',description:'Possível anterior',amountMinor:'1200',currency:'BRL',occurredAt:inboxItem.occurredAt!}]:[],duplicatesTruncated:false};return reply(review);
   });return state;
 }
 async function login(page:Page){await page.goto('/login');await page.getByLabel('E-mail').fill('test@example.test');await page.getByLabel('Senha',{exact:true}).fill('synthetic-password');await page.getByRole('button',{name:'Entrar na minha conta'}).click();await expect(page.getByRole('heading',{name:'Início'})).toBeVisible();await page.goto('/finance/inbox');await expect(page.getByRole('heading',{name:'Caixa de entrada financeira'})).toBeVisible();}
@@ -50,4 +53,26 @@ test('tablet/mobile keyboard, theme and stable form geometry use the existing de
   await page.getByRole('combobox',{name:'Tema',exact:true}).selectOption('dark');await expect(page.locator('html')).toHaveAttribute('data-theme','dark');
   await page.evaluate(()=>{(document.activeElement as HTMLElement|null)?.blur();window.scrollTo(0,0);});
   await page.screenshot({path:`.harness/tmp/inbox-${info.project.name}.png`,fullPage:true});
+});
+
+test('linked archived cards are labelled, disabled in Inbox and corrected only by explicit editing',async({page},info)=>{
+  const state=await boundary(page,{managed:true,linkedCard:{...cardFixture,status:'ARCHIVED',archivedAt:cardFixture.createdAt}});await login(page);
+  await page.getByRole('button',{name:'Revisar Proposta teste'}).click();await expect(page.getByRole('button',{name:'Confirmar lançamento'})).toBeDisabled();
+  await expect(page.getByText(/Esta conta está vinculada ao cartão/)).toBeVisible();await page.getByRole('button',{name:'Editar proposta'}).click();
+  const account=page.getByLabel('Conta da proposta');await expect(account).toHaveValue(cardAccount.id);await expect(account.locator('option[value="'+cardAccount.id+'"]')).toBeDisabled();
+  await expect(page.getByRole('link',{name:'Ir para Cartões'})).toHaveAttribute('href','/finance/cards');expect(state.writes).toHaveLength(0);
+  for(const theme of ['light','dark']){await page.getByLabel('Tema',{exact:true}).selectOption(theme);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:`.harness/tmp/inbox-card-${info.project.name}-${theme}.png`,fullPage:true});}
+  await account.focus();await page.keyboard.press('Space');await page.keyboard.press('Home');await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');await expect(account).toHaveValue(bankAccount.id);
+  await page.getByRole('button',{name:'Salvar proposta'}).click();await expect(page.getByRole('heading',{name:'Revisar proposta'})).toBeVisible();await expect(page.getByRole('button',{name:'Confirmar lançamento'})).toBeEnabled();
+  expect(state.writes).toHaveLength(1);expect(state.writes[0]!.body.accountId).toBe(bankAccount.id);expect(state.rows[0]!.status).toBe('PENDING');
+  await page.goto('/finance/accounts');await expect(page.getByText('Cartão vinculado',{exact:true})).toBeVisible();await expect(page.getByText('Cartão arquivado',{exact:true})).toBeVisible();
+  await page.getByRole('link',{name:'Ver cartão Cartão teste'}).click();await expect(page).toHaveURL('/finance/cards/'+cardFixture.id);await expect(page.getByRole('heading',{name:'Cartão teste',exact:true})).toBeVisible();expect(state.writes).toHaveLength(1);
+});
+
+test('card lookup failure stays explicit and retry restores safe new-proposal choices',async({page})=>{
+  const state=await boundary(page,{linkedCard:cardFixture});state.cardsFail=true;await login(page);
+  await expect(page.getByText(/Informações de vínculo com cartões indisponíveis/)).toBeVisible();await expect(page.getByRole('button',{name:'Nova proposta'})).toBeDisabled();
+  state.cardsFail=false;await page.getByRole('button',{name:'Tentar novamente'}).click();await page.getByRole('button',{name:'Nova proposta'}).click();
+  await expect(page.getByLabel('Conta da proposta').locator('option[value="'+cardAccount.id+'"]')).toBeDisabled();
+  await page.getByRole('link',{name:'Ir para Cartões'}).click();await expect(page).toHaveURL('/finance/cards');expect(state.writes).toHaveLength(0);
 });

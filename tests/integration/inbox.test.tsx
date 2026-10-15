@@ -11,16 +11,19 @@ import { AppProviders } from '../../src/app/providers';
 import { createServices } from '../../src/app/services';
 import { publicConfig } from '../../src/config/env';
 import { publicEnv,session,profile } from '../helpers';
-import { bankAccount,expenseCategory } from '../fixtures/cards';
+import { bankAccount,cardAccount,cardFixture,expenseCategory } from '../fixtures/cards';
+import { debtFixture } from '../fixtures/debts';
 import { inboxItem } from '../fixtures/inbox';
-import type { InboxItem,InboxReview } from '../../src/features/finance/contracts.generated';
+import type { Account,Card,Debt,InboxItem,InboxReview } from '../../src/features/finance/contracts.generated';
 
-function setup(options:{empty?:boolean;duplicates?:boolean;fail?:boolean;signedIn?:boolean;incomplete?:boolean}={}){
+function setup(options:{empty?:boolean;duplicates?:boolean;fail?:boolean;signedIn?:boolean;incomplete?:boolean;cards?:Card[];accounts?:Account[];debts?:Debt[];initialAccountId?:string;blockedAccountId?:string;cardsFail?:boolean;denyConfirm?:boolean}={}){
   const client={auth:{onAuthStateChange:vi.fn(),signOut:vi.fn()}} as unknown as AuthClientV2,store=new SessionStore(client.auth);store.accept(options.signedIn===false?null:session);
-  const state={rows:options.empty?[]:[{...inboxItem,...(options.incomplete?{amountMinor:null,accountId:null}: {})}] as InboxItem[],writes:[] as {path:string;method:string;body:Record<string,unknown>}[],fail:options.fail??false,conflict:false};
+  const state={rows:options.empty?[]:[{...inboxItem,...(options.incomplete?{amountMinor:null,accountId:null}: {}),...(options.initialAccountId?{accountId:options.initialAccountId}:{})}] as InboxItem[],writes:[] as {path:string;method:string;body:Record<string,unknown>}[],fail:options.fail??false,cardsFail:options.cardsFail??false,conflict:false};
   const fetcher=vi.fn<typeof fetch>(async(url,init)=>{const u=new URL(String(url)),path=u.pathname;
     if(path.endsWith('/me'))return Response.json({identity:{authUserId:session.user.id},profile});
-    if(path.endsWith('/accounts'))return Response.json([bankAccount]);if(path.endsWith('/categories'))return Response.json([expenseCategory]);
+    if(path.endsWith('/accounts'))return Response.json(options.accounts??[bankAccount]);if(path.endsWith('/categories'))return Response.json([expenseCategory]);
+    if(path.endsWith('/cards'))return Response.json(state.cardsFail?{}:options.cards??[],{status:state.cardsFail?503:200});
+    if(path.endsWith('/debts'))return Response.json(options.debts??[]);
     if(!path.startsWith('/api/v1/finance/inbox'))throw Error('Unexpected financial boundary '+path);
     if(state.fail)return Response.json({}, {status:503});
     if(init?.method!=='GET'){
@@ -33,10 +36,10 @@ function setup(options:{empty?:boolean;duplicates?:boolean;fail?:boolean;signedI
       return Response.json(row);
     }
     if(path.endsWith('/inbox'))return Response.json({items:state.rows.filter(r=>!u.searchParams.get('status')||r.status===u.searchParams.get('status')),nextCursor:null});
-    const row=state.rows.find(r=>path.includes(r.id))!;const review:InboxReview={candidate:row,canConfirm:!!row.accountId&&!!row.amountMinor&&row.status==='PENDING',issues:row.accountId?[]:['ACCOUNT_REQUIRED'],duplicates:options.duplicates?[{id:bankAccount.id,source:'TRANSACTION',description:'Possível anterior',amountMinor:'1200',currency:'BRL',occurredAt:inboxItem.occurredAt!}]:[],duplicatesTruncated:false};return Response.json(review);
+    const row=state.rows.find(r=>path.includes(r.id))!,managed=!!options.blockedAccountId&&row.accountId===options.blockedAccountId;const review:InboxReview={candidate:row,canConfirm:!options.denyConfirm&&!managed&&!!row.accountId&&!!row.amountMinor&&row.status==='PENDING',issues:managed?['MANAGED_ACCOUNT']:row.accountId?[]:['ACCOUNT_REQUIRED'],duplicates:options.duplicates?[{id:bankAccount.id,source:'TRANSACTION',description:'Possível anterior',amountMinor:'1200',currency:'BRL',occurredAt:inboxItem.occurredAt!}]:[],duplicatesTruncated:false};return Response.json(review);
   });
   const services=createServices(publicConfig(publicEnv),store,fetcher);render(<StrictMode><AuthProviderV2 client={client} store={store}><AppProviders services={services}><MemoryRouter initialEntries={['/finance/inbox']}><AuthV2Routes/></MemoryRouter></AppProviders></AuthProviderV2></StrictMode>);
-  return {user:userEvent.setup(),state,fetcher};
+  return {user:userEvent.setup(),state,fetcher,services};
 }
 async function review(user:ReturnType<typeof userEvent.setup>){await user.click(await screen.findByRole('button',{name:'Revisar Proposta teste'}));return screen.findByRole('region',{name:'Revisão da proposta'});}
 describe('Inbox protected UI with generated transport contracts',()=>{
@@ -66,4 +69,47 @@ describe('Inbox protected UI with generated transport contracts',()=>{
     const {user,state}=setup({fail:true});const retry=await screen.findByRole('button',{name:'Tentar novamente'});state.fail=false;await user.click(retry);expect(await screen.findByRole('heading',{name:'Proposta teste'})).toBeVisible();
   });
   it('preserves the Auth V2 guard',async()=>{const {fetcher}=setup({signedIn:false});expect(await screen.findByRole('heading',{name:'Entrar'})).toBeVisible();expect(fetcher).not.toHaveBeenCalled();});
+  it('disables linked and archived cards but keeps an unlinked credit account and identical names available',async()=>{
+    const unlinked={...cardAccount,id:'22222222-2222-4222-8222-222222222222',name:cardAccount.name};
+    const {user,state}=setup({empty:true,cards:[{...cardFixture,status:'ARCHIVED',archivedAt:cardFixture.createdAt}],accounts:[bankAccount,cardAccount,unlinked]});
+    await user.click(await screen.findByRole('button',{name:'Nova proposta'}));const select=screen.getByLabelText('Conta da proposta');
+    expect(within(select).getByRole('option',{name:/Cartão vinculado: Cartão teste \(arquivado\)/})).toBeDisabled();
+    expect(within(select).getByRole('option',{name:'Conta credit · BRL'})).toBeEnabled();
+    await user.selectOptions(select,unlinked.id);expect(select).toHaveValue(unlinked.id);expect(state.writes).toEqual([]);
+    expect(screen.getByRole('link',{name:'Ir para Cartões'})).toHaveAttribute('href','/finance/cards');
+  });
+  it('keeps an old card proposal unchanged until explicit edit and allows correcting its account',async()=>{
+    const {user,state}=setup({cards:[cardFixture],accounts:[bankAccount,cardAccount],initialAccountId:cardAccount.id,blockedAccountId:cardAccount.id});
+    await review(user);expect(screen.getByRole('button',{name:'Confirmar lançamento'})).toBeDisabled();expect(screen.getByText(/Esta conta está vinculada ao cartão/)).toBeVisible();
+    expect(screen.getByRole('link',{name:'Abrir cartão'})).toHaveAttribute('href','/finance/cards/'+cardFixture.id);
+    await user.click(screen.getByRole('button',{name:'Editar proposta'}));expect(screen.getByLabelText('Conta da proposta')).toHaveValue(cardAccount.id);expect(state.writes).toHaveLength(0);
+    await user.click(screen.getByRole('button',{name:'Salvar proposta'}));await screen.findByRole('heading',{name:'Revisar proposta'});expect(state.writes[0]!.body.accountId).toBe(cardAccount.id);
+    await user.click(screen.getByRole('button',{name:'Editar proposta'}));await user.selectOptions(screen.getByLabelText('Conta da proposta'),bankAccount.id);await user.click(screen.getByRole('button',{name:'Salvar proposta'}));
+    await screen.findByRole('heading',{name:'Revisar proposta'});expect(state.writes[1]!.body.accountId).toBe(bankAccount.id);expect(screen.getByRole('button',{name:'Confirmar lançamento'})).toBeEnabled();expect(state.writes.some(w=>w.path.endsWith('/confirm'))).toBe(false);
+  });
+  it('does not override backend date eligibility merely because a historical proposal has a card link',async()=>{
+    const {user,state}=setup({cards:[cardFixture],accounts:[bankAccount,cardAccount],initialAccountId:cardAccount.id});state.rows[0]!.occurredAt='2026-09-01T12:00:00Z';
+    await review(user);expect(screen.getByRole('button',{name:'Confirmar lançamento'})).toBeEnabled();expect(state.writes).toHaveLength(0);
+  });
+  it('respects backend canConfirm even without a listed warning',async()=>{
+    const {user,state}=setup({denyConfirm:true});await review(user);expect(screen.getByRole('button',{name:'Confirmar lançamento'})).toBeDisabled();expect(state.writes).toHaveLength(0);
+  });
+  it('identifies a managed debt by its true account relation, not as a card',async()=>{
+    const {user}=setup({debts:[debtFixture],accounts:[{...bankAccount,id:debtFixture.accountId,type:'debt'}],initialAccountId:debtFixture.accountId,blockedAccountId:debtFixture.accountId});
+    const region=await review(user);expect(await screen.findByText(/Esta conta está vinculada à dívida gerenciada/)).toBeVisible();expect(within(region).getByRole('link',{name:'Dívidas'})).toHaveAttribute('href','/finance/debts/'+debtFixture.id);expect(screen.queryByRole('link',{name:'Abrir cartão'})).not.toBeInTheDocument();
+  });
+  it('blocks new forms on card lookup failure without silently classifying accounts, then retries',async()=>{
+    const {user,state}=setup({cardsFail:true,cards:[cardFixture],accounts:[bankAccount,cardAccount]});expect(await screen.findByText(/Informações de vínculo com cartões indisponíveis/)).toBeVisible();
+    expect(screen.getByRole('button',{name:'Nova proposta'})).toBeDisabled();state.cardsFail=false;await user.click(screen.getByRole('button',{name:'Tentar novamente'}));
+    await waitFor(()=>expect(screen.getByRole('button',{name:'Nova proposta'})).toBeEnabled());await user.click(screen.getByRole('button',{name:'Nova proposta'}));expect(screen.getByRole('option',{name:/Cartão vinculado/})).toBeDisabled();expect(state.writes).toHaveLength(0);
+  });
+  it('preserves the selected account and blocks saving if a card refresh fails during editing',async()=>{
+    const {user,state,services}=setup({cards:[cardFixture],accounts:[bankAccount,cardAccount],initialAccountId:cardAccount.id,blockedAccountId:cardAccount.id});
+    await review(user);await user.click(screen.getByRole('button',{name:'Editar proposta'}));state.cardsFail=true;
+    await services.queryClient.invalidateQueries({queryKey:['private','finance',session.user.id,'cards']});
+    await waitFor(()=>expect(screen.getByLabelText('Conta da proposta')).toBeDisabled());expect(screen.getByLabelText('Conta da proposta')).toHaveValue(cardAccount.id);
+    await user.click(screen.getByRole('button',{name:'Salvar proposta'}));expect(await screen.findByText(/A identificação de cartões está indisponível/)).toBeVisible();expect(state.writes).toHaveLength(0);
+    state.cardsFail=false;await user.click(screen.getByRole('button',{name:'Tentar novamente'}));await waitFor(()=>expect(screen.getByLabelText('Conta da proposta')).toBeEnabled());
+    expect(screen.getByLabelText('Conta da proposta')).toHaveValue(cardAccount.id);
+  });
 });
