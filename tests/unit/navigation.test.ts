@@ -2,16 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { activeNavigation, expandableNavigationGroups, mobileNavigation, navigationGroups, navigationItems, pageBreadcrumbs, searchNavigation } from '../../src/navigation/navigation-config';
 
 describe('single-source navigation', () => {
-  it('prioritizes seven everyday destinations and only two secondary accordions', () => {
-    expect(navigationItems.filter(item => item.group === 'Principal').map(item => item.id)).toEqual(['home', 'overview', 'movements', 'accounts', 'cards', 'budget', 'safe-spend']);
+  it('prioritizes eight everyday destinations and only two secondary accordions', () => {
+    expect(navigationItems.filter(item => item.group === 'Principal').map(item => item.id)).toEqual(['home', 'overview', 'movements', 'inbox', 'accounts', 'cards', 'budget', 'safe-spend']);
     expect(expandableNavigationGroups).toHaveLength(2);
     for (const group of expandableNavigationGroups) expect(navigationItems.filter(item => item.group === group).length).toBeGreaterThan(1);
     expect(navigationItems.find(item => item.id === 'categories')?.group).toBe('Mais');
   });
-  it('maps all 15 base destinations with account security nested under the profile', () => {
-    expect(navigationItems).toHaveLength(15);
-    expect(new Set(navigationItems.map(item => item.id)).size).toBe(15);
-    expect(new Set(navigationItems.map(item => item.path)).size).toBe(15);
+  it('maps all 16 base destinations with account security nested under the profile', () => {
+    expect(navigationItems).toHaveLength(16);
+    expect(new Set(navigationItems.map(item => item.id)).size).toBe(16);
+    expect(new Set(navigationItems.map(item => item.path)).size).toBe(16);
     expect(navigationItems.filter(item => item.group === 'Conta').map(item => item.id)).toEqual(['profile']);
     for (const item of navigationItems) { expect(navigationGroups).toContain(item.group); expect(item.icon).toBeDefined(); expect(item.keywords.length).toBeGreaterThan(0); }
     expect(mobileNavigation.every(item => navigationItems.some(page => page.id === item.id))).toBe(true);

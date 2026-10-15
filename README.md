@@ -86,12 +86,22 @@ Rotas protegidas /finance/debts e /finance/debts/:debtId: resumo por moeda, cada
 
 ## MDL10 — Safe to Spend
 
-Estimativa conservadora por moeda, contas explicitamente selecionadas, obrigações e reservas, Budget como teto e receitas previstas em cenário separado. Somente configurações próprias são escritas. Rota protegida /finance/safe-to-spend; gate humano aprovado e MDL0–10 integrados em main. [Fórmula, limites e validação](docs/SAFE_TO_SPEND.md). Sem MDL11.
+Estimativa conservadora por moeda, contas explicitamente selecionadas, obrigações e reservas, Budget como teto e receitas previstas em cenário separado. Somente configurações próprias são escritas. Rota protegida /finance/safe-to-spend; gate humano aprovado e MDL0–10 integrados em main. [Fórmula, limites e validação](docs/SAFE_TO_SPEND.md).
 
-## UI/UX Foundation V2 — development gate
+## UI/UX Foundation V2 — historical development notes
 
 One typed navigation configuration supplies grouped desktop navigation, an optional icon rail, mobile bottom navigation/full modal menu, page finder, breadcrumbs and Home tools. Ctrl/Cmd+K searches page names/aliases only; editing a field keeps the shortcut inactive. Creation shortcuts open existing forms without submitting them.
 
 Light/Dark/System persist a non-sensitive local preference; the theme initializer runs before first paint. V2.1 uses Crimson Red with deep-red/white primary buttons in both themes, separate semantic status colors and one token source. Five everyday links stay visible; only three secondary groups expand. Safe to Spend settings separate account selection, the safety reserve and planning options. Native modal dialogs preserve focus and existing confirmation conditions. Auth, API contracts, financial calculations and hosted data are unchanged.
 
-The navigation and appearance await the human gate at `http://localhost:3101`. Only a DEV checkpoint is allowed: no final PR/merge and no MDL11. See [audit, decisions and visual evidence](docs/UIUX_FOUNDATION_V2.md).
+The notes above describe the original V2/V2.1 development baseline. V2.3 blue/green
+was subsequently approved and merged in PR #10; its closure is preserved in Git.
+See [audit, decisions and visual evidence](docs/UIUX_FOUNDATION_V2.md).
+
+## MDL11 — Caixa de entrada financeira
+
+`/finance/inbox`: propostas manuais, filtros/histórico, revisão, edição, alertas de
+duplicidade e confirmação/descarte explícitos. Pendentes/descartados não alteram
+finanças. Usa os contratos TypeBox/Zod oficiais e UI/UX V2.3 azul/verde já aprovada.
+[Fluxos, limites e roteiro humano](docs/FINANCIAL_INBOX.md). Gate real PENDING;
+migration DEV depende de autorização após os testes locais. MDL12 não iniciado.

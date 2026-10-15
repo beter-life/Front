@@ -11,6 +11,12 @@ export function createFinanceApi(transport: ApiClient) {
   const budgetPath = (month: string) => base + '/budgets/' + C.BudgetMonthSchema.parse(month);
   const budgetQuery = (currency: C.Currency) => query(C.BudgetCurrencyQuerySchema.parse({ currency }));
   return {
+    inbox: (filters:C.InboxQuery={},signal?:AbortSignal) => transport.request(base+'/inbox'+query(C.InboxQuerySchema.parse(filters)),C.InboxPageSchema,'GET',undefined,signal),
+    inboxReview: (id:string,signal?:AbortSignal) => transport.request(base+'/inbox/'+z.uuid().parse(id),C.InboxReviewSchema,'GET',undefined,signal),
+    createInbox: (input:C.InboxCreate) => transport.request(base+'/inbox',C.InboxItemSchema,'POST',C.InboxCreateSchema.parse(input)),
+    editInbox: (id:string,input:C.InboxEdit) => transport.request(base+'/inbox/'+z.uuid().parse(id),C.InboxItemSchema,'PATCH',C.InboxEditSchema.parse(input)),
+    confirmInbox: (id:string,input:C.InboxConfirm) => transport.request(base+'/inbox/'+z.uuid().parse(id)+'/confirm',C.InboxItemSchema,'POST',C.InboxConfirmSchema.parse(input)),
+    discardInbox: (id:string,input:C.InboxDiscard) => transport.request(base+'/inbox/'+z.uuid().parse(id)+'/discard',C.InboxItemSchema,'POST',C.InboxDiscardSchema.parse(input)),
     safeSpendSettings: (currency:C.Currency,signal?:AbortSignal) => transport.request(base+'/safe-to-spend/settings'+query(C.SafeSpendQuerySchema.parse({currency})),C.SafeSpendSettingsResponseSchema,'GET',undefined,signal),
     putSafeSpendSettings: (input:C.SafeSpendSettingsInput) => transport.request(base+'/safe-to-spend/settings',C.SafeSpendSettingsSchema,'PUT',C.SafeSpendSettingsInputSchema.parse(input)),
     safeSpend: (currency:C.Currency,signal?:AbortSignal) => transport.request(base+'/safe-to-spend'+query(C.SafeSpendQuerySchema.parse({currency})),C.SafeSpendViewSchema,'GET',undefined,signal),
