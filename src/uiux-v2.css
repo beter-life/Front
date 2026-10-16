@@ -88,6 +88,25 @@
 .inbox-duplicates ul,.inbox-issues { padding-left:24px; margin-block:16px; }
 .inbox-ack { display:flex; gap:12px; align-items:flex-start; min-height:44px; margin-top:16px; }
 .inbox-ack input { width:20px; height:20px; flex-shrink:0; }
+.import-help { margin-top:24px; }
+.import-help summary,.import-table summary { cursor:pointer; min-height:44px; padding-block:12px; }
+.import-help p,.import-full { grid-column:1/-1; }
+.import-table { width:100%; table-layout:fixed; border-collapse:collapse; margin-block:24px; }
+.import-table caption { text-align:left; margin-bottom:16px; font-weight:600; }
+.import-table th,.import-table td { text-align:left; vertical-align:top; padding:16px 12px; overflow-wrap:anywhere; }
+.import-table th:first-child { width:14%; }
+.import-table tbody { border-top:1px solid var(--border); }
+.import-table tbody tr:last-child td { padding-top:0; padding-bottom:24px; }
+.import-cells dd { overflow-wrap:anywhere; }
+.import-cells { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:16px; margin-block:16px; }
+.import-cells dt { font-size:var(--font-small); color:var(--muted-foreground); }
+.import-cells dd { margin:8px 0 0; white-space:pre-wrap; }
+@media(max-width:700px) {
+  .import-table,.import-table tbody,.import-table tr,.import-table td,.import-table tbody th { display:block; width:100%; }
+  .import-table thead { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+  .import-table tbody { padding-block:16px; }
+  .import-table th,.import-table td { padding:8px 0; }
+}
 @media(max-width:600px) { .inbox-list > li { align-items:flex-start; flex-direction:column; } }
 .home-essential-link p { grid-column:2; font-size:.8125rem; color:var(--muted-foreground); line-height:1.5; }
 .home-essential-link:first-child { border-color:color-mix(in srgb,var(--primary) 30%,var(--border)); }

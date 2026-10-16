@@ -1,0 +1,3 @@
+data;descricao;valor;tipo;moeda;id
+16/10/2026;Mercado sintetico;-12,34;EXPENSE;BRL;synthetic-csv-1
+16/10/2026;Outro mercado sintetico;-12,34;EXPENSE;BRL;synthetic-csv-3
