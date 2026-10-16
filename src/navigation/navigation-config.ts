@@ -13,7 +13,7 @@ export const navigationItems: readonly NavigationItem[] = [
   { id: 'home', label: 'Página inicial', path: '/app', icon: House, group: 'Principal', keywords: ['inicio', 'home'], exactMatch: true },
   { id: 'overview', label: 'Visão geral', path: '/finance', icon: Wallet, group: 'Principal', keywords: ['financas', 'saldo', 'resumo'], exactMatch: true },
   { id: 'movements', label: 'Movimentos', path: '/finance/transactions', icon: ArrowLeftRight, group: 'Principal', keywords: ['gasto', 'receita', 'despesa', 'transferencia'], exactMatch: true, shortcut: { label: 'Novo movimento', path: '/finance/transactions?action=create' } },
-  { id: 'inbox', label: 'Caixa de entrada', path: '/finance/inbox', icon: Inbox, group: 'Principal', keywords: ['propostas', 'revisar', 'pendentes', 'inbox'], exactMatch: true },
+  { id: 'inbox', label: 'Caixa de entrada', path: '/finance/inbox', icon: Inbox, group: 'Principal', keywords: ['propostas', 'revisar', 'pendentes', 'inbox', 'importar', 'extrato', 'csv', 'ofx', 'pdf'], exactMatch: false },
   { id: 'accounts', label: 'Contas', path: '/finance/accounts', icon: Landmark, group: 'Principal', keywords: ['banco', 'dinheiro', 'carteira'], exactMatch: true, shortcut: { label: 'Nova conta', path: '/finance/accounts?action=create' } },
   { id: 'cards', label: 'Cartões', path: '/finance/cards', icon: CreditCard, group: 'Principal', keywords: ['fatura', 'parcelas', 'credito', 'cartao'], exactMatch: false, shortcut: { label: 'Novo cartão', path: '/finance/cards?action=create' } },
   { id: 'budget', label: 'Orçamento', path: '/finance/budgets', icon: ChartPie, group: 'Principal', keywords: ['limite', 'mensal', 'categoria'], exactMatch: true },
@@ -42,7 +42,7 @@ export function pageBreadcrumbs(path: string, search = '') {
   const result = item.path.startsWith('/finance') && item.id !== 'overview' ? [{ label: 'Finanças', path: '/finance' }] : [];
   result.push({ label: item.label, path: item.path });
   if (item.id === 'profile' && new URLSearchParams(search).get('tab') === 'security') result.push({ label: 'Segurança', path: '/profile?tab=security' });
-  if (path !== item.path) result.push({ label: 'Detalhes', path });
+  if (path !== item.path) result.push({ label: path==='/finance/inbox/import'?'Importar extrato':'Detalhes', path });
   return result;
 }
 export const mobileNavigation = [

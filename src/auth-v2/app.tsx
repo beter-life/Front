@@ -19,6 +19,7 @@ import { CardsPage, CardDetailPage } from '../features/finance/cards-page';
 import { DebtsPage, DebtDetailPage } from '../features/finance/debts-page';
 import { SafeSpendPage } from '../features/finance/safe-spend-page';
 import { InboxPage } from '../features/finance/inbox-page';
+import { ImportPage } from '../features/finance/import-page';
 
 function RouteFocus() {
   const { pathname } = useLocation();
@@ -85,6 +86,7 @@ export function AuthV2Routes() {
         <Route path="debts/:debtId" element={<DebtDetailPage />} />
         <Route path="safe-to-spend" element={<SafeSpendPage />} />
         <Route path="inbox" element={<InboxPage />} />
+        <Route path="inbox/import" element={<ImportPage />} />
       </Route>
     </Route></Route>
   </Routes></>;

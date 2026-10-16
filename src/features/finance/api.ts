@@ -11,6 +11,11 @@ export function createFinanceApi(transport: ApiClient) {
   const budgetPath = (month: string) => base + '/budgets/' + C.BudgetMonthSchema.parse(month);
   const budgetQuery = (currency: C.Currency) => query(C.BudgetCurrencyQuerySchema.parse({ currency }));
   return {
+    analyzeImport: (input:C.ImportUpload) => transport.request(base+'/imports',C.ImportBatchSchema,'POST',C.ImportUploadSchema.parse(input)),
+    importHistory: (filters:C.ImportHistoryQuery={},signal?:AbortSignal) => transport.request(base+'/imports'+query(C.ImportHistoryQuerySchema.parse(filters)),C.ImportHistorySchema,'GET',undefined,signal),
+    importPreview: (id:string,filters:C.ImportPageQuery={},signal?:AbortSignal) => transport.request(base+'/imports/'+z.uuid().parse(id)+query(C.ImportPageQuerySchema.parse(filters)),C.ImportPreviewSchema,'GET',undefined,signal),
+    mapImport: (id:string,input:C.ImportMapInput) => transport.request(base+'/imports/'+z.uuid().parse(id)+'/mapping',C.ImportBatchSchema,'PUT',C.ImportMapInputSchema.parse(input)),
+    selectImport: (id:string,input:C.ImportSelect) => transport.request(base+'/imports/'+z.uuid().parse(id)+'/inbox',C.ImportResultSchema,'POST',C.ImportSelectSchema.parse(input)),
     inbox: (filters:C.InboxQuery={},signal?:AbortSignal) => transport.request(base+'/inbox'+query(C.InboxQuerySchema.parse(filters)),C.InboxPageSchema,'GET',undefined,signal),
     inboxReview: (id:string,signal?:AbortSignal) => transport.request(base+'/inbox/'+z.uuid().parse(id),C.InboxReviewSchema,'GET',undefined,signal),
     createInbox: (input:C.InboxCreate) => transport.request(base+'/inbox',C.InboxItemSchema,'POST',C.InboxCreateSchema.parse(input)),
