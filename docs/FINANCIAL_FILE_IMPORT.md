@@ -1,6 +1,6 @@
 # MDL12 — Importação de extratos
 
-Estado: implementação em validação automatizada; gate humano pendente. Não há
+Estado: AWAITING_REAL_GATE; gates locais aprovados e gate humano pendente. Não há
 merge, checkpoint COMPLETE ou início do MDL13. A migration0013 ainda **não foi
 autorizada nem aplicada ao Supabase DEV**. Os testes de banco usam PostgreSQL17
 descartável, sem extratos ou contas reais.
@@ -101,3 +101,13 @@ Os arquivos do gate e os PDFs de teste não contêm dados bancários reais.
 Metas declaradas antes do volume:1000 linhas<5s, prévia50 linhas<2,5s e seleção100
 propostas<5s no PostgreSQL local. Isso não certifica carga no Supabase hospedado.
 Os resultados finais, commits e links das CIs serão reportados na entrega.
+
+Validação local2026-10-16: lint/typecheck/build/secret scan/harness PASS;261 testes
+unitários+integração PASS;206 testes de navegador PASS e4 skips previamente
+previstos, sem retries ou aumento de timeouts. Todos os testes MDL0–MDL11 foram
+mantidos. Uma primeira rodada concorrente excedeu o carregamento do calendário
+existente; a suíte completa passou com maxWorkers1, sem modificar calendário ou
+suas asserções. Os12 casos novos de navegador também passaram isoladamente.
+JS principal gzip273,90KiB; aviso de chunk>500KiB já existente permanece.
+O CI deve ser conferido no HEAD publicado antes da entrega; o relatório final
+contém os links e os hashes efetivamente verificados.
