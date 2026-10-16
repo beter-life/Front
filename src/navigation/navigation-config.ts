@@ -1,4 +1,4 @@
-import { ArrowLeftRight, CalendarDays, ChartPie, CreditCard, HandCoins, House, KeyRound, Landmark, Layers3, Repeat2, ShieldCheck, Tags, Target, TrendingUp, UserRound, Wallet } from 'lucide-react';
+import { ArrowLeftRight, CalendarDays, ChartPie, CreditCard, HandCoins, House, Inbox, KeyRound, Landmark, Layers3, Repeat2, ShieldCheck, Tags, Target, TrendingUp, UserRound, Wallet } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 export const navigationGroups = ['Principal', 'Planejamento', 'Patrimônio', 'Mais', 'Conta'] as const;
@@ -13,6 +13,7 @@ export const navigationItems: readonly NavigationItem[] = [
   { id: 'home', label: 'Página inicial', path: '/app', icon: House, group: 'Principal', keywords: ['inicio', 'home'], exactMatch: true },
   { id: 'overview', label: 'Visão geral', path: '/finance', icon: Wallet, group: 'Principal', keywords: ['financas', 'saldo', 'resumo'], exactMatch: true },
   { id: 'movements', label: 'Movimentos', path: '/finance/transactions', icon: ArrowLeftRight, group: 'Principal', keywords: ['gasto', 'receita', 'despesa', 'transferencia'], exactMatch: true, shortcut: { label: 'Novo movimento', path: '/finance/transactions?action=create' } },
+  { id: 'inbox', label: 'Caixa de entrada', path: '/finance/inbox', icon: Inbox, group: 'Principal', keywords: ['propostas', 'revisar', 'pendentes', 'inbox'], exactMatch: true },
   { id: 'accounts', label: 'Contas', path: '/finance/accounts', icon: Landmark, group: 'Principal', keywords: ['banco', 'dinheiro', 'carteira'], exactMatch: true, shortcut: { label: 'Nova conta', path: '/finance/accounts?action=create' } },
   { id: 'cards', label: 'Cartões', path: '/finance/cards', icon: CreditCard, group: 'Principal', keywords: ['fatura', 'parcelas', 'credito', 'cartao'], exactMatch: false, shortcut: { label: 'Novo cartão', path: '/finance/cards?action=create' } },
   { id: 'budget', label: 'Orçamento', path: '/finance/budgets', icon: ChartPie, group: 'Principal', keywords: ['limite', 'mensal', 'categoria'], exactMatch: true },

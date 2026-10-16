@@ -94,6 +94,7 @@ async function boundary(page: Page, options: { accountFailure?: boolean; slow?: 
         },
       });
     if (options.slow) await new Promise((resolve) => setTimeout(resolve, 350));
+    if (url.pathname.endsWith('/cards')) return route.fulfill({headers,json:[]});
     if (url.pathname.endsWith('/accounts')) {
       if (request.method() === 'POST') {
         state.accountWrites++;

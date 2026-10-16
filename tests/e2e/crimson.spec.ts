@@ -133,7 +133,7 @@ test('blue-green simplified sidebar, rail and primary actions use readable activ
     await page.getByLabel('Tema').selectOption(theme);
     const nav = page.getByRole('navigation', { name: 'Navegação principal' });
     await expect(nav.getByRole('button')).toHaveCount(2);
-    await expect(nav.locator('.nav-primary a')).toHaveCount(7);
+    await expect(nav.locator('.nav-primary a')).toHaveCount(8);
     const active = nav.locator('a.active');
     expect(await active.evaluate(e => getComputedStyle(e).color)).toBe(await page.locator('body').evaluate(e => getComputedStyle(e).color));
     const action = page.getByRole('link', { name: 'Novo movimento', exact: true });

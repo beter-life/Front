@@ -6,7 +6,10 @@ import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { ConfirmAction } from '../../components/ui/confirm-action';
 import { Feedback } from '../../components/feedback';
-import { PageHeader, SectionHeader, FormPanel, FilterPanel, SummaryGrid, DataSection } from '../../components/ui/surface';
+import { PageHeader, SectionHeader, FormPanel, FilterPanel, SummaryGrid, DataSection, ErrorState } from '../../components/ui/surface';
+import { useCards } from './card-hooks';
+import { linkedCard } from './card-account-view';
+import { CardAccountLink } from './card-account-link';
 import { FormSection } from '../../components/ui/form-section';
 import { useCreationShortcut } from '../../navigation/use-creation-shortcut';
 import { navigationItems } from '../../navigation/navigation-config';
@@ -233,6 +236,7 @@ function AccountEditor({ account, done }: { account?: Account; done: () => void 
 }
 export function AccountsPage() {
   const accounts = useAccounts();
+  const cards = useCards();
   const { locale } = usePresentation();
   const { finance } = useServices();
   const [creating, setCreating] = useCreationShortcut();
@@ -249,6 +253,8 @@ export function AccountsPage() {
         description="Consulte saldos e gerencie suas contas."
         actions={<Button onClick={() => setEditing('new')}><Plus />Nova conta</Button>}
       />
+      {cards.isPending&&<p role="status">Identificando contas vinculadas a cartões…</p>}
+      {cards.isError&&<ErrorState retry={()=>void cards.refetch()}>Informações de vínculo com cartões indisponíveis. Não foi possível identificar as contas vinculadas.</ErrorState>}
       {editing && (
         <AccountEditor
           key={editing === 'new' ? 'new' : editing.id}
@@ -280,6 +286,7 @@ export function AccountsPage() {
               <p className="finance-caption">
                 {accountTypes[account.type]} · {account.currency}
               </p>
+              {cards.isSuccess&&linkedCard(cards.data,account.id)&&<CardAccountLink card={linkedCard(cards.data,account.id)!}/>}
               <div className="finance-actions">
                 <Button variant="outline" onClick={() => setEditing(account)}>
                   Editar {account.name}

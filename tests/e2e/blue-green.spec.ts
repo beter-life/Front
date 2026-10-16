@@ -59,7 +59,10 @@ test('V2.3 outer panels align and form grids reflow at every supported width',as
     await page.setViewportSize({width,height:960});
     for(const theme of ['light','dark']) {
       await page.goto('/finance/transactions?action=create'); await page.getByLabel('Tema').selectOption(theme);
-      const boxes=await page.locator('#main .ui-form-panel, #main .ui-filter-panel, #main .finance-movements').evaluateAll(elements=>elements.map(element=>{
+      const panels=page.locator('#main .ui-form-panel, #main .ui-filter-panel, #main .finance-movements');
+      await expect(panels).toHaveCount(3);
+      await expect(page.locator('.ui-form-panel .ui-form-grid').first()).toBeVisible();
+      const boxes=await panels.evaluateAll(elements=>elements.map(element=>{
         const rect=element.getBoundingClientRect();return {left:rect.left,right:rect.right,width:rect.width};
       }));
       expect(boxes).toHaveLength(3);
@@ -106,12 +109,85 @@ test('V2.3 scrollbar, system theme, contrast and semantic colors follow the them
     await expect(page.locator('.ui-page-header .ui-primary')).toHaveCSS('background-color',theme==='light'?'rgb(29, 78, 216)':'rgb(96, 165, 250)');
     const values=await page.evaluate(()=>{const root=getComputedStyle(document.documentElement),button=getComputedStyle(document.querySelector('.ui-primary')!);return {primary:root.getPropertyValue('--primary').trim(),green:root.getPropertyValue('--brand-green').trim(),scroll:root.scrollbarColor,gutter:root.scrollbarGutter,width:root.scrollbarWidth,button:button.backgroundColor,text:button.color};});
     expect(values.primary).toBe(theme==='light'?'#1d4ed8':'#60a5fa');expect(values.green).toBe(theme==='light'?'#0f766e':'#2dd4bf');
-    expect(values.scroll).not.toBe('auto');expect(values.gutter).toBe('stable');expect(values.width).not.toBe('none');expect(contrast(values.button,values.text)).toBeGreaterThanOrEqual(4.5);
+    const floating=await page.locator('html').getAttribute('data-floating-scroll')==='true';
+    expect(values.gutter).toBe(floating?'auto':'stable');
+    expect(values.width).toBe(floating?'none':'auto');
+    expect(contrast(values.button,values.text)).toBeGreaterThanOrEqual(4.5);
+    const scrollbar=await page.evaluate(()=>{
+      const root=document.documentElement,thumb=getComputedStyle(root,'::-webkit-scrollbar-thumb'),track=getComputedStyle(root,'::-webkit-scrollbar-track'),arrows=getComputedStyle(root,'::-webkit-scrollbar-button');
+      const sample=document.createElement('div');sample.className='finder-results';sample.tabIndex=0;sample.style.cssText='height:60px;overflow:auto;background-color:var(--scroll-thumb);color:var(--scroll-thumb-hover)';
+      const content=document.createElement('div');content.style.height='600px';sample.append(content);document.querySelector('#main')!.append(sample);
+      sample.scrollTop=100;
+      const navigation=document.querySelector('.navigation-groups')??root;
+      const result={track:track.backgroundColor,thumb:thumb.backgroundColor,clip:thumb.backgroundClip,border:thumb.borderTopColor,radius:thumb.borderTopLeftRadius,arrows:arrows.display,colors:[getComputedStyle(sample).backgroundColor,getComputedStyle(sample).color],navigationWidth:getComputedStyle(navigation).scrollbarWidth,navigationTrack:getComputedStyle(navigation,'::-webkit-scrollbar-track').backgroundColor,scrollTop:sample.scrollTop};sample.remove();return result;
+    });
+    expect(scrollbar.track).toBe('rgba(0, 0, 0, 0)');expect(scrollbar.border).toBe('rgba(0, 0, 0, 0)');expect(scrollbar.clip).toBe('padding-box');expect(scrollbar.radius).toBe('999px');expect(scrollbar.arrows).toBe('none');expect(scrollbar.colors).toContain(scrollbar.thumb);expect(scrollbar.scrollTop).toBe(100);
+    expect(scrollbar.navigationWidth).toBe(floating?'none':'auto');expect(scrollbar.navigationTrack).toBe('rgba(0, 0, 0, 0)');
     await page.screenshot({path:`.harness/tmp/blue-green/scrollbar-${theme}.png`,animations:'disabled'});
   }
   await page.emulateMedia({colorScheme:'dark'});await page.getByLabel('Tema').selectOption('system');await expect(page.locator('html')).toHaveAttribute('data-theme','dark');
   await page.emulateMedia({colorScheme:'light'});await expect(page.locator('html')).toHaveAttribute('data-theme','light');
   await page.emulateMedia({forcedColors:'active'});expect(await page.evaluate(()=>getComputedStyle(document.documentElement).scrollbarColor)).toBe('auto');
+});
+
+test('floating page thumb has margins, proximity reveal, drag and accessible native fallbacks',async({page},info)=>{
+  const state=await uiuxBoundary(page);await uiuxLogin(page);
+  await page.evaluate(()=>{const filler=document.createElement('div');filler.id='scroll-test-content';filler.style.height='3000px';document.querySelector('#main')!.append(filler);window.scrollTo(0,0);});
+  const thumb=page.getByRole('scrollbar',{name:'Rolagem da página'}),viewport=page.viewportSize()!;
+  if(info.project.name==='mobile') {
+    await expect(thumb).toHaveCount(0);await expect(page.locator('html')).not.toHaveAttribute('data-floating-scroll','true');
+    await page.evaluate(()=>window.scrollTo(0,100));expect(await page.evaluate(()=>window.scrollY)).toBe(100);
+  } else {
+    await page.mouse.move(viewport.width/2,100);await expect(thumb).toBeVisible();await expect(thumb).toHaveAttribute('data-revealed','false');
+    expect(await page.evaluate(()=>({padding:getComputedStyle(document.documentElement).paddingRight,gap:innerWidth-document.documentElement.clientWidth,bodyRight:document.body.getBoundingClientRect().right}))).toEqual({padding:'0px',gap:0,bodyRight:viewport.width});
+    const idle=await thumb.boundingBox();expect(idle!.height).toBeLessThanOrEqual(96);expect(idle!.y).toBeGreaterThanOrEqual(24);expect(idle!.x).toBeGreaterThanOrEqual(viewport.width-3);
+    await page.mouse.move(viewport.width-20,idle!.y+20);await expect(thumb).toHaveAttribute('data-revealed','true');await expect(thumb).toHaveCSS('transform','matrix(1, 0, 0, 1, 0, 0)');
+    const revealed=await thumb.boundingBox();expect(revealed!.x+revealed!.width).toBeLessThanOrEqual(viewport.width-6);
+    await page.screenshot({path:'.harness/tmp/blue-green/floating-scroll-revealed.png',animations:'disabled'});
+    await page.mouse.move(revealed!.x+2,revealed!.y+20);await page.mouse.down();await page.mouse.move(revealed!.x+2,revealed!.y+100,{steps:5});await page.mouse.up();
+    expect(await page.evaluate(()=>window.scrollY)).toBeGreaterThan(100);
+    await thumb.focus();await page.keyboard.press('End');await expect(thumb).toHaveAttribute('aria-valuenow','100');
+    const end=await thumb.boundingBox();expect(end!.y+end!.height).toBeLessThanOrEqual(viewport.height-24);
+    await page.keyboard.press('Home');await expect(thumb).toHaveAttribute('aria-valuenow','0');
+    await page.evaluate(()=>{if(document.activeElement instanceof HTMLElement)document.activeElement.blur();});
+    await page.mouse.move(viewport.width/2,100);await expect(thumb).toHaveCSS('transform','matrix(1, 0, 0, 1, 9, 0)');
+    await page.emulateMedia({reducedMotion:'reduce'});
+    expect(await thumb.evaluate(element=>getComputedStyle(element).transitionDuration.split(',').every(value=>parseFloat(value)<=.001))).toBe(true);
+    await page.getByRole('button',{name:'Menu da conta',exact:true}).click();await expect(thumb).toHaveCount(0);
+    await page.getByRole('button',{name:'Fechar Sua conta',exact:true}).click();await expect(thumb).toBeVisible();
+    await page.emulateMedia({forcedColors:'active'});await expect(thumb).toHaveCount(0);await expect(page.locator('html')).not.toHaveAttribute('data-floating-scroll','true');
+  }
+  await page.evaluate(()=>document.getElementById('scroll-test-content')?.remove());
+  expect(state.financialWrites).toBe(0);expect(state.errors).toEqual([]);
+});
+
+test('sidebar thumb overlays its scroll area without a gutter and follows only sidebar scrolling',async({page},info)=>{
+  test.skip(info.project.name==='mobile','Touch keeps the native mobile menu scrolling.');
+  const state=await uiuxBoundary(page);await uiuxLogin(page);await page.setViewportSize({width:1440,height:640});
+  await page.getByRole('button',{name:'Recolher navegação',exact:true}).click();
+  const nav=page.getByRole('navigation',{name:'Navegação principal'}),thumb=page.getByRole('scrollbar',{name:'Rolagem da navegação'});
+  await expect(thumb).toBeVisible();await expect(nav).toHaveCSS('scrollbar-width','none');await expect(nav).toHaveCSS('scrollbar-gutter','auto');
+  const dimensions=await nav.evaluate(element=>({client:element.clientWidth,outer:(element as HTMLElement).offsetWidth,rect:element.getBoundingClientRect().toJSON()}));
+  expect(dimensions.client).toBe(dimensions.outer);
+  await page.mouse.move(500,300);await expect(thumb).toHaveAttribute('data-revealed','false');
+  await page.mouse.move(dimensions.rect.right-20,dimensions.rect.top+30);await expect(thumb).toHaveCSS('transform','matrix(1, 0, 0, 1, 0, 0)');
+  const atStart=await thumb.boundingBox();expect(atStart!.y).toBeGreaterThanOrEqual(dimensions.rect.top+24);
+  for(const theme of ['light','dark']) {
+    await page.getByLabel('Tema').selectOption(theme);
+    await page.mouse.move(dimensions.rect.right-20,dimensions.rect.top+30);
+    await expect(thumb).toHaveAttribute('data-revealed','true');
+    await expect(thumb).toHaveCSS('opacity','1');await expect(thumb).toHaveCSS('background-color',theme==='light'?'rgb(89, 107, 128)':'rgb(165, 180, 200)');
+    await page.screenshot({path:`.harness/tmp/blue-green/sidebar-overlay-${theme}.png`,animations:'disabled'});
+  }
+  const documentScroll=await page.evaluate(()=>window.scrollY),box=await thumb.boundingBox();
+  await page.mouse.move(box!.x+2,box!.y+20);await page.mouse.down();await page.mouse.move(box!.x+2,box!.y+70,{steps:5});await page.mouse.up();
+  expect(await nav.evaluate(element=>element.scrollTop)).toBeGreaterThan(0);expect(await page.evaluate(()=>window.scrollY)).toBe(documentScroll);
+  await thumb.focus();await page.keyboard.press('End');await expect(thumb).toHaveAttribute('aria-valuenow','100');
+  const atEnd=await thumb.boundingBox();expect(atEnd!.y+atEnd!.height).toBeLessThanOrEqual(dimensions.rect.bottom-24);
+  await page.keyboard.press('Home');await expect(thumb).toHaveAttribute('aria-valuenow','0');
+  await nav.getByRole('link',{name:'Categorias',exact:true}).focus();expect(await nav.evaluate(element=>element.scrollTop)).toBeGreaterThan(0);
+  await page.emulateMedia({forcedColors:'active'});await expect(thumb).toHaveCount(0);await expect(nav).toHaveCSS('scrollbar-width','auto');
+  expect(state.financialWrites).toBe(0);expect(state.errors).toEqual([]);
 });
 
 test('V2.3 date picker keyboard crosses month boundaries and returns focus without submitting',async({page},info)=>{

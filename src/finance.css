@@ -285,3 +285,7 @@ summary h2 { display:inline; font-size:1.0625rem; font-weight:650; }
   .cards-page .finance-list li > div { flex-basis:100%; }
 }
 @media(max-width:359px) { .card-metrics,.goal-metrics,.recurrence-metrics { grid-template-columns:1fr; } }
+.account-card-link { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-block:12px; font-size:var(--font-small); overflow-wrap:anywhere; }
+.account-card-link .ui-badge { display:inline-flex; align-items:center; gap:6px; }
+.account-card-link svg { width:16px; height:16px; flex-shrink:0; }
+.inbox-card-guidance { grid-column:1/-1; }

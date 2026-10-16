@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { ReactNode } from 'react';
+import type { ReactNode, RefObject } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router';
 import { ChevronDown, ChevronRight, LogOut, Menu, MoreHorizontal, PanelLeftClose, PanelLeftOpen, Search, Sprout, UserRound } from 'lucide-react';
 import { expandableNavigationGroups, navigationItems, activeNavigation, mobileNavigation, pageBreadcrumbs, searchNavigation } from './navigation-config';
@@ -10,6 +10,7 @@ import { Dialog } from '../components/ui/dialog';
 import { IconButton, PageContainer } from '../components/ui/surface';
 import { Feedback } from '../components/feedback';
 import { ThemeControl } from '../theme/theme-control';
+import { FloatingScrollThumb } from '../components/ui/floating-scroll-thumb';
 
 const railKey = 'beter-life-sidebar-rail';
 function readRail() { try { return localStorage.getItem(railKey) === 'true'; } catch { return false; } }
@@ -36,10 +37,10 @@ function NavigationLink({ item, rail = false, close }: { item: NavigationItem; r
     <Icon aria-hidden="true" /><span className="nav-label">{item.label}</span>
   </NavLink>{rail && position && createPortal(<span id={tooltipId} role="tooltip" className="nav-tooltip" style={position}>{item.label}</span>, document.body)}</>;
 }
-function NavigationGroups({ rail = false, mobile = false, close }: { rail?: boolean; mobile?: boolean; close?: () => void }) {
+function NavigationGroups({ rail = false, mobile = false, close, scrollRef }: { rail?: boolean; mobile?: boolean; close?: () => void; scrollRef?: RefObject<HTMLElement | null> }) {
   const { pathname } = useLocation(), current = activeNavigation(pathname);
   const [expanded, setExpanded] = useState<string[]>([]);
-  return <nav aria-label={mobile ? 'Menu completo' : 'Navegação principal'} className="navigation-groups">
+  return <nav ref={scrollRef} id={scrollRef ? 'sidebar-navigation' : undefined} aria-label={mobile ? 'Menu completo' : 'Navegação principal'} className="navigation-groups">
     <div className="nav-group nav-primary">{!rail && <h3 className="nav-section-label">Principal</h3>}{navigationItems.filter(item => item.group === 'Principal').map(item => <NavigationLink key={item.id} item={item} rail={rail} close={close} />)}</div>
     {expandableNavigationGroups.map(group => {
       const open = mobile || current?.group === group || expanded.includes(group);
@@ -89,6 +90,7 @@ function PageFinder({ close }: { close: () => void }) {
 export function AppShell({ children, busy, error, onLogout }: { children: ReactNode; busy: boolean; error: boolean; onLogout: () => void }) {
   const { pathname } = useLocation();
   const [rail, setRail] = useState(readRail), [overlay, setOverlay] = useState<'menu' | 'search' | 'account' | null>(null);
+  const navigationScroll = useRef<HTMLElement>(null);
   useEffect(() => { setOverlay(null); }, [pathname]);
   useEffect(() => {
     const shortcut = (event: KeyboardEvent) => {
@@ -104,7 +106,8 @@ export function AppShell({ children, busy, error, onLogout }: { children: ReactN
       <IconButton label={rail ? 'Expandir navegação' : 'Recolher navegação'} onClick={() => {
         setRail(value => { try { localStorage.setItem(railKey, String(!value)); } catch { /* Optional UI preference. */ } return !value; });
       }}>{rail ? <PanelLeftOpen /> : <PanelLeftClose />}</IconButton></div>
-      <NavigationGroups rail={rail} /><div className="nav-account">{navigationItems.filter(item => item.group === 'Conta').map(item => <NavigationLink key={item.id} item={item} rail={rail} />)}{rail ? <IconButton label="Sair da conta" onClick={onLogout} disabled={busy}><LogOut /></IconButton> : logoutButton}</div>
+      <div className="sidebar-scroll-region"><NavigationGroups rail={rail} scrollRef={navigationScroll} /></div>
+      <div className="nav-account">{navigationItems.filter(item => item.group === 'Conta').map(item => <NavigationLink key={item.id} item={item} rail={rail} />)}{rail ? <IconButton label="Sair da conta" onClick={onLogout} disabled={busy}><LogOut /></IconButton> : logoutButton}</div>
     </aside>
     <div className="app-content"><header className="app-header">
       <IconButton label="Abrir menu completo" className="mobile-menu-trigger" onClick={() => setOverlay('menu')}><Menu /></IconButton>
@@ -119,5 +122,7 @@ export function AppShell({ children, busy, error, onLogout }: { children: ReactN
     {overlay === 'search' && <PageFinder close={() => setOverlay(null)} />}
     {overlay === 'menu' && <Dialog title="Todas as ferramentas" drawer onClose={() => setOverlay(null)}><NavigationGroups mobile close={() => setOverlay(null)} /><div className="nav-account">{logoutButton}</div></Dialog>}
     {overlay === 'account' && <Dialog title="Sua conta" onClose={() => setOverlay(null)}><nav aria-label="Configurações de conta">{navigationItems.filter(item => item.group === 'Conta').map(item => <NavigationLink key={item.id} item={item} close={() => setOverlay(null)} />)}</nav>{logoutButton}</Dialog>}
+    <FloatingScrollThumb />
+    <FloatingScrollThumb targetRef={navigationScroll} label="Rolagem da navegação" controls="sidebar-navigation" />
   </div>;
 }

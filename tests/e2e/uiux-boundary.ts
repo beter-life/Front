@@ -7,6 +7,7 @@ import { calendarFixture, entryFixture, radarFixture, recurrenceFixture } from '
 import { netWorthSummary, netWorthHistory, netWorthItem } from '../fixtures/net-worth';
 import { yieldAccount, yieldBenchmarks, yieldProfile, yieldSummary, yieldEstimate } from '../fixtures/yield';
 import { safeSettings, safeView } from '../fixtures/safe-spend';
+import { inboxItem, inboxReview } from '../fixtures/inbox';
 
 export async function uiuxBoundary(page: Page, options: { movements?: boolean } = {}) {
   const owner = '11111111-1111-4111-8111-111111111111', instant = '2026-01-01T00:00:00Z';
@@ -32,6 +33,7 @@ export async function uiuxBoundary(page: Page, options: { movements?: boolean } 
     if (path.endsWith('/me')) return reply({ identity: { authUserId: owner }, profile: { id: owner, displayName: 'Conta Teste', locale: 'pt-BR', timezone: 'America/Sao_Paulo', createdAt: instant, updatedAt: instant } });
     if (path.endsWith('/accounts')) return reply([bankAccount, cardAccount, yieldAccount]);
     if (path.endsWith('/categories')) return reply([expenseCategory]);
+    if (path.includes('/inbox')) return reply(path.endsWith('/inbox') ? {items:[inboxItem],nextCursor:null} : inboxReview);
     if (path.includes('/safe-to-spend')) return reply(path.endsWith('/settings') ? safeSettings : safeView);
     if (path.includes('/cards')) {
       if (path.endsWith('/summary')) return reply(cardsSummaryFixture);

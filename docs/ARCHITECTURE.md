@@ -19,3 +19,10 @@ Dependencies are pinned in the lockfile. TypeScript 6 is retained for compatibil
 Tests: unit boundaries and session races; React integration with mocked external boundaries; Chromium desktop/mobile using the real browser SDK against intercepted Auth/API responses. UI/UX coverage includes all protected destinations, detail deep links/reload, keyboard/modal focus, themes and screenshots at six widths. These isolated tests do not send email or modify hosted data. Real remote checks and human appearance/navigation approval are reported separately in PROJECT_STATE. UI/UX V2 changes no backend/schema or financial behavior.
 
 The profile editor reads `GET /api/v1/me` and writes `PUT /api/v1/me/profile`; there is no separate profile GET endpoint. The API response owner must match the session identity, and a late mutation cannot repopulate private cache after that session changes. Login, signup/confirmation and recovery real gates were approved manually by the user before cutover. The pre-cutover Git checkpoint preserves the old implementation; the runtime and maintained tests use Auth V2 only.
+
+MDL11: `features/finance/inbox-*` adds protected `/finance/inbox` using the
+existing services/private React Query cache, generated Zod contracts and V2.3
+blue/green components. The UI captures proposals and explicit commands only;
+financial validation, duplicate hints and posting remain at the Backend boundary.
+Single-submit guards complement server idempotency. No Auth/session or other
+financial calculation is replaced. [Inbox flow and human gate](./FINANCIAL_INBOX.md).

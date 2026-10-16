@@ -2,39 +2,34 @@
 
 | Field | Value |
 | --- | --- |
-| MODULE | UI/UX Foundation V2 — approved blue/green identity and unified profile |
-| MDL10_STATUS | COMPLETE |
-| MDL10_REAL_GATE | PASS; human gate recorded in SAFE_TO_SPEND.md |
-| MDL10_MERGED_TO_MAIN | true; PR #8 merge commit `38d32a35f69ac79367ccf9f94fc65523ba669bb5` |
-| MDL10_READY_FOR_MDL11 | true |
-| DESIGN_ITERATION | V2.3_BLUE_GREEN |
-| UIUX_V2_STATUS | COMPLETE |
-| UIUX_HUMAN_VISUAL_GATE | PASS; user closure request records “O UX já ficou bem legal para fechar.” |
-| REAL_GATE | PASS; visual approval recorded and implementation CI passed |
-| MERGED_TO_MAIN | true; UI/UX PR #10 merge commit `7db56d9462d4ff1ef426bcda1a3f02889b7676db` |
-| READY_FOR_MDL11 | true |
-| MDL11_STATUS | NOT_STARTED |
-| IMPLEMENTATION_BRANCH | codex/uiux-v2-navigation-foundation; historical branch, merged via PR #10 |
-| BASELINE_FRONT_MAIN | 38d32a35f69ac79367ccf9f94fc65523ba669bb5; main after MDL10 PR #8 and before UI/UX V2.3 |
-| CURRENT_MAIN | 7db56d9462d4ff1ef426bcda1a3f02889b7676db; UI/UX PR #10 merged; [final main CI run 37969695320 PASS](https://github.com/beter-life/Front/actions/runs/37969695320) |
-| BASELINE_BACK_MAIN | ca6746c83483d70c69bdfaf31137db6c74546d04; MDL10 merged in Back PR8; main CI37790612267 PASS; historical Back snapshot predates merge |
-| LAST_TESTED_COMMIT | `64d58b21f55435a334c083b53929e319d1a80488`; historical profile/security implementation and local regression evidence. The published merged main HEAD is `7db56d9462d4ff1ef426bcda1a3f02889b7676db`, with its exact main CI recorded below |
-| DESIGN_SYSTEM | Blue actions, green brand, neutral Light/Dark/System; shared full-width surfaces, bounded form grids, 24px content stacks, accessible native-field calendar adapter and visible standard scrollbars |
-| NAVIGATION | One account destination: Meu perfil. Personal-data/security tabs, explicit selected state, arrows/Home/End, URL persistence. Search aliases open /profile?tab=security. Protected /account/password redirects with replace. Breadcrumbs and active Meu perfil state retained; Security removed from sidebar/mobile/account menu |
-| AUTH_PRESERVATION | Original newPasswordSchema/updateUser/pending guard/feedback/reset/session behavior reused in PasswordChangeFormV2. No SDK/session/provider/guards/recovery change; public Forgot Password unchanged. Password tests are synthetic, not a real user password change |
-| FINANCE_PRESERVATION | No financial handlers/calculations, API clients/contracts, Back, Supabase, migrations, hosted data or env files changed by UI closure |
-| TESTS | Historical implementation evidence: 131 unit, 91 integration and 179 browser PASS; three existing exclusions retained. Local resume 2026-10-15: 131 unit/131 PASS, complete integration rerun 13 files/91 PASS, Playwright desktop/mobile 179 PASS and 3 existing skips, lint/typecheck/build/secret scan/harness PASS. One calendar integration test failed transiently on the first run and passed on the complete rerun; no root-cause fix is claimed |
-| COMMANDS | Official pnpm lint,typecheck,test,test:integration,test:e2e,build,security:scan,harness via compact runner; focused profile/auth boundaries first |
-| LOGS | Ignored .harness/logs: unit17-05-30-806Z, integration17-05-31-296Z, focused browser17-06-11-929Z, full browser17-08-01-496Z, lint17-05-30-384Z, typecheck17-05-30-793Z, build17-05-30-425Z, scan17-05-30-055Z, harness17-05-30-795Z (2026-10-09) |
-| VISUAL | V2.3 gallery128 real before/after pairs plus54 extras retained. New profile Security desktop/mobile Light/Dark captures inspected under ignored .harness/tmp/profile-security-*.png. No global redesign |
-| CI_FRONT | V2.3 [run 37960853065](https://github.com/beter-life/Front/actions/runs/37960853065) PASS on b992fcb; UI/UX PR #10 CI passed; final [main run 37969695320](https://github.com/beter-life/Front/actions/runs/37969695320) PASS at `7db56d9462d4ff1ef426bcda1a3f02889b7676db` |
-| UIUX_PR | [PR #10](https://github.com/beter-life/Front/pull/10), codex/uiux-v2-navigation-foundation → main; merged with merge commit |
-| MDL10_PR | [PR #8](https://github.com/beter-life/Front/pull/8), merged before UI/UX V2.3 |
-| UIUX_PR_CI | PASS |
-| UIUX_MAIN_CI | PASS; run 37969695320 on current main |
-| CHECKPOINT | DEV review tag checkpoint/uiux-v2-blue-green-review-2026-10-09 preserved. UI/UX COMPLETE checkpoint points to `4ba1068b325293abb22f6d72c6bdf1c6a4403e05`; MDL10 COMPLETE checkpoint points to `9187d9adbccef57661aa5772c13fd45eb4e9d721`. Both refs confirmed remotely |
-| LOCAL_APP | Front localhost:3101 and Back localhost:3001; ignored env files preserved |
-| LIMITATIONS | Chromium/emulated mobile; no screen-reader/WCAG/physical-device/Safari/Firefox certification. Native month/OS scrollbars; small calendar cells36px; existing bundle warning>500kB |
-| DELIVERY | UI/UX V2.3 and MDL10 delivery documentation reconciled on 2026-10-15; no product code, tests, migrations, configuration, dependencies or hosted data changed |
-| BLOCKERS | None for UI/UX V2.3 or MDL10 closure |
-| NEXT | MDL11 is eligible to begin, but remains NOT_STARTED; no MDL11 branch or implementation was created |
+| MODULE | MDL11 — Financial Ingestion Hub + Financial Inbox |
+| STATUS | REAL_GATE_PASS_PENDING_MERGE |
+| MDL11_STATUS | REAL_GATE_PASS_PENDING_MERGE |
+| REAL_GATE | PASS — seven-flow gate and final card-account UX/scrollbars approved by user |
+| MDL11_HUMAN_GATE | PASS |
+| MDL11_HUMAN_TESTS | 7/7 |
+| READY_FOR_MDL12 | false |
+| PREVIOUS_MODULES | MDL0–MDL10 COMPLETE; UIUX_V2_STATUS=COMPLETE; DESIGN_ITERATION=V2.3_BLUE_GREEN |
+| BASELINE_MAIN | `380cde3c5182a85514301ed34e246612f30d1743`; [exact baseline CI PASS](https://github.com/beter-life/Front/actions/runs/38731697100) |
+| BASELINE_BACK | `8842cfb2e282d354ac88e618547797a9af216242`; [exact baseline CI PASS](https://github.com/beter-life/Back/actions/runs/38731701722) |
+| BRANCH | codex/mdl11-financial-ingestion-hub-inbox; documentary closure/PR preparation authorized; merge requires explicit user release |
+| LAST_TESTED_COMMIT | `b9a03fc09a732c1941f0905581b89ff29ee14577`; exact HEAD CI PASS; closure changes are documentation only |
+| IMPLEMENTATION | Protected /finance/inbox; manual drafts, filters/cursor pagination, review/edit, accounts/categories, duplicate acknowledgement, single-submit confirm/discard and terminal history. Existing V2.3 components/tokens and Auth V2 preserved |
+| CONTRACT | Back TypeBox/OpenAPI → official generated Zod; contract drift PASS. Backend owns financial validation and atomic/idempotent posting. No parallel Finance Core or client-side duplicate heuristic |
+| LOCAL_GATES | Node24.11.1/pnpm11.19.0; fresh lint/typecheck/249 unit+integration/194 browser PASS,4 skips (3 previous+1 touch sidebar). Full desktop/mobile, tablet/keyboard, six-width Light/Dark regression, build/secret scan/harness PASS; seven approved MDL11 flows retained |
+| CARD_ACCOUNT_UX_FIX | PASS automated and approved by user; card.accountId→account.id only, including archived links. Accounts badge/name/detail link; disabled Inbox card options; unavailable/retry instead of false classification; explicit edits preserve old associations; contextual card/debt help uses real links |
+| SCROLLBARS | INCLUDED — page/sidebar overlay indicators validated and approved by user |
+| FINANCIAL_BEHAVIOR_UNCHANGED | PASS; Back source, Finance Core, RLS, migrations and generated contracts unchanged. canConfirm and card tracking-date eligibility remain backend-owned; no hosted requests or financial corrections performed |
+| LOCAL_UI_REFINEMENT | Included page+sidebar floating thumbs: no reserved gutter/padding; higher-contrast themes,36–96px height,24px end margins,2px idle hint,32px proximity/200ms reveal. Native scrolling, independent drag/keyboard, modal lock, reduced motion and native touch/forced-colors fallback preserved |
+| REGRESSION_NOTES | Full249-test local rerun with maxWorkers2 PASS after a calendar lazy-load timeout, without calendar changes. Layout browser test now awaits3 async panels and visible form before measuring, retaining all assertions/no retries or timeout increase; complete V2.3 rerun17 PASS+1 touch skip. See delivery doc for CI evidence |
+| BASELINE | Before MDL11: 131 unit/91 integration, prior179 browser PASS with3 skips; all previous tests retained and navigation expectations extended |
+| PERFORMANCE | Main JS gzip261.70→267.67KB (+5.97KB including presentation refinements); no new dependencies. Existing >500KB chunk warning retained. Back synthetic2000-proposal bounds/core read regression PASS |
+| SECURITY | JWT remains in existing Auth boundary; no owner payload, credentials/financial data/fingerprint logging or hosted fixtures. Private query cache and logout behavior preserved |
+| SUPABASE_DEV | Authorized0012 deployment snapshot:12/12, ACTIVE_HEALTHY, verify-full/CA/hostname and24-table preservation PASS; encrypted backup verified locally. Original human gate later PASS. No new hosted reads/writes, migrations or Auth changes for this UX task |
+| LOCAL_APP | Front3101 /finance/accounts and /finance/inbox ready for visual review; latest original human seven-flow gate PASS per user. Prior deployment health/guard checks remain documented in FINANCIAL_INBOX.md |
+| CI | [Front b9a03fc CI PASS](https://github.com/beter-life/Front/actions/runs/38773621856); [Back dd17779 CI PASS](https://github.com/beter-life/Back/actions/runs/38770011019). Documentary HEAD and PR checks must pass before promotion |
+| CHECKPOINT | Existing DEV tag checkpoint/mdl11-financial-ingestion-hub-inbox-dev-2026-10-15 preserved, not moved; no COMPLETE checkpoint |
+| LIMITS | Chromium/emulated mobile; no complete screen-reader/WCAG/physical-device/Safari/Firefox certification. Manual source only; no CSV/OFX/PDF, email ingestion, AI or voice |
+| HUMAN_GATE | MDL11:7/7 PASS; linked-card identification, card UX and included scrollbars also approved by user; Finance Core preserved |
+| BLOCKERS | Promotion awaits exact documentary HEAD/PR checks and explicit user merge authorization; no remaining human UX validation |
+| NEXT | Publish documentary closure and separate PR to main, verify checks/conflicts, then request final promotion release. No automatic merge, COMPLETE checkpoint or MDL12 |
