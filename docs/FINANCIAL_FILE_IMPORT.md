@@ -1,9 +1,12 @@
 # MDL12 — Importação de extratos
 
-Estado: REAL_GATE_PASS_PENDING_MERGE. REAL_GATE=PASS; MDL12_HUMAN_GATE=PASS;
+Estado: COMPLETE. REAL_GATE=PASS; MDL12_HUMAN_GATE=PASS;
 MDL12_HUMAN_TESTS=9/9; MIGRATION_0013_DEV=PASS; DRIZZLE_MIGRATIONS=13/13;
-READY_FOR_MDL13=false. Gate humano informado pelo usuário em2026-10-16. Não há
-merge, checkpoint COMPLETE ou início do MDL13. A migration0013 foi autorizada e
+READY_FOR_MDL13=true. Gate humano informado pelo usuário em2026-10-16. Promoção
+verificada em2026-10-19: Back PR11/2717959 e Front PR13/64d3bcb integrados, CIs
+exatas39243412570 e39243421590 SUCCESS. MDL13 usa branches separadas, sem alterar
+checkpoints anteriores. As notas de fechamento abaixo são históricas.
+A migration0013 foi autorizada e
 aplicada exclusivamente ao Supabase `beter-life-dev` em2026-10-16: Drizzle13/13,
 zero pendentes, schema esperado, RLS/ownership e preservação dos dados aprovados.
 O backup lógico de app+Drizzle foi criptografado e sua integridade verificada;

@@ -103,5 +103,20 @@ See [audit, decisions and visual evidence](docs/UIUX_FOUNDATION_V2.md).
 `/finance/inbox`: propostas manuais, filtros/histórico, revisão, edição, alertas de
 duplicidade e confirmação/descarte explícitos. Pendentes/descartados não alteram
 finanças. Usa os contratos TypeBox/Zod oficiais e UI/UX V2.3 azul/verde já aprovada.
-[Fluxos, limites e roteiro humano](docs/FINANCIAL_INBOX.md). Gate real PENDING;
-migration DEV depende de autorização após os testes locais. MDL12 não iniciado.
+[Fluxos, limites e roteiro humano](docs/FINANCIAL_INBOX.md). Gate humano7/7,
+correção de cartões e scrollbars aprovados; MDL11 integrado e0012 DEV aplicada.
+
+## MDL12 — Importação de extratos
+
+MDL12 COMPLETE: CSV/OFX/PDF com prévia e seleção explícita para a Inbox,
+sem contabilização automática. Gate humano9/9 e CIs das mains aprovados após
+os merges Back PR11 e Front PR13.0013 DEV já aplicada; ledger13/13.
+[Retenção e limites](docs/FINANCIAL_FILE_IMPORT.md).
+
+## MDL13 — Conciliação financeira
+
+`/finance/reconciliation`: evidências, movimentos, propostas e histórico separados.
+Captura explícita na prévia de importação; conferência/reversão sem alterar saldo.
+UI/UX V2.3, Auth V2 e scrollbars preservados.0014 não aplicada ao DEV;
+gate humano PENDING, sem PR final/merge/MDL14.
+[Conceitos, retenção e roteiro humano](docs/FINANCIAL_RECONCILIATION.md).

@@ -223,7 +223,7 @@ async function createAccount(page: Page, name: string, initial: string) {
   await page.getByLabel('Nome da conta').fill(name);
   await page.getByLabel('Saldo inicial').fill(initial);
   await page.getByRole('button', { name: 'Criar conta', exact: true }).click();
-  await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
+  await expect(page.locator('#main').getByRole('heading', { name, exact: true })).toBeVisible();
 }
 test('financial empty state → account → categories → income/expense → atomic transfer → reload', async ({
   page,

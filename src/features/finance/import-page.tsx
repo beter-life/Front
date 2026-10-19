@@ -13,6 +13,7 @@ import { useCards } from './card-hooks';
 import { useDebts } from './debt-hooks';
 import { linkedCard } from './card-account-view';
 import { useImportHistory,useImportPreview } from './import-hooks';
+import { EvidenceCapture } from './reconciliation-capture';
 import { importError,importFileBase64,importIssueLabels,importMappingFromForm,importNotice,importStatusLabels,validateImportFile } from './import-view';
 import { ImportBatchSchema,ImportResultSchema,type Account,type Card,type Debt,type ImportBatch,type ImportFormat,type ImportMapInput,type ImportPreview,type ImportResult,type ImportSelect,type ImportUpload } from './contracts.generated';
 import { formatMoney } from './money';
@@ -48,7 +49,7 @@ function Mapping({preview,accounts,cards,debts,onMapped}:{preview:ImportPreview;
   </FormPanel>;
 }
 function Rows({preview,timeZone,onSent}:{preview:ImportPreview;timeZone:string;onSent:(result:ImportResult)=>void}){
-  const {finance}=useServices(),[selected,setSelected]=useState<number[]>([]),[ack,setAck]=useState(false),[error,setError]=useState(''),locked=useRef(false),batch=preview.batch;
+  const {finance}=useServices(),[selected,setSelected]=useState<number[]>([]),[ack,setAck]=useState(false),[error,setError]=useState(''),[captureBusy,setCaptureBusy]=useState(false),locked=useRef(false),batch=preview.batch;
   const mutation=useFinanceMutation<ImportSelect>(input=>finance.selectImport(batch.id,input));
   const possible=preview.rows.some(r=>selected.includes(r.rowNumber)&&r.duplicate==='POSSIBLE');
   return <DataSection aria-label="Prévia do extrato"><SectionHeader title="3. Revise e selecione as linhas"/><p>Nenhuma linha é selecionada automaticamente. A seleção vale para esta página, com até 50 linhas. Confira os valores normalizados e o conteúdo original.</p>
@@ -57,9 +58,9 @@ function Rows({preview,timeZone,onSent}:{preview:ImportPreview;timeZone:string;o
       {row.duplicate==='POSSIBLE'&&<p>Valor e data semelhantes não comprovam duplicidade. Revise antes de selecionar.</p>}{row.duplicate==='PROVEN'&&<p>Esta referência reutiliza a mesma proposta e não cria outra.</p>}
       {row.cells.length>0&&<details><summary>Conteúdo original da linha {row.rowNumber}</summary><dl className="import-cells">{row.cells.map((cell,n)=><div key={n}><dt>{preview.headers[n]||'Coluna '+(n+1)}</dt><dd>{cell||'—'}</dd></div>)}</dl></details>}
       {row.candidateId&&<p><Link className="ui-text-link" to={'/finance/inbox?candidate='+row.candidateId}>Abrir proposta na Caixa de Entrada</Link></p>}
-      {batch.mapping&&<label className="inbox-ack"><input type="checkbox" aria-label={'Selecionar linha '+row.rowNumber} disabled={mutation.isPending||!row.draft||row.issues.length>0||batch.status==='EXPIRED'} checked={selected.includes(row.rowNumber)} onChange={e=>{setSelected(v=>e.target.checked?[...v,row.rowNumber]:v.filter(n=>n!==row.rowNumber));setAck(false);}}/>Selecionar linha {row.rowNumber}{row.duplicate==='PROVEN'?' para reutilizar a proposta existente':''}</label>}
+      {batch.mapping&&<label className="inbox-ack"><input type="checkbox" aria-label={'Selecionar linha '+row.rowNumber} disabled={mutation.isPending||captureBusy||!row.draft||row.issues.length>0||batch.status==='EXPIRED'} checked={selected.includes(row.rowNumber)} onChange={e=>{setSelected(v=>e.target.checked?[...v,row.rowNumber]:v.filter(n=>n!==row.rowNumber));setAck(false);}}/>Selecionar linha {row.rowNumber}{row.duplicate==='PROVEN'?' para reutilizar a proposta existente':''}</label>}
     </td></tr></tbody>)}</table>
-    {batch.mapping&&batch.status!=='EXPIRED'&&<><p role="status">{selected.length} linha(s) selecionada(s).</p>{possible&&<label className="inbox-ack"><input type="checkbox" checked={ack} disabled={mutation.isPending} onChange={e=>setAck(e.target.checked)}/>Revisei as possíveis duplicidades e quero enviar essas propostas mesmo assim.</label>}<div className="ui-form-feedback" aria-live="polite">{error&&<Feedback>{error}</Feedback>}</div><div className="ui-actions"><Button disabled={!selected.length||mutation.isPending||(possible&&!ack)} onClick={async()=>{if(locked.current)return;locked.current=true;setError('');try{onSent(ImportResultSchema.parse(await mutation.mutateAsync({expectedVersion:batch.version,rowNumbers:selected,acknowledgePossibleDuplicates:ack})));}catch(failure){setError(importError(failure));}finally{locked.current=false;}}}>{mutation.isPending?'Enviando…':'Enviar selecionadas à Caixa de Entrada'}</Button></div><p>{importNotice}</p></>}
+    {batch.mapping&&batch.status!=='EXPIRED'&&<><p role="status">{selected.length} linha(s) selecionada(s).</p>{possible&&<label className="inbox-ack"><input type="checkbox" checked={ack} disabled={(mutation.isPending||captureBusy)} onChange={e=>setAck(e.target.checked)}/>Revisei as possíveis duplicidades e quero enviar essas propostas mesmo assim.</label>}<div className="ui-form-feedback" aria-live="polite">{error&&<Feedback>{error}</Feedback>}</div><div className="ui-actions"><Button disabled={!selected.length||(mutation.isPending||captureBusy)||(possible&&!ack)} onClick={async()=>{if(locked.current)return;locked.current=true;setError('');try{onSent(ImportResultSchema.parse(await mutation.mutateAsync({expectedVersion:batch.version,rowNumbers:selected,acknowledgePossibleDuplicates:ack})));}catch(failure){setError(importError(failure));}finally{locked.current=false;}}}>{(mutation.isPending||captureBusy)?'Enviando…':'Enviar selecionadas à Caixa de Entrada'}</Button></div><p>{importNotice}</p><EvidenceCapture batch={batch} selected={selected} disabled={mutation.isPending} onBusy={setCaptureBusy}/></>}
   </DataSection>;
 }
 function Batch({id}:{id:string}){

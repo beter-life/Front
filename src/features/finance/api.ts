@@ -11,6 +11,14 @@ export function createFinanceApi(transport: ApiClient) {
   const budgetPath = (month: string) => base + '/budgets/' + C.BudgetMonthSchema.parse(month);
   const budgetQuery = (currency: C.Currency) => query(C.BudgetCurrencyQuerySchema.parse({ currency }));
   return {
+    reconciliationEvidence:(filters:C.ReconciliationQuery,signal?:AbortSignal)=>transport.request(base+'/reconciliation/evidence'+query(C.ReconciliationQuerySchema.parse(filters)),C.ReconciliationEvidencePageSchema,'GET',undefined,signal),
+    reconciliationMovements:(filters:C.ReconciliationQuery,signal?:AbortSignal)=>transport.request(base+'/reconciliation/movements'+query(C.ReconciliationQuerySchema.parse(filters)),C.ReconciliationMovementPageSchema,'GET',undefined,signal),
+    reconciliationProposals:(filters:C.ReconciliationQuery,signal?:AbortSignal)=>transport.request(base+'/reconciliation/proposals'+query(C.ReconciliationQuerySchema.parse(filters)),C.ReconciliationProposalPageSchema,'GET',undefined,signal),
+    reconciliationHistory:(filters:C.ReconciliationQuery,signal?:AbortSignal)=>transport.request(base+'/reconciliation/history'+query(C.ReconciliationQuerySchema.parse(filters)),C.ReconciliationHistorySchema,'GET',undefined,signal),
+    reconciliationReview:(id:string,signal?:AbortSignal)=>transport.request(base+'/reconciliation/evidence/'+z.uuid().parse(id),C.ReconciliationReviewSchema,'GET',undefined,signal),
+    captureEvidence:(input:C.ReconciliationCapture)=>transport.request(base+'/reconciliation/evidence',C.ReconciliationCapturedSchema,'POST',C.ReconciliationCaptureSchema.parse(input)),
+    confirmReconciliation:(input:C.ReconciliationConfirm)=>transport.request(base+'/reconciliation/matches',C.ReconciliationMatchSchema,'POST',C.ReconciliationConfirmSchema.parse(input)),
+    reverseReconciliation:(id:string,input:C.ReconciliationReverse)=>transport.request(base+'/reconciliation/matches/'+z.uuid().parse(id)+'/reverse',C.ReconciliationMatchSchema,'POST',C.ReconciliationReverseSchema.parse(input)),
     analyzeImport: (input:C.ImportUpload) => transport.request(base+'/imports',C.ImportBatchSchema,'POST',C.ImportUploadSchema.parse(input)),
     importHistory: (filters:C.ImportHistoryQuery={},signal?:AbortSignal) => transport.request(base+'/imports'+query(C.ImportHistoryQuerySchema.parse(filters)),C.ImportHistorySchema,'GET',undefined,signal),
     importPreview: (id:string,filters:C.ImportPageQuery={},signal?:AbortSignal) => transport.request(base+'/imports/'+z.uuid().parse(id)+query(C.ImportPageQuerySchema.parse(filters)),C.ImportPreviewSchema,'GET',undefined,signal),

@@ -8,10 +8,11 @@ describe('single-source navigation', () => {
     for (const group of expandableNavigationGroups) expect(navigationItems.filter(item => item.group === group).length).toBeGreaterThan(1);
     expect(navigationItems.find(item => item.id === 'categories')?.group).toBe('Mais');
   });
-  it('maps all 16 base destinations with account security nested under the profile', () => {
-    expect(navigationItems).toHaveLength(16);
-    expect(new Set(navigationItems.map(item => item.id)).size).toBe(16);
-    expect(new Set(navigationItems.map(item => item.path)).size).toBe(16);
+  it('maps all 17 destinations including reconciliation with account security nested under the profile', () => {
+    expect(navigationItems).toHaveLength(17);
+    expect(new Set(navigationItems.map(item => item.id)).size).toBe(17);
+    expect(new Set(navigationItems.map(item => item.path)).size).toBe(17);
+    expect(navigationItems.find(item=>item.id==='reconciliation')?.path).toBe('/finance/reconciliation');
     expect(navigationItems.filter(item => item.group === 'Conta').map(item => item.id)).toEqual(['profile']);
     for (const item of navigationItems) { expect(navigationGroups).toContain(item.group); expect(item.icon).toBeDefined(); expect(item.keywords.length).toBeGreaterThan(0); }
     expect(mobileNavigation.every(item => navigationItems.some(page => page.id === item.id))).toBe(true);
