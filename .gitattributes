@@ -1,1 +1,3 @@
 src/features/finance/contracts.generated.ts text eol=lf
+# Preserve synthetic PDF fixture/example offsets across platforms.
+*.pdf binary

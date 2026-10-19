@@ -10,3 +10,4 @@ export function inboxDraftFromForm(data:FormData,timeZone:string):InboxDraft {
     accountId:String(data.get('accountId')??'')||null,categoryId:String(data.get('categoryId')??'')||null,
     amountMinor:amount?parseMoney(amount,currency):null,occurredAt:date?toInstant(date,timeZone):null});
 }
+export const inboxSources={MANUAL:'Manual',FILE_CSV:'Arquivo CSV',FILE_OFX:'Arquivo OFX',FILE_PDF:'Arquivo PDF'};

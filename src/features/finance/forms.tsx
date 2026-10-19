@@ -38,6 +38,7 @@ export function FinanceForm({
   reset = true,
   onCancel,
   cancelLabel = 'Cancelar',
+  successMessage = 'Registro salvo.',
 }: {
   submit: (data: FormData) => Promise<unknown>;
   children: ReactNode;
@@ -45,6 +46,7 @@ export function FinanceForm({
   reset?: boolean;
   onCancel?: () => void;
   cancelLabel?: string;
+  successMessage?: string;
 }) {
   const inFlight = useRef(false);
   const [busy, setBusy] = useState(false);
@@ -65,7 +67,7 @@ export function FinanceForm({
         try {
           await submit(data);
           if (reset) form.reset();
-          setMessage('Registro salvo.');
+          setMessage(successMessage);
         } catch (failure) {
           setError(
             failure instanceof ApiError

@@ -1,5 +1,6 @@
 import { useId, useRef, useState, type ComponentProps } from 'react';
-import { Link } from 'react-router';
+import { Link,useSearchParams } from 'react-router';
+import { z } from 'zod';
 import { Plus } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Label } from '../../components/ui/label';
@@ -16,7 +17,7 @@ import { useCards } from './card-hooks';
 import { useDebts } from './debt-hooks';
 import { linkedCard } from './card-account-view';
 import { CardAccountLink } from './card-account-link';
-import { inboxDraftFromForm, inboxIssues, inboxStatuses } from './inbox-view';
+import { inboxDraftFromForm, inboxIssues, inboxStatuses,inboxSources } from './inbox-view';
 import { currencyDigits, InboxItemSchema, type Account, type Card, type Category, type InboxCreate, type InboxEdit, type InboxItem, type InboxQuery, type InboxReview } from './contracts.generated';
 import { formatMoney } from './money';
 import { budgetAmountInput } from './budget-view';
@@ -88,19 +89,21 @@ function Review({id,accounts,cards,categories,timeZone,onClose}:{id:string;accou
   const review=query.data,row=review.candidate;
   if(editing&&row.status==='PENDING')return <ProposalForm initial={row} accounts={accounts} cards={cards} categories={categories} timeZone={timeZone} onSaved={()=>setEditing(false)} onCancel={()=>setEditing(false)}/>;
   return <DataSection aria-label="Revisão da proposta"><SectionHeader title="Revisar proposta"><Button variant="outline" onClick={onClose}>Fechar revisão</Button></SectionHeader>
-    <h3>{row.description}</h3><Badge>{inboxStatuses[row.status]}</Badge><dl className="inbox-details"><div><dt>Valor</dt><dd>{row.amountMinor?formatMoney(row.amountMinor,row.currency):'Ainda não informado'}</dd></div><div><dt>Tipo</dt><dd>{row.type==='INCOME'?'Receita':'Despesa'}</dd></div><div><dt>Data</dt><dd>{row.occurredAt?displayDate(row.occurredAt,timeZone):'Ainda não informada'}</dd></div><div><dt>Conta</dt><dd>{accounts.find(a=>a.id===row.accountId)?.name??'Ainda não associada'}</dd></div><div><dt>Categoria</dt><dd>{categories.find(c=>c.id===row.categoryId)?.name??'Sem categoria'}</dd></div></dl>
+    <h3>{row.description}</h3><Badge>{inboxStatuses[row.status]}</Badge><Badge>{inboxSources[row.source]}</Badge><dl className="inbox-details"><div><dt>Valor</dt><dd>{row.amountMinor?formatMoney(row.amountMinor,row.currency):'Ainda não informado'}</dd></div><div><dt>Tipo</dt><dd>{row.type==='INCOME'?'Receita':'Despesa'}</dd></div><div><dt>Data</dt><dd>{row.occurredAt?displayDate(row.occurredAt,timeZone):'Ainda não informada'}</dd></div><div><dt>Conta</dt><dd>{accounts.find(a=>a.id===row.accountId)?.name??'Ainda não associada'}</dd></div><div><dt>Categoria</dt><dd>{categories.find(c=>c.id===row.categoryId)?.name??'Sem categoria'}</dd></div></dl>
     {linkedCard(cards,row.accountId)&&<CardAccountLink card={linkedCard(cards,row.accountId)!}/>}
     {row.status==='PENDING'?<><Button variant="outline" onClick={()=>setEditing(true)}>Editar proposta</Button><ReviewActions review={review} cards={cards} onRefresh={()=>query.refetch()}/></>:<><Feedback success>{row.status==='CONFIRMED'?'Lançamento confirmado. A referência original será reutilizada em qualquer retry.':'Proposta descartada. Nenhum movimento foi gerado.'}</Feedback>{row.transactionId&&<p><Link className="ui-text-link" to="/finance/transactions">Ver movimentos financeiros</Link></p>}</>}
   </DataSection>;
 }
 export function InboxPage() {
   const [filters,setFilters]=useState<InboxQuery>({status:'PENDING'}),[cursors,setCursors]=useState<{createdAt:string;id:string}[]>([]);
-  const [creating,setCreating]=useState(false),[selected,setSelected]=useState('');
+  const [creating,setCreating]=useState(false),[params,setParams]=useSearchParams();
+  const candidate=params.get('candidate'),selected=z.uuid().safeParse(candidate).success?candidate!:'';
+  const setSelected=(id:string)=>setParams(current=>{const next=new URLSearchParams(current);if(id)next.set('candidate',id);else next.delete('candidate');return next;},{replace:true});
   const accounts=useAccounts(),cards=useCards(),categories=useCategories(),me=useMe(),cursor=cursors.at(-1),list=useInbox({...filters,...(cursor?{cursorAt:cursor.createdAt,cursorId:cursor.id}:{})});
   const knownCards=cards.isSuccess?cards.data:undefined;
   const timeZone=me.data?.profile?.timezone??'UTC';
   const filter=(name:'status'|'currency'|'type',value:string)=>{setCursors([]);setFilters(current=>{const next={...current};delete next[name];return value?{...next,[name]:value}:next;});};
-  return <><PageHeader title="Caixa de entrada financeira" description="Revise suas propostas manuais. Itens pendentes ou descartados não alteram seu dinheiro." actions={<Button disabled={creating||!knownCards||accounts.isPending||categories.isPending||accounts.isError||categories.isError} onClick={()=>{setSelected('');setCreating(true);}}><Plus/>Nova proposta</Button>}/>
+  return <><PageHeader title="Caixa de entrada financeira" description="Revise propostas manuais e importadas. Itens pendentes ou descartados não alteram seu dinheiro." actions={<><Button asChild variant="outline"><Link to="/finance/inbox/import">Importar extrato</Link></Button><Button disabled={creating||!knownCards||accounts.isPending||categories.isPending||accounts.isError||categories.isError} onClick={()=>{setSelected('');setCreating(true);}}><Plus/>Nova proposta</Button></>}/>
     {cards.isPending&&<p role="status">Identificando contas vinculadas a cartões…</p>}
     {cards.isError&&<ErrorState retry={()=>void cards.refetch()}>Informações de vínculo com cartões indisponíveis. Carregue os vínculos antes de criar ou salvar propostas.</ErrorState>}
     {(accounts.isError||categories.isError)&&<ErrorState retry={()=>{void accounts.refetch();void categories.refetch();}}>Não foi possível carregar contas e categorias.</ErrorState>}

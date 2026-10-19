@@ -2,34 +2,35 @@
 
 | Field | Value |
 | --- | --- |
-| MODULE | MDL11 — Financial Ingestion Hub + Financial Inbox |
+| MODULE | MDL12 — Financial File Import (CSV, OFX, PDF) |
+| MDL12_STATUS | REAL_GATE_PASS_PENDING_MERGE |
 | STATUS | REAL_GATE_PASS_PENDING_MERGE |
-| MDL11_STATUS | REAL_GATE_PASS_PENDING_MERGE |
-| REAL_GATE | PASS — seven-flow gate and final card-account UX/scrollbars approved by user |
-| MDL11_HUMAN_GATE | PASS |
-| MDL11_HUMAN_TESTS | 7/7 |
-| READY_FOR_MDL12 | false |
-| PREVIOUS_MODULES | MDL0–MDL10 COMPLETE; UIUX_V2_STATUS=COMPLETE; DESIGN_ITERATION=V2.3_BLUE_GREEN |
-| BASELINE_MAIN | `380cde3c5182a85514301ed34e246612f30d1743`; [exact baseline CI PASS](https://github.com/beter-life/Front/actions/runs/38731697100) |
-| BASELINE_BACK | `8842cfb2e282d354ac88e618547797a9af216242`; [exact baseline CI PASS](https://github.com/beter-life/Back/actions/runs/38731701722) |
-| BRANCH | codex/mdl11-financial-ingestion-hub-inbox; documentary closure/PR preparation authorized; merge requires explicit user release |
-| LAST_TESTED_COMMIT | `b9a03fc09a732c1941f0905581b89ff29ee14577`; exact HEAD CI PASS; closure changes are documentation only |
-| IMPLEMENTATION | Protected /finance/inbox; manual drafts, filters/cursor pagination, review/edit, accounts/categories, duplicate acknowledgement, single-submit confirm/discard and terminal history. Existing V2.3 components/tokens and Auth V2 preserved |
-| CONTRACT | Back TypeBox/OpenAPI → official generated Zod; contract drift PASS. Backend owns financial validation and atomic/idempotent posting. No parallel Finance Core or client-side duplicate heuristic |
-| LOCAL_GATES | Node24.11.1/pnpm11.19.0; fresh lint/typecheck/249 unit+integration/194 browser PASS,4 skips (3 previous+1 touch sidebar). Full desktop/mobile, tablet/keyboard, six-width Light/Dark regression, build/secret scan/harness PASS; seven approved MDL11 flows retained |
-| CARD_ACCOUNT_UX_FIX | PASS automated and approved by user; card.accountId→account.id only, including archived links. Accounts badge/name/detail link; disabled Inbox card options; unavailable/retry instead of false classification; explicit edits preserve old associations; contextual card/debt help uses real links |
-| SCROLLBARS | INCLUDED — page/sidebar overlay indicators validated and approved by user |
-| FINANCIAL_BEHAVIOR_UNCHANGED | PASS; Back source, Finance Core, RLS, migrations and generated contracts unchanged. canConfirm and card tracking-date eligibility remain backend-owned; no hosted requests or financial corrections performed |
-| LOCAL_UI_REFINEMENT | Included page+sidebar floating thumbs: no reserved gutter/padding; higher-contrast themes,36–96px height,24px end margins,2px idle hint,32px proximity/200ms reveal. Native scrolling, independent drag/keyboard, modal lock, reduced motion and native touch/forced-colors fallback preserved |
-| REGRESSION_NOTES | Full249-test local rerun with maxWorkers2 PASS after a calendar lazy-load timeout, without calendar changes. Layout browser test now awaits3 async panels and visible form before measuring, retaining all assertions/no retries or timeout increase; complete V2.3 rerun17 PASS+1 touch skip. See delivery doc for CI evidence |
-| BASELINE | Before MDL11: 131 unit/91 integration, prior179 browser PASS with3 skips; all previous tests retained and navigation expectations extended |
-| PERFORMANCE | Main JS gzip261.70→267.67KB (+5.97KB including presentation refinements); no new dependencies. Existing >500KB chunk warning retained. Back synthetic2000-proposal bounds/core read regression PASS |
-| SECURITY | JWT remains in existing Auth boundary; no owner payload, credentials/financial data/fingerprint logging or hosted fixtures. Private query cache and logout behavior preserved |
-| SUPABASE_DEV | Authorized0012 deployment snapshot:12/12, ACTIVE_HEALTHY, verify-full/CA/hostname and24-table preservation PASS; encrypted backup verified locally. Original human gate later PASS. No new hosted reads/writes, migrations or Auth changes for this UX task |
-| LOCAL_APP | Front3101 /finance/accounts and /finance/inbox ready for visual review; latest original human seven-flow gate PASS per user. Prior deployment health/guard checks remain documented in FINANCIAL_INBOX.md |
-| CI | [Front b9a03fc CI PASS](https://github.com/beter-life/Front/actions/runs/38773621856); [Back dd17779 CI PASS](https://github.com/beter-life/Back/actions/runs/38770011019). Documentary HEAD and PR checks must pass before promotion |
-| CHECKPOINT | Existing DEV tag checkpoint/mdl11-financial-ingestion-hub-inbox-dev-2026-10-15 preserved, not moved; no COMPLETE checkpoint |
-| LIMITS | Chromium/emulated mobile; no complete screen-reader/WCAG/physical-device/Safari/Firefox certification. Manual source only; no CSV/OFX/PDF, email ingestion, AI or voice |
-| HUMAN_GATE | MDL11:7/7 PASS; linked-card identification, card UX and included scrollbars also approved by user; Finance Core preserved |
-| BLOCKERS | Promotion awaits exact documentary HEAD/PR checks and explicit user merge authorization; no remaining human UX validation |
-| NEXT | Publish documentary closure and separate PR to main, verify checks/conflicts, then request final promotion release. No automatic merge, COMPLETE checkpoint or MDL12 |
+| REAL_GATE | PASS |
+| MDL12_HUMAN_GATE | PASS |
+| MDL12_HUMAN_TESTS | 9/9 |
+| READY_FOR_MDL13 | false |
+| HUMAN_APPROVAL | User reported PASS for all nine scenarios: CSV/OFX/PDF, normalization, preview, duplicate detection, Inbox, financial isolation and ownership; recorded2026-10-16. No extra hosted fixtures or financial actions by the agent |
+| BRANCH | codex/mdl12-financial-file-import |
+| BASELINE | Fetched main unchanged at Back0b039738287b10c94ac3ae1074bbb495852f81bc and Frontce0d7322a36e45240fb4e726bf1fef43ea47fd7c; each main is an ancestor of its MDL12 branch; no unexpected divergence |
+| MIGRATION_0013_DEV | PASS |
+| DRIZZLE_MIGRATIONS | 13/13 |
+| DEPLOYMENT_EVIDENCE | Previously authorized deployment of0013 from Backd262b26adc4ce843d09474f0ac67a403d025d3ee, verified2026-10-16. Ledger13/13 and zero pending; expected DDL/RLS/ownership/history guards exact; all25 prior table counts/digests preserved and zero financial changes caused by migration. These are deployment-time observations; no DEV operation repeated during closure |
+| PREVIEW_EXPIRATION_EVIDENCE | Automated PostgreSQL test advances the injected clock by86400001ms, observes EXPIRED and parsed=NULL/parsed_bytes=0, retains receipt/candidate identity, and recovers the same batch without duplication. Front integration/Playwright cover expired UI using fixtures. Links and limits in FINANCIAL_FILE_IMPORT.md; no separate24h wall-clock DEV observation claimed |
+| RETENTION_LIMIT | Logical expiry at24h; physical parsed-cell cleanup on subsequent owner access/new analysis, without a background cleanup scheduler. Minimal receipts remain; no proof of deletion exactly at the wall-clock deadline |
+| BACKUP_RESTORE_TEST | NOT_RUN — authenticated decryption, archive hashes/TOC/full read passed; restoring into a database and validating recovery remains an operational task |
+| BACKUP_SCOPE | Application app+Drizzle backup only, AES-256-GCM and Windows DPAPI CurrentUser key, restricted ACL. Supabase-managed Auth/Storage/roles excluded. Preserve ignored Back/.harness/tmp/mdl12-dev-deployment/backup-verified and RECOVERY.md; key recovery needs this Windows profile/machine |
+| LEAKED_PASSWORD_PROTECTION | DISABLED_PREEXISTING — prior Supabase advisor finding, recorded during deployment; Auth settings unchanged. Remediation link in FINANCIAL_FILE_IMPORT.md; no new DEV query |
+| LIMITATIONS | Documented CSV/OFX variants only; digital PDF layout only, no OCR, no complete bank reconciliation; worker heap limit is not OS RSS isolation. Automated Chromium desktop/mobile emulation and keyboard coverage do not certify all real devices, browsers, screen readers or WCAG conformance |
+| PRESERVATION | Finance Core, financial records, Auth V2, RLS, all migrations including deployed0013, Inbox identifiers/sources and Beter Life branding unchanged by closure; env/backup evidence remain ignored |
+| LOCAL_GATES | Closure:144 unit/117 integration, lint, typecheck, build, secret scan and harness PASS. Full local Playwright:205 PASS/1 FAIL/4 existing skips; failing desktop outer-panel case PASS in isolated traced run without code changes. Complete suite SUCCESS on final branch and PR CI is mandatory before delivery; the failed local run is not called PASS |
+| REGRESSION_DIAGNOSTIC | Initial local integration116/117: existing lazy-calendar grid did not load within10s. Isolated unchanged date-input4/4 and complete integration rerun117/117 PASS, preserving the first failure log; no code/assertion/timeout/automatic-retry changes |
+| BROWSER_DIAGNOSTIC | Initial complete run lost the browser execution context during navigation in blue-green.spec.ts:65;205 tests passed and4 skipped. Original log/screenshot/context preserved; isolated traced case1/1 PASS. Root cause not proven. Final full branch/PR CI must resolve this gate, without masking or dropping the test |
+| PUBLICATION | Only closure documentation and two synthetic documentation examples are eligible for commits. Publish existing branches without force; verify final branch/PR CI on actual final HEADs. PR descriptions and delivery record carry final SHAs/run links, not the initial deployment SHAs |
+| PROMOTION | Two MDL12 PRs to main are authorized; merge requires a new explicit user instruction. No new COMPLETE checkpoint, MDL13 or automatic merge |
+| OPERATIONAL_PENDING | Isolated backup restoration test; separate security-setting review for leaked-password protection; optional wall-clock24h/cleanup observation and broader real-device/accessibility evaluation |
+| NEXT | Finish local/branch/PR checks, then await explicit user authorization for final promotion; READY_FOR_MDL13 remains false |
+| LAST_TESTED_SOURCE | 90a051fea822a23f65e9a6dd853a77a492fae682; subsequent closure changes are documentation/examples only |
+| IMPLEMENTATION | Protected /finance/inbox/import; bounded upload, explicit mapping and eligible account selection, preview50 rows, explicit selection/duplicate acknowledgement, pending Inbox links, reload/history/expiry, V2.3 themes and responsive layout |
+| INBOX_INTEGRATION | Import never posts directly. Existing MDL11 separate confirmation is the only financial step; source badges FILE_CSV/FILE_OFX/FILE_PDF and candidate deep links retain their identifiers |
+| SOURCE_CI | Initial deployment HEADdb96305: [PASS38913653564](https://github.com/beter-life/Front/actions/runs/38913653564). Final closure CI is verified independently on the new HEAD; [branch runs](https://github.com/beter-life/Front/actions?query=branch%3Acodex%2Fmdl12-financial-file-import) |
+| HUMAN_GUIDE | [Nine approved scenarios, formats and evidence](./FINANCIAL_FILE_IMPORT.md); synthetic-only examples under docs/examples/imports/ |

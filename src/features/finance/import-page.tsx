@@ -1,0 +1,81 @@
+import { useId,useRef,useState } from 'react';
+import { Link,useSearchParams } from 'react-router';
+import { z } from 'zod';
+import { Button } from '../../components/ui/button';
+import { Label } from '../../components/ui/label';
+import { Badge,DataSection,EmptyState,ErrorState,FormPanel,LoadingSkeleton,PageHeader,SectionHeader } from '../../components/ui/surface';
+import { Feedback } from '../../components/feedback';
+import { useServices } from '../../hooks/use-services';
+import { useMe } from '../../profile/hooks';
+import { Field,FinanceForm } from './forms';
+import { useAccounts,useFinanceMutation } from './hooks';
+import { useCards } from './card-hooks';
+import { useDebts } from './debt-hooks';
+import { linkedCard } from './card-account-view';
+import { useImportHistory,useImportPreview } from './import-hooks';
+import { importError,importFileBase64,importIssueLabels,importMappingFromForm,importNotice,importStatusLabels,validateImportFile } from './import-view';
+import { ImportBatchSchema,ImportResultSchema,type Account,type Card,type Debt,type ImportBatch,type ImportFormat,type ImportMapInput,type ImportPreview,type ImportResult,type ImportSelect,type ImportUpload } from './contracts.generated';
+import { formatMoney } from './money';
+import { displayDate } from './dates';
+
+function Upload({onAnalyzed}:{onAnalyzed:(batch:ImportBatch)=>void}){
+  const {finance}=useServices(),key=useRef(crypto.randomUUID()),[file,setFile]=useState<File|null>(null),[format,setFormat]=useState<ImportFormat>('CSV'),[localError,setLocalError]=useState('');
+  const analyze=useFinanceMutation<ImportUpload>(input=>finance.analyzeImport(input));
+  const choose=useId();
+  return <FormPanel aria-label="Enviar extrato"><SectionHeader title="1. Escolha o arquivo"/>
+    <p>Até 2 MiB e 1.000 linhas. CSV com cabeçalho; OFX bancário; PDF digital no layout simples descrito abaixo. Nenhum arquivo original será armazenado.</p>
+    <FinanceForm reset={false} successMessage="Arquivo analisado. Revise o mapeamento e a prévia." button="Analisar arquivo" submit={async data=>{setLocalError('');if(!file)throw new Error('Escolha um arquivo.');validateImportFile(file,format);const dataBase64=await importFileBase64(file);try{onAnalyzed(ImportBatchSchema.parse(await analyze.mutateAsync({fileName:file.name,format,dataBase64,idempotencyKey:key.current,encoding:format==='CSV'?data.get('encoding') as ImportUpload['encoding']:'UTF8',delimiter:format==='CSV'?data.get('delimiter') as ImportUpload['delimiter']:'AUTO'})));}catch(error){setLocalError(importError(error));throw new Error('A análise não foi concluída. Você pode tentar novamente.',{cause:error});}}}>
+      <div className="finance-field"><Label htmlFor={choose}>Formato do extrato</Label><select id={choose} className="finance-select" value={format} onChange={e=>{setFormat(e.target.value as ImportFormat);key.current=crypto.randomUUID();}}><option>CSV</option><option>OFX</option><option>PDF</option></select></div>
+      <Field label="Arquivo do extrato" type="file" accept=".csv,.ofx,.pdf" required onChange={e=>{setFile(e.target.files?.[0]??null);key.current=crypto.randomUUID();setLocalError('');}}/>
+      {format==='CSV'&&<><Field label="Codificação do CSV" name="encoding" defaultValue="UTF8"><option value="UTF8">UTF-8 (recomendado)</option><option value="WINDOWS1252">Windows-1252 (arquivo antigo)</option></Field>
+      <Field label="Separador do CSV" name="delimiter" defaultValue="AUTO"><option value="AUTO">Detectar vírgula ou ponto e vírgula</option><option value=";">Ponto e vírgula</option><option value=",">Vírgula</option></Field></>}
+    </FinanceForm>{localError&&<Feedback>{localError}</Feedback>}
+    <details className="import-help"><summary>Formatos e limites de leitura</summary><p>CSV: datas e números exigem formato explícito na próxima etapa. Valores negativos representam despesas e positivos representam receitas, ou use uma coluna de tipo. Identificador externo é opcional e deve ser único por movimento nesta conta.</p><p>OFX: um extrato bancário SGML/XML. Cartões, investimentos, transferências e operações desconhecidas usam seus próprios fluxos.</p><p>PDF: até 10 páginas de texto, título EXTRATO, MOEDA: BRL (ou outra moeda), cabeçalho DATA DESCRICAO VALOR e linhas como 16/10/2026 Mercado -12,34. Não há OCR ou suporte a PDFs protegidos por senha.</p><p>Prévia disponível por 24 horas; após isso, envie o mesmo arquivo para recuperá-la. Referências das propostas permanecem no histórico. Datas sem hora usam meio-dia no fuso do perfil.</p></details>
+  </FormPanel>;
+}
+function Mapping({preview,accounts,cards,debts,onMapped}:{preview:ImportPreview;accounts:Account[];cards:Card[];debts:Debt[];onMapped:()=>void}){
+  const {finance}=useServices(),batch=preview.batch,mutation=useFinanceMutation<ImportMapInput>(input=>finance.mapImport(batch.id,input)),m=batch.mapping;
+  return <FormPanel aria-label="Mapear extrato"><SectionHeader title="2. Confirme conta e formatos"/><p>A conta é escolhida por você. {batch.accountHint&&'Referência no arquivo: '+batch.accountHint+'. '}A moeda da conta deve corresponder às linhas. Cartões e dívidas gerenciadas usam seus próprios fluxos.</p>
+    <FinanceForm reset={false} button="Validar mapeamento e gerar prévia" submit={async data=>{const input=importMappingFromForm(data,batch.version,batch.format);try{await mutation.mutateAsync(input);onMapped();}catch(error){throw new Error(importError(error),{cause:error});}}}>
+      <Field label="Conta de destino das propostas" name="accountId" required defaultValue={m?.accountId??''}><option value="">Escolha uma conta</option>{accounts.map(a=>{const disabled=!a.isActive||!['checking','savings','cash','other'].includes(a.type)||!!linkedCard(cards,a.id)||debts.some(d=>d.accountId===a.id);return <option key={a.id} value={a.id} disabled={disabled}>{a.name} · {a.currency}{disabled?' (indisponível para importação)':''}</option>;})}</Field>
+      {batch.format==='CSV'?<>
+        <Field label="Formato das datas" name="dateFormat" required defaultValue={m?.dateFormat??''}><option value="">Escolha explicitamente</option><option value="DMY">Dia/mês/ano (16/10/2026)</option><option value="MDY">Mês/dia/ano (10/16/2026)</option><option value="ISO">ISO (2026-10-16)</option></Field>
+        <Field label="Formato dos números" name="numberFormat" required defaultValue={m?.numberFormat??''}><option value="">Escolha explicitamente</option><option value="BR">Vírgula decimal: 1.234,56</option><option value="INT">Ponto decimal: 1,234.56</option></Field>
+        <Field label="Como identificar receita e despesa" name="amountMode" required defaultValue={m?.amountMode??''}><option value="">Escolha explicitamente</option><option value="SIGNED">Sinal: negativo = despesa, positivo = receita</option><option value="TYPE_COLUMN">Coluna de tipo (receita/despesa)</option></Field>
+        {([['date','Coluna de data',true],['description','Coluna de descrição',true],['amount','Coluna de valor',true],['type','Coluna de tipo',false],['currency','Coluna de moeda',false],['externalId','Identificador externo único',false]] as const).map(([name,label,required])=><Field key={name} label={label} name={name} required={required} defaultValue={m?.columns[name]??''}><option value="">{required?'Escolha uma coluna':'Não usar'}</option>{preview.headers.map((h,n)=><option key={n} value={n}>{n+1}. {h||'(sem título)'}</option>)}</Field>)}
+      </>:<p className="import-full">Colunas e formatos de {batch.format} são fixos para preservar a semântica do extrato.</p>}
+    </FinanceForm>
+  </FormPanel>;
+}
+function Rows({preview,timeZone,onSent}:{preview:ImportPreview;timeZone:string;onSent:(result:ImportResult)=>void}){
+  const {finance}=useServices(),[selected,setSelected]=useState<number[]>([]),[ack,setAck]=useState(false),[error,setError]=useState(''),locked=useRef(false),batch=preview.batch;
+  const mutation=useFinanceMutation<ImportSelect>(input=>finance.selectImport(batch.id,input));
+  const possible=preview.rows.some(r=>selected.includes(r.rowNumber)&&r.duplicate==='POSSIBLE');
+  return <DataSection aria-label="Prévia do extrato"><SectionHeader title="3. Revise e selecione as linhas"/><p>Nenhuma linha é selecionada automaticamente. A seleção vale para esta página, com até 50 linhas. Confira os valores normalizados e o conteúdo original.</p>
+    <table className="import-table"><caption>Linhas do extrato</caption><thead><tr><th scope="col">Linha</th><th scope="col">Descrição e data</th><th scope="col">Movimento</th><th scope="col">Situação</th></tr></thead>{preview.rows.map(row=><tbody key={row.rowNumber}><tr><th scope="row">Linha {row.rowNumber}</th><td>{row.draft?<><strong>{row.draft.description}</strong><p>{displayDate(row.draft.occurredAt!,timeZone)}</p></>:<span>{batch.status==='EXPIRED'?'Prévia expirada':'Aguardando validação'}</span>}</td><td>{row.draft?`${row.draft.type==='EXPENSE'?'Despesa':'Receita'} · ${formatMoney(row.draft.amountMinor!,row.draft.currency)}`:'—'}</td><td><Badge>{row.duplicate==='PROVEN'?'Referência já identificada':row.duplicate==='POSSIBLE'?'Possível duplicidade':row.duplicate==='CONFLICT'?'Identificador divergente':row.draft?'Pronta para seleção':'Revisão necessária'}</Badge></td></tr><tr><td colSpan={4}>
+      {!!row.issues.length&&<ul className="inbox-issues">{row.issues.map(issue=><li key={issue}>{importIssueLabels[issue]}</li>)}</ul>}
+      {row.duplicate==='POSSIBLE'&&<p>Valor e data semelhantes não comprovam duplicidade. Revise antes de selecionar.</p>}{row.duplicate==='PROVEN'&&<p>Esta referência reutiliza a mesma proposta e não cria outra.</p>}
+      {row.cells.length>0&&<details><summary>Conteúdo original da linha {row.rowNumber}</summary><dl className="import-cells">{row.cells.map((cell,n)=><div key={n}><dt>{preview.headers[n]||'Coluna '+(n+1)}</dt><dd>{cell||'—'}</dd></div>)}</dl></details>}
+      {row.candidateId&&<p><Link className="ui-text-link" to={'/finance/inbox?candidate='+row.candidateId}>Abrir proposta na Caixa de Entrada</Link></p>}
+      {batch.mapping&&<label className="inbox-ack"><input type="checkbox" aria-label={'Selecionar linha '+row.rowNumber} disabled={mutation.isPending||!row.draft||row.issues.length>0||batch.status==='EXPIRED'} checked={selected.includes(row.rowNumber)} onChange={e=>{setSelected(v=>e.target.checked?[...v,row.rowNumber]:v.filter(n=>n!==row.rowNumber));setAck(false);}}/>Selecionar linha {row.rowNumber}{row.duplicate==='PROVEN'?' para reutilizar a proposta existente':''}</label>}
+    </td></tr></tbody>)}</table>
+    {batch.mapping&&batch.status!=='EXPIRED'&&<><p role="status">{selected.length} linha(s) selecionada(s).</p>{possible&&<label className="inbox-ack"><input type="checkbox" checked={ack} disabled={mutation.isPending} onChange={e=>setAck(e.target.checked)}/>Revisei as possíveis duplicidades e quero enviar essas propostas mesmo assim.</label>}<div className="ui-form-feedback" aria-live="polite">{error&&<Feedback>{error}</Feedback>}</div><div className="ui-actions"><Button disabled={!selected.length||mutation.isPending||(possible&&!ack)} onClick={async()=>{if(locked.current)return;locked.current=true;setError('');try{onSent(ImportResultSchema.parse(await mutation.mutateAsync({expectedVersion:batch.version,rowNumbers:selected,acknowledgePossibleDuplicates:ack})));}catch(failure){setError(importError(failure));}finally{locked.current=false;}}}>{mutation.isPending?'Enviando…':'Enviar selecionadas à Caixa de Entrada'}</Button></div><p>{importNotice}</p></>}
+  </DataSection>;
+}
+function Batch({id}:{id:string}){
+  const [offset,setOffset]=useState(0),[result,setResult]=useState<ImportResult|null>(null),query=useImportPreview(id,offset),accounts=useAccounts(),cards=useCards(),debts=useDebts(),me=useMe();
+  if(query.isPending)return <LoadingSkeleton label="Carregando prévia do extrato…"/>;
+  if(query.isError)return <ErrorState retry={()=>void query.refetch()}>Não foi possível carregar esta importação. Confira a sessão e tente novamente.</ErrorState>;
+  const p=query.data,b=p.batch;
+  return <><DataSection aria-label="Resumo da importação"><SectionHeader title={b.fileName}><Button variant="outline" disabled={query.isFetching} onClick={()=>void query.refetch()}>Atualizar prévia</Button></SectionHeader><Badge>{importStatusLabels[b.status]}</Badge><p>{b.rowCount} linha(s) no arquivo · {b.importedCount} referência(s) enviada(s). Prévia até {displayDate(b.expiresAt,me.data?.profile?.timezone??'UTC')}.</p>{b.issues.map(issue=><Feedback key={issue}>{importIssueLabels[issue]}</Feedback>)}{b.status==='EXPIRED'&&<Feedback>A prévia expirou. Envie o mesmo arquivo para recuperá-la; as propostas já criadas serão reutilizadas.</Feedback>}{b.importedCount>0&&<p>O mapeamento está bloqueado porque já existem propostas desta importação.</p>}</DataSection>
+    {result&&<DataSection aria-label="Propostas enviadas"><SectionHeader title="Propostas disponíveis na Caixa de Entrada"/><Feedback success>{importNotice}</Feedback><ul>{result.items.map(item=><li key={item.rowNumber}>Linha {item.rowNumber}{item.reused?' · referência reutilizada':''}: <Link className="ui-text-link" to={'/finance/inbox?candidate='+item.candidateId}>Revisar proposta</Link></li>)}</ul></DataSection>}
+    {['NEEDS_MAPPING','READY'].includes(b.status)&&b.importedCount===0&&((accounts.isPending||cards.isPending||debts.isPending)?<LoadingSkeleton label="Carregando contas e vínculos…"/>:(accounts.isError||cards.isError||debts.isError)?<ErrorState retry={()=>{void accounts.refetch();void cards.refetch();void debts.refetch();}}>Não foi possível verificar as contas e vínculos. O mapeamento está bloqueado até carregar essas informações.</ErrorState>:<Mapping key={b.version} preview={p} accounts={accounts.data} cards={cards.data} debts={debts.data} onMapped={()=>setOffset(0)}/>)}
+    {!!p.rows.length&&<Rows key={b.version+':'+offset} preview={p} timeZone={me.data?.profile?.timezone??'UTC'} onSent={setResult}/>}
+    <div className="ui-actions"><Button variant="outline" disabled={offset===0||query.isFetching} onClick={()=>setOffset(n=>Math.max(0,n-50))}>Linhas anteriores</Button><Button variant="outline" disabled={p.nextOffset===null||query.isFetching} onClick={()=>setOffset(p.nextOffset!)}>Próximas linhas</Button></div>
+  </>;
+}
+function History({onOpen}:{onOpen:(id:string)=>void}){
+  const [cursors,setCursors]=useState<{createdAt:string;id:string}[]>([]),cursor=cursors.at(-1),query=useImportHistory(cursor?{cursorAt:cursor.createdAt,cursorId:cursor.id}:{});
+  return <DataSection aria-label="Histórico de importações"><SectionHeader title="Histórico de importações"/>{query.isPending?<LoadingSkeleton label="Carregando histórico…"/>:query.isError?<ErrorState retry={()=>void query.refetch()}>Histórico indisponível.</ErrorState>:<>{!query.data.items.length?<EmptyState title="Nenhum extrato importado">Envie seu primeiro arquivo para revisar as linhas antes de criar propostas.</EmptyState>:<ul className="inbox-list">{query.data.items.map(b=><li key={b.id}><div><h3>{b.fileName}</h3><p>{b.format} · {b.rowCount} linha(s) · {b.importedCount} referência(s)</p><Badge>{importStatusLabels[b.status]}</Badge></div><Button variant="outline" aria-label={'Abrir importação '+b.fileName} onClick={()=>onOpen(b.id)}>Abrir importação</Button></li>)}</ul>}<div className="ui-actions"><Button variant="outline" disabled={!cursors.length} onClick={()=>setCursors(c=>c.slice(0,-1))}>Histórico anterior</Button><Button variant="outline" disabled={!query.data.nextCursor} onClick={()=>setCursors(c=>[...c,query.data.nextCursor!])}>Mais importações</Button></div></>}</DataSection>;
+}
+export function ImportPage(){const [params,setParams]=useSearchParams(),raw=params.get('batch'),id=z.uuid().safeParse(raw).success?raw!:'';const open=(batch:string)=>setParams({batch});return <><PageHeader title="Importar extrato" description={importNotice} actions={<Button asChild variant="outline"><Link to="/finance/inbox">Voltar à Caixa de Entrada</Link></Button>}/><Upload onAnalyzed={b=>open(b.id)}/>{raw&&!id&&<Feedback>A referência da importação é inválida. Escolha um arquivo ou abra o histórico.</Feedback>}{id&&<Batch key={id} id={id}/>}<History onOpen={open}/></>;}

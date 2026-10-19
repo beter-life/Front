@@ -1,0 +1,4 @@
+data;descricao;valor;tipo;moeda;id
+16/10/2026;Mercado sintetico;-12,34;EXPENSE;BRL;synthetic-csv-1
+16/10/2026;Receita sintetica;+150,00;INCOME;BRL;synthetic-csv-2
+16/10/2026;Saldo final;137,66;INCOME;BRL;synthetic-not-a-movement
