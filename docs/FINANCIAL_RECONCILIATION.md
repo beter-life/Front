@@ -62,6 +62,23 @@ ações; retry após falha conserva a chave. Desfazer exige confirmação própr
 preserva IDs/histórico. Repetir uma reversão antiga não desfaz uma conciliação nova.
 Mudanças posteriores no lançamento invalidam a conferência sem correção automática.
 
+## Evidências automatizadas de entrega
+
+Fonte testada: Frontc1137032c7f37fefa65cbce017eb976598609b37 e
+Back6fa33bfb8477cb259f0df24f6e34229957347f12. Front278 unit/integration PASS;
+Playwright completo214 PASS/4 skips condicionais preexistentes, sem retries novos,
+timeouts ampliados ou remoção de verificações. Back302 unit+217 PostgreSQL17 PASS.
+Lint, tipos, build, OpenAPI/drift, secret scan e harness PASS; sem nova dependência.
+CI deve corresponder ao HEAD publicado, não ao merge anterior. O checkpoint final
+altera somente documentação; o gate humano continua PENDING.
+
+Diagnóstico preservado localmente em logs ignorados: a primeira rodada concorrente
+teve dois timeouts de bootstrap/login, aprovados depois isoladamente sem mudança
+em Auth. A rodada com tracing revelou um seletor antigo ambíguo (“Principal” na
+sidebar e na conta), corrigido somente pelo escopo `#main`, e timeout no inventário
+visual com tracing. A suíte completa normal com fonte congelada passou. Todos os
+cenários financeiros e seus limites/assertions originais foram preservados.
+
 ## Gate humano — somente após autorização e implantação DEV0014
 
 Não executar automaticamente. O usuário deve escolher explicitamente uma conta
